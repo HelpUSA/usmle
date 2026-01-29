@@ -1,3 +1,26 @@
+/**
+ * Attempt Route (POST)
+ *
+ * 📍 Localização:
+ * src/app/api/sessions/[sessionId]/items/[sessionItemId]/attempt/route.ts
+ *
+ * Responsabilidade:
+ * - Registrar (ou atualizar) a tentativa do usuário para um item da sessão
+ * - Calcular resultado (correct/wrong/skipped) consultando question_choices.is_correct
+ *
+ * Contrato:
+ * - POST /api/sessions/:sessionId/items/:sessionItemId/attempt
+ *
+ * Regras importantes:
+ * - Requer autenticação (NextAuth) ou header dev x-user-id
+ * - Só permite tentativa quando a sessão estiver em status "in_progress"
+ * - Upsert por session_item_id: se já existir attempt, atualiza; senão, insere
+ *
+ * Observação:
+ * - Ajuste de tipagem para build (Vercel/TS): evitamos depender de rowCount (que pode ser null)
+ *   e usamos rows.length, que é sempre seguro.
+ */
+
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { withTx } from "@/lib/db";
@@ -34,7 +57,7 @@ export async function POST(
         [sessionId]
       );
 
-      if (sRes.rowCount === 0) {
+      if (sRes.rows.length === 0) {
         return { status: 404 as const, payload: { error: "Session not found" } };
       }
 
@@ -67,7 +90,7 @@ export async function POST(
         [sessionItemId, sessionId]
       );
 
-      if (itemRes.rowCount === 0) {
+      if (itemRes.rows.length === 0) {
         return {
           status: 404 as const,
           payload: { error: "Session item not found for this session" },
@@ -96,7 +119,7 @@ export async function POST(
           [selectedChoiceId, item.question_version_id]
         );
 
-        if (choiceRes.rowCount === 0) {
+        if (choiceRes.rows.length === 0) {
           return {
             status: 422 as const,
             payload: {
@@ -123,7 +146,8 @@ export async function POST(
 
       let attemptRow: any;
 
-      if (existingAttempt.rowCount > 0) {
+      // ✅ TS-safe (Vercel): usar rows.length
+      if (existingAttempt.rows.length > 0) {
         const attemptId = existingAttempt.rows[0].attempt_id as string;
 
         const upd = await client.query(
@@ -201,7 +225,7 @@ export async function POST(
         [item.question_version_id]
       );
 
-      if (qRes.rowCount === 0) {
+      if (qRes.rows.length === 0) {
         return {
           status: 500 as const,
           payload: { error: "question_version not found (data integrity)" },
