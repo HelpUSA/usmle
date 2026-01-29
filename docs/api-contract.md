@@ -16,7 +16,7 @@ O usuário cola o arquivo inteiro.
 
 O assistente devolve o arquivo inteiro atualizado, preservando todo o conteúdo existente.
 
-Trabalhar parte por parte:
+Trabalhar parte por parte
 
 1 alteração
 
@@ -24,34 +24,50 @@ Trabalhar parte por parte:
 
 retorno do usuário
 
-Só avançar para o próximo passo após confirmação do teste.
+⚠️ Só avançar para o próximo passo após confirmação do teste.
 
 ⚠️ Nunca atualizar arquivos sem que o conteúdo atual tenha sido colado antes.
 
 1) Stack / Arquitetura (atual)
 
-Next.js (App Router)
+Framework: Next.js (App Router)
 
-NextAuth: v4.x (confirmado: 4.24.13)
+Auth: NextAuth v4.x
 
-Autenticação:
-
-Browser: sessão via NextAuth v4 (getServerSession)
-
-Dev/Testes: header x-user-id
+Confirmado em produção: 4.24.13
 
 Banco de dados: PostgreSQL
-
-Acesso ao banco:
-
-Helper withTx (transação + client.query)
 
 ORM: Prisma (schema já existente no projeto)
 
 Validação: Zod
 
-Client HTTP helper:
+Autenticação
 
+Browser / Produção
+
+Sessão via NextAuth v4
+
+Uso de getServerSession(authOptions)
+
+Dev / Testes
+
+Header forçado:
+
+x-user-id: <UUID>
+
+
+Quando presente, ignora completamente o NextAuth.
+
+Acesso ao banco
+
+Helper obrigatório: withTx
+
+Todas as queries via client.query
+
+Sempre dentro de transação
+
+Client HTTP helper
 src/lib/apiClient.ts
 
 2) Estrutura de pastas (snapshot real – atualizado)
@@ -111,18 +127,17 @@ Header de desenvolvimento
 x-user-id: <UUID>
 
 
-Quando presente, ignora completamente NextAuth.
+Quando presente → ignora NextAuth
+
+Usado para testes locais, Postman, PowerShell, CI
 
 Browser / Produção
 
-Usa sessão NextAuth v4
+Sessão NextAuth v4
 
 Sessão obtida via:
 
 getServerSession(authOptions)
-
-
-O email do usuário é usado para gerar um UUID determinístico.
 
 Regra de geração do user_id
 
@@ -136,7 +151,8 @@ gerar UUID determinístico a partir do email
 
 usar esse UUID como user_id no Postgres
 
-Resultado: o mesmo usuário (email) sempre gera o mesmo UUID.
+📌 Resultado:
+O mesmo usuário (email) sempre gera o mesmo UUID.
 
 4) Endpoints (API Contract)
 4.1 Sessions
@@ -145,12 +161,15 @@ POST /api/sessions
 Cria uma nova sessão (status = in_progress).
 
 Request body (OBRIGATÓRIO)
+
 {
   "exam": "step1",
   "mode": "practice" | "timed_block" | "exam_sim"
 }
 
+
 Response (exemplo real)
+
 {
   "session_id": "2ebe4f1c-94e1-4c0e-a74f-4222e3649ba9",
   "user_id": "11111111-1111-1111-1111-111111111111",
@@ -170,8 +189,8 @@ Lista sessões do usuário autenticado.
 
 POST /api/sessions/:sessionId/items
 
-Gera itens da sessão.
-Idempotente.
+Gera os itens da sessão.
+✅ Idempotente
 
 POST /api/sessions/:sessionId/submit
 
@@ -187,9 +206,9 @@ Retorna o review completo da sessão.
 
 ⚠️ Regra importante
 
-A sessão DEVE estar com status = submitted
+A sessão DEVE estar com status = submitted.
 
-Caso contrário, retorna erro:
+Caso contrário:
 
 {
   "error": "Session must be submitted to review"
@@ -200,37 +219,39 @@ GET /api/session-items/:sessionItemId/question
 
 Retorna:
 
-stem da questão
+stem
 
 alternativas
-
-sem indicar a correta
+❌ Sem indicar a correta
 
 POST /api/sessions/:sessionId/items/:sessionItemId/attempt
 
 Salva tentativa da questão.
-Máximo 1 tentativa por item (idempotente).
+
+Máximo 1 tentativa por item
+
+Endpoint idempotente
 
 4.3 User Stats
 GET /api/me/stats?range=30
 
 Considera apenas sessões submitted
 
-range em dias (1–365, default 30)
+range: 1–365 dias (default = 30)
 
 4.4 Endpoints utilitários (DEV / Infra)
 GET /api/health
 
-Healthcheck simples da API
+Healthcheck simples da API.
 
 GET /api/debug/headers
 
-Retorna headers recebidos (útil para validar x-user-id)
+Retorna headers recebidos (validação de x-user-id).
 
 POST /api/dev/seed-minimal
 
-Seed mínimo para desenvolvimento
-Não usar em produção
+Seed mínimo para desenvolvimento.
+❌ Nunca usar em produção
 
 5) Modelo de dados (confirmado por queries reais)
 sessions
@@ -296,23 +317,32 @@ Revisar sessão
 Consultar estatísticas
 
 7) Linha do tempo resumida
-
 2026-01-28
 
 Bug crítico: auth is not a function
 
-Correção de NextAuth v5 → v4
+Correção: NextAuth v5 → v4
 
-Confirmação prática do fluxo:
+Confirmações práticas:
 
 sessão exige mode
 
-review só após submit
+review só funciona após submit
+
+2026-01-29
+
+Correções de build TypeScript:
+
+rowCount → rows.length
+
+Endpoint attempt estabilizado
+
+Backend validado local e em produção
 
 8) Checklist rápido de testes
 Dev / Header
 
-POST /api/sessions com x-user-id + body válido funciona
+POST /api/sessions com x-user-id funciona
 
 Review bloqueado enquanto status = in_progress
 
@@ -322,7 +352,7 @@ Browser
 
 Finish & Review → submit automático
 
-/session/[id]/review → acessível somente após submit
+/session/[id]/review → acessível só após submit
 
 9) Convenções do projeto
 
@@ -348,12 +378,36 @@ Player da sessão
 /session/[sessionId]/review
 Review da sessão submetida
 
-Status atual do projeto
+11) Status atual do projeto
 
 ✅ Backend validado
 ✅ Player funcional
 ✅ Review protegido e consistente
 
-👉 Próximo passo natural: evoluir UX do player (timer, skip, flag, confidence real) ou estatísticas avançadas.
+12) Próximos passos naturais (ordem recomendada)
 
-Quando quiser, diga qual arquivo seguimos — do jeito disciplinado que você definiu.
+UX do player:
+
+timer real
+
+skip
+
+flag
+
+confidence funcional
+
+Estatísticas avançadas:
+
+por exame
+
+por tópico
+
+evolução temporal
+
+Hardening de produção:
+
+logs
+
+rate limit
+
+métricas
