@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: {}
 
 jobs:
   deploy:
@@ -23,8 +24,10 @@ jobs:
       - name: Trigger Vercel Deploy Hook
         run: |
           curl -sS -o /tmp/resp.txt -w "HTTP_STATUS=%{http_code}\n" -X POST "$VERCEL_DEPLOY_HOOK_URL"
+          echo "Response:"
           cat /tmp/resp.txt
         env:
-        VERCEL_DEPLOY_HOOK_URL: ${{ https://api.vercel.com/v1/integrations/deploy/prj_ssw3PuSfMdSGpGluw9548pjEwQaB/SGyHvJmyq8 }}
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
 
 
+       
