@@ -1,3 +1,28 @@
+/**
+ * Session Items Route (GET/POST)
+ *
+ * 📍 Localização:
+ * src/app/api/sessions/[sessionId]/items/route.ts
+ *
+ * Responsabilidades:
+ * - GET: listar itens já gerados da sessão (ordenados por position)
+ * - POST: gerar itens da sessão de forma idempotente
+ *
+ * Contrato:
+ * - GET  /api/sessions/:sessionId/items
+ * - POST /api/sessions/:sessionId/items
+ *   Body: { count?: number } (default 10, min 1, max 200)
+ *
+ * Regras importantes:
+ * - Requer autenticação (NextAuth) ou header dev x-user-id
+ * - Só permite gerar itens quando a sessão estiver em status "in_progress"
+ * - POST é idempotente: se já existem itens, retorna os existentes e não recria
+ *
+ * Observação (build/TS):
+ * - Em alguns typings do driver `pg`, `rowCount` pode ser `number | null`.
+ *   Para evitar falha no build (Vercel), usamos `rows.length` em vez de `rowCount`.
+ */
+
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { withTx } from "@/lib/db";
@@ -112,7 +137,8 @@ export async function POST(
         [sessionId]
       );
 
-      if (existing.rowCount > 0) {
+      // ✅ TS-safe: evita depender de rowCount (pode ser null)
+      if (existing.rows.length > 0) {
         return { status: 200 as const, payload: { items: existing.rows } };
       }
 
