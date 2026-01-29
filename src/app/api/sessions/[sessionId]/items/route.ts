@@ -32,6 +32,17 @@ const BodySchema = z.object({
   count: z.number().int().min(1).max(200).default(10),
 });
 
+type Difficulty = "easy" | "medium" | "hard";
+
+function splitByDifficulty(count: number) {
+  // alvo: 30% easy, 50% medium, 20% hard (arredondando)
+  const easy = Math.max(0, Math.round(count * 0.3));
+  const hard = Math.max(0, Math.round(count * 0.2));
+  let medium = count - easy - hard;
+  if (medium < 0) medium = 0;
+  return { easy, medium, hard };
+}
+
 export async function GET(
   req: Request,
   { params }: { params: { sessionId: string } }
@@ -50,7 +61,8 @@ export async function GET(
         [sessionId]
       );
 
-      if (s.rowCount === 0) {
+      // ✅ TS-safe
+      if (s.rows.length === 0) {
         return { status: 404 as const, payload: { error: "Session not found" } };
       }
 
@@ -103,7 +115,8 @@ export async function POST(
         [sessionId]
       );
 
-      if (sessionRes.rowCount === 0) {
+      // ✅ TS-safe
+      if (sessionRes.rows.length === 0) {
         return { status: 404 as const, payload: { error: "Session not found" } };
       }
 
@@ -137,46 +150,107 @@ export async function POST(
         [sessionId]
       );
 
-      // ✅ TS-safe: evita depender de rowCount (pode ser null)
       if (existing.rows.length > 0) {
         return { status: 200 as const, payload: { items: existing.rows } };
       }
 
-      // 3) Seleciona question_versions elegíveis, evitando duplicados dentro da sessão
-      // (mesmo que hoje a sessão esteja vazia, isso protege o endpoint)
-      const qvRes = await client.query(
-        `
-        SELECT qv.question_version_id
-        FROM question_versions qv
-        WHERE qv.exam = $1
-          AND qv.language = $2
-          AND qv.is_active = true
-          AND NOT EXISTS (
-            SELECT 1
-            FROM session_items si
-            WHERE si.session_id = $3
-              AND si.question_version_id = qv.question_version_id
-          )
-        ORDER BY random()
-        LIMIT $4
-        `,
-        [session.exam, session.language, sessionId, body.count]
-      );
+      // 3) Seleção "melhor para o usuário":
+      // - prioriza questões não vistas (user_question_state ausente -> aparece primeiro)
+      // - depois as menos vistas (times_seen ASC)
+      // - balanceia por dificuldade (quando disponível)
+      //
+      // Observação: se o schema não tiver user_question_state (ou estiver vazio), funciona igual.
+      const target = splitByDifficulty(body.count);
 
-      if (qvRes.rowCount === 0) {
+      async function pickByDifficulty(diff: Difficulty, limit: number) {
+        if (limit <= 0) return [] as string[];
+
+        const res = await client.query(
+          `
+          SELECT qv.question_version_id
+          FROM question_versions qv
+          JOIN questions q ON q.question_id = qv.question_id
+          LEFT JOIN user_question_state uqs
+            ON uqs.user_id = $5 AND uqs.question_id = q.question_id
+          WHERE qv.exam = $1
+            AND qv.language = $2
+            AND qv.is_active = true
+            AND qv.difficulty = $6
+            AND NOT EXISTS (
+              SELECT 1
+              FROM session_items si
+              WHERE si.session_id = $3
+                AND si.question_version_id = qv.question_version_id
+            )
+          ORDER BY
+            (uqs.question_id IS NULL) DESC,
+            COALESCE(uqs.times_seen, 0) ASC,
+            random()
+          LIMIT $4
+          `,
+          [session.exam, session.language, sessionId, limit, userId, diff]
+        );
+
+        return res.rows.map((r: any) => r.question_version_id as string);
+      }
+
+      const picked: string[] = [];
+      const easyIds = await pickByDifficulty("easy", target.easy);
+      picked.push(...easyIds);
+
+      const mediumIds = await pickByDifficulty("medium", target.medium);
+      picked.push(...mediumIds);
+
+      const hardIds = await pickByDifficulty("hard", target.hard);
+      picked.push(...hardIds);
+
+      // Se não deu para completar (falta de questões daquela dificuldade), completa com o que houver
+      if (picked.length < body.count) {
+        const remaining = body.count - picked.length;
+
+        const fillRes = await client.query(
+          `
+          SELECT qv.question_version_id
+          FROM question_versions qv
+          JOIN questions q ON q.question_id = qv.question_id
+          LEFT JOIN user_question_state uqs
+            ON uqs.user_id = $5 AND uqs.question_id = q.question_id
+          WHERE qv.exam = $1
+            AND qv.language = $2
+            AND qv.is_active = true
+            AND NOT EXISTS (
+              SELECT 1
+              FROM session_items si
+              WHERE si.session_id = $3
+                AND si.question_version_id = qv.question_version_id
+            )
+            AND qv.question_version_id <> ALL($6::uuid[])
+          ORDER BY
+            (uqs.question_id IS NULL) DESC,
+            COALESCE(uqs.times_seen, 0) ASC,
+            random()
+          LIMIT $4
+          `,
+          [session.exam, session.language, sessionId, remaining, userId, picked]
+        );
+
+        picked.push(...fillRes.rows.map((r: any) => r.question_version_id as string));
+      }
+
+      if (picked.length === 0) {
         return {
           status: 400 as const,
-          payload: { error: "No active question_versions available for this exam/language" },
+          payload: {
+            error: "No active question_versions available for this exam/language",
+          },
         };
       }
 
-      const qvIds: string[] = qvRes.rows.map((r: any) => r.question_version_id);
-
-      // 4) Inserção ordenada (position 1..N) — insere só o que foi selecionado
+      // 4) Inserção ordenada (position 1..N)
       const insertValues: any[] = [];
       const placeholders: string[] = [];
 
-      qvIds.forEach((qvId, idx) => {
+      picked.forEach((qvId, idx) => {
         const position = idx + 1;
         placeholders.push(`($${idx * 3 + 1}, $${idx * 3 + 2}, $${idx * 3 + 3})`);
         insertValues.push(sessionId, position, qvId);
