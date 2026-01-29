@@ -1,0 +1,359 @@
+USMLE API – Contract & Project Snapshot
+
+Documento âncora do projeto.
+Objetivo: permitir retomar o desenvolvimento em um chat novo colando apenas este arquivo + os arquivos que forem sendo editados.
+
+0) Regras de trabalho (OBRIGATÓRIO)
+Fluxo de colaboração
+
+Para evitar perda de contexto, erros grandes e regressões:
+
+Antes de qualquer alteração, o assistente DEVE pedir:
+
+“Cole o conteúdo atual do arquivo X”
+
+O usuário cola o arquivo inteiro.
+
+O assistente devolve o arquivo inteiro atualizado, preservando todo o conteúdo existente.
+
+Trabalhar parte por parte:
+
+1 alteração
+
+1 rodada de testes
+
+retorno do usuário
+
+Só avançar para o próximo passo após confirmação do teste.
+
+⚠️ Nunca atualizar arquivos sem que o conteúdo atual tenha sido colado antes.
+
+1) Stack / Arquitetura (atual)
+
+Next.js (App Router)
+
+NextAuth: v4.x (confirmado: 4.24.13)
+
+Autenticação:
+
+Browser: sessão via NextAuth v4 (getServerSession)
+
+Dev/Testes: header x-user-id
+
+Banco de dados: PostgreSQL
+
+Acesso ao banco:
+
+Helper withTx (transação + client.query)
+
+ORM: Prisma (schema já existente no projeto)
+
+Validação: Zod
+
+Client HTTP helper:
+
+src/lib/apiClient.ts
+
+2) Estrutura de pastas (snapshot real – atualizado)
+src/
+├─ app/
+│ ├─ api/
+│ │ ├─ auth/
+│ │ │ └─ [...nextauth]/
+│ │ │    └─ route.ts
+│ │ │
+│ │ ├─ sessions/
+│ │ │ ├─ route.ts
+│ │ │ └─ [sessionId]/
+│ │ │    ├─ items/route.ts
+│ │ │    ├─ submit/route.ts
+│ │ │    └─ review/route.ts
+│ │ │
+│ │ ├─ session-items/
+│ │ │ └─ [sessionItemId]/
+│ │ │    └─ question/route.ts
+│ │ │
+│ │ ├─ sessions/[sessionId]/items/[sessionItemId]/attempt/
+│ │ │ └─ route.ts
+│ │ │
+│ │ ├─ me/
+│ │ │ └─ stats/route.ts
+│ │ │
+│ │ ├─ health/
+│ │ │ └─ route.ts
+│ │ │
+│ │ ├─ debug/
+│ │ │ └─ headers/
+│ │ │    └─ route.ts
+│ │ │
+│ │ └─ dev/
+│ │    └─ seed-minimal/
+│ │       └─ route.ts
+│ │
+│ ├─ session/
+│ │ └─ [sessionId]/
+│ │    ├─ page.tsx
+│ │    └─ review/
+│ │       └─ page.tsx
+│ │
+│ └─ ...
+│
+├─ lib/
+│ ├─ db.ts
+│ ├─ auth.ts
+│ └─ apiClient.ts
+│
+├─ auth.ts
+└─ ...
+
+3) Autenticação – contrato
+Header de desenvolvimento
+x-user-id: <UUID>
+
+
+Quando presente, ignora completamente NextAuth.
+
+Browser / Produção
+
+Usa sessão NextAuth v4
+
+Sessão obtida via:
+
+getServerSession(authOptions)
+
+
+O email do usuário é usado para gerar um UUID determinístico.
+
+Regra de geração do user_id
+
+Se existir x-user-id → usar diretamente
+
+Caso contrário:
+
+pegar session.user.email
+
+gerar UUID determinístico a partir do email
+
+usar esse UUID como user_id no Postgres
+
+Resultado: o mesmo usuário (email) sempre gera o mesmo UUID.
+
+4) Endpoints (API Contract)
+4.1 Sessions
+POST /api/sessions
+
+Cria uma nova sessão (status = in_progress).
+
+Request body (OBRIGATÓRIO)
+{
+  "exam": "step1",
+  "mode": "practice" | "timed_block" | "exam_sim"
+}
+
+Response (exemplo real)
+{
+  "session_id": "2ebe4f1c-94e1-4c0e-a74f-4222e3649ba9",
+  "user_id": "11111111-1111-1111-1111-111111111111",
+  "exam": "step1",
+  "mode": "practice",
+  "language": "en",
+  "timed": false,
+  "time_limit_seconds": null,
+  "status": "in_progress",
+  "started_at": "2026-01-28T23:53:44.539Z",
+  "submitted_at": null
+}
+
+GET /api/sessions
+
+Lista sessões do usuário autenticado.
+
+POST /api/sessions/:sessionId/items
+
+Gera itens da sessão.
+Idempotente.
+
+POST /api/sessions/:sessionId/submit
+
+Fecha a sessão:
+
+status → submitted
+
+preenche submitted_at
+
+GET /api/sessions/:sessionId/review
+
+Retorna o review completo da sessão.
+
+⚠️ Regra importante
+
+A sessão DEVE estar com status = submitted
+
+Caso contrário, retorna erro:
+
+{
+  "error": "Session must be submitted to review"
+}
+
+4.2 Session Items
+GET /api/session-items/:sessionItemId/question
+
+Retorna:
+
+stem da questão
+
+alternativas
+
+sem indicar a correta
+
+POST /api/sessions/:sessionId/items/:sessionItemId/attempt
+
+Salva tentativa da questão.
+Máximo 1 tentativa por item (idempotente).
+
+4.3 User Stats
+GET /api/me/stats?range=30
+
+Considera apenas sessões submitted
+
+range em dias (1–365, default 30)
+
+4.4 Endpoints utilitários (DEV / Infra)
+GET /api/health
+
+Healthcheck simples da API
+
+GET /api/debug/headers
+
+Retorna headers recebidos (útil para validar x-user-id)
+
+POST /api/dev/seed-minimal
+
+Seed mínimo para desenvolvimento
+Não usar em produção
+
+5) Modelo de dados (confirmado por queries reais)
+sessions
+
+session_id (uuid, PK)
+
+user_id (uuid)
+
+exam
+
+mode (practice | timed_block | exam_sim)
+
+language
+
+timed (bool)
+
+time_limit_seconds (nullable)
+
+status (in_progress | submitted)
+
+started_at (timestamptz)
+
+submitted_at (timestamptz)
+
+attempts
+
+attempt_id (uuid, PK)
+
+user_id (uuid)
+
+session_id (uuid)
+
+session_item_id (uuid, UNIQUE)
+
+question_version_id (uuid)
+
+selected_choice_id (uuid, nullable)
+
+result (correct | wrong | skipped)
+
+is_correct (bool)
+
+time_spent_seconds (int)
+
+confidence (smallint)
+
+flagged_for_review (bool)
+
+answered_at (timestamptz)
+
+6) Fluxo funcional (MVP)
+
+Criar sessão
+
+Gerar itens
+
+Registrar tentativas
+
+Submeter sessão
+
+Revisar sessão
+
+Consultar estatísticas
+
+7) Linha do tempo resumida
+
+2026-01-28
+
+Bug crítico: auth is not a function
+
+Correção de NextAuth v5 → v4
+
+Confirmação prática do fluxo:
+
+sessão exige mode
+
+review só após submit
+
+8) Checklist rápido de testes
+Dev / Header
+
+POST /api/sessions com x-user-id + body válido funciona
+
+Review bloqueado enquanto status = in_progress
+
+Browser
+
+/session/[id] → responder questões
+
+Finish & Review → submit automático
+
+/session/[id]/review → acessível somente após submit
+
+9) Convenções do projeto
+
+Zod para validação
+
+Queries sempre dentro de withTx
+
+Respostas sempre JSON
+
+Sempre:
+
+1 arquivo
+
+1 etapa
+
+1 teste
+
+10) Rotas de UI (App Router)
+
+/session/[sessionId]
+Player da sessão
+
+/session/[sessionId]/review
+Review da sessão submetida
+
+Status atual do projeto
+
+✅ Backend validado
+✅ Player funcional
+✅ Review protegido e consistente
+
+👉 Próximo passo natural: evoluir UX do player (timer, skip, flag, confidence real) ou estatísticas avançadas.
+
+Quando quiser, diga qual arquivo seguimos — do jeito disciplinado que você definiu.
