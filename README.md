@@ -57,3 +57,6 @@ Lista as últimas 20 sessões do usuário (header `x-user-id`).
 1) Implementar geração de `session_items` (seleção de questões)
 2) Implementar `attempts` (respostas do usuário)
 3) Trocar o header `x-user-id` por autenticação real (Auth.js / Clerk)
+
+Deployed pipeline test.
+
