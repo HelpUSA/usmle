@@ -40,7 +40,7 @@ type GeneratedQuestion = {
   choices: Array<{ label: "A" | "B" | "C" | "D"; text: string; correct: boolean }>;
 };
 
-// util simples (determinístico o suficiente p/ seed)
+// util simples
 function pick<T>(arr: T[]) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -71,10 +71,15 @@ function makeChoices(correct: string, wrongs: string[]) {
  * Observação: são vinhetas genéricas educativas (não são questões reais nem cópias).
  */
 const TEMPLATES: Array<() => GeneratedQuestion> = [
-  // 1) Acid-base: respiratory alkalosis -> ↓ionized Ca
+  // 1) Acid-base
   () => {
     const age = pick([18, 22, 24, 27, 30, 34]);
-    const trigger = pick(["panic attack", "pain episode", "high altitude exposure", "anxiety before a procedure"]);
+    const trigger = pick([
+      "panic attack",
+      "pain episode",
+      "high altitude exposure",
+      "anxiety before a procedure",
+    ]);
     const stem = `A ${age}-year-old develops perioral tingling, muscle cramps, and carpopedal spasm shortly after hyperventilating during a ${trigger}. Arterial blood gas shows decreased PaCO2. Which change best explains the symptoms?`;
     const correct = "Decreased ionized calcium due to increased albumin binding at higher pH";
     const wrongs = [
@@ -93,7 +98,7 @@ const TEMPLATES: Array<() => GeneratedQuestion> = [
     };
   },
 
-  // 2) Cardio: MI marker timing
+  // 2) Cardio marker
   () => {
     const age = pick([45, 52, 58, 61, 66]);
     const hours = pick([3, 4, 6, 8, 12]);
@@ -115,10 +120,14 @@ const TEMPLATES: Array<() => GeneratedQuestion> = [
     };
   },
 
-  // 3) Renal: prerenal vs ATN FeNa
+  // 3) Renal FeNa
   () => {
     const age = pick([70, 74, 78, 82]);
-    const cause = pick(["vomiting and diarrhea", "poor oral intake during a heat wave", "gastrointestinal bleeding"]);
+    const cause = pick([
+      "vomiting and diarrhea",
+      "poor oral intake during a heat wave",
+      "gastrointestinal bleeding",
+    ]);
     const stem = `A ${age}-year-old has oliguria after ${cause}. Labs show elevated BUN and creatinine. Which finding is most consistent with prerenal azotemia?`;
     const correct = "Fractional excretion of sodium (FeNa) < 1%";
     const wrongs = [
@@ -137,10 +146,14 @@ const TEMPLATES: Array<() => GeneratedQuestion> = [
     };
   },
 
-  // 4) Micro: capsule vs opsonization
+  // 4) Micro capsule
   () => {
     const age = pick([2, 4, 6, 8]);
-    const bug = pick(["Streptococcus pneumoniae", "Haemophilus influenzae type b", "Neisseria meningitidis"]);
+    const bug = pick([
+      "Streptococcus pneumoniae",
+      "Haemophilus influenzae type b",
+      "Neisseria meningitidis",
+    ]);
     const stem = `A ${age}-year-old has recurrent infections with ${bug}. The organism’s capsule primarily helps it evade host defenses by which mechanism?`;
     const correct = "Inhibiting phagocytosis by reducing opsonization";
     const wrongs = [
@@ -159,7 +172,7 @@ const TEMPLATES: Array<() => GeneratedQuestion> = [
     };
   },
 
-  // 5) Pharm: beta blocker adverse effect
+  // 5) Pharm beta blocker
   () => {
     const age = pick([28, 35, 42]);
     const history = pick(["asthma", "COPD", "reactive airway disease"]);
@@ -181,7 +194,7 @@ const TEMPLATES: Array<() => GeneratedQuestion> = [
     };
   },
 
-  // 6) Endo: primary hyperparathyroidism labs
+  // 6) Endo PTH
   () => {
     const age = pick([52, 60, 63, 70]);
     const stem = `A ${age}-year-old has fatigue and recurrent kidney stones. Labs show elevated serum calcium and low serum phosphate. Which additional finding is most likely?`;
@@ -202,7 +215,7 @@ const TEMPLATES: Array<() => GeneratedQuestion> = [
     };
   },
 
-  // 7) Heme: iron deficiency vs anemia of chronic disease
+  // 7) Heme iron deficiency
   () => {
     const age = pick([34, 41, 50, 57]);
     const scenario = pick([
@@ -228,7 +241,7 @@ const TEMPLATES: Array<() => GeneratedQuestion> = [
     };
   },
 
-  // 8) Immuno: Type II hypersensitivity
+  // 8) Immuno Type II
   () => {
     const age = pick([19, 23, 29, 35]);
     const trigger = pick(["penicillin exposure", "new medication", "recent infection"]);
@@ -252,10 +265,8 @@ const TEMPLATES: Array<() => GeneratedQuestion> = [
 ];
 
 function generateQuestion(): GeneratedQuestion {
-  // amplia variedade com pequenas variações
   const q = pick(TEMPLATES)();
 
-  // garante A-D e 1 correta
   if (q.choices.length !== 4) {
     throw new Error("Template must generate exactly 4 choices.");
   }
@@ -268,8 +279,8 @@ function generateQuestion(): GeneratedQuestion {
 }
 
 async function insertOne(client: any, q: GeneratedQuestion) {
-  // 1) questions
   const canonical = `DEV_STEP1_${randomUUID()}`;
+
   const qRes = await client.query(
     `
     INSERT INTO questions (canonical_code, status)
@@ -280,7 +291,6 @@ async function insertOne(client: any, q: GeneratedQuestion) {
   );
   const questionId = qRes.rows[0].question_id as string;
 
-  // 2) question_versions
   const qvRes = await client.query(
     `
     INSERT INTO question_versions (
@@ -296,17 +306,10 @@ async function insertOne(client: any, q: GeneratedQuestion) {
     )
     RETURNING question_version_id
     `,
-    [
-      questionId,
-      q.difficulty,
-      q.stem,
-      q.explanation_short,
-      q.explanation_long,
-    ]
+    [questionId, q.difficulty, q.stem, q.explanation_short, q.explanation_long]
   );
   const questionVersionId = qvRes.rows[0].question_version_id as string;
 
-  // 3) choices (multi-row insert)
   const values: string[] = [];
   const params: any[] = [questionVersionId];
   let p = 2;
@@ -337,27 +340,26 @@ export async function POST(req: Request) {
     const bodyJson = await req.json().catch(() => ({}));
     const body = BodySchema.parse(bodyJson);
 
-    // Default conservador para evitar timeout; você pode pedir 1000 explicitamente.
     const totalCount = body?.count ?? 200;
     const chunkSize = body?.chunkSize ?? 100;
 
     const startedAt = Date.now();
-    const created: Array<{
+
+    let createdCount = 0;
+    const sample: Array<{
       question_id: string;
       question_version_id: string;
       canonical_code: string;
     }> = [];
 
-    // Processa em chunks (várias transações menores)
     let remaining = totalCount;
-    let chunkIndex = 0;
 
     while (remaining > 0) {
-      chunkIndex += 1;
       const thisChunk = Math.min(chunkSize, remaining);
 
       const chunkResult = await withTx(async (client) => {
-        const out: Array<{
+        let chunkCreated = 0;
+        const chunkSample: Array<{
           question_id: string;
           question_version_id: string;
           canonical_code: string;
@@ -366,17 +368,25 @@ export async function POST(req: Request) {
         for (let i = 0; i < thisChunk; i++) {
           const q = generateQuestion();
           const ins = await insertOne(client, q);
-          out.push({
-            question_id: ins.questionId,
-            question_version_id: ins.questionVersionId,
-            canonical_code: ins.canonical_code,
-          });
+          chunkCreated += 1;
+
+          if (sample.length + chunkSample.length < 5) {
+            chunkSample.push({
+              question_id: ins.questionId,
+              question_version_id: ins.questionVersionId,
+              canonical_code: ins.canonical_code,
+            });
+          }
         }
 
-        return out;
+        return { chunkCreated, chunkSample };
       });
 
-      created.push(...chunkResult);
+      createdCount += chunkResult.chunkCreated;
+      for (const s of chunkResult.chunkSample) {
+        if (sample.length < 5) sample.push(s);
+      }
+
       remaining -= thisChunk;
     }
 
@@ -385,11 +395,12 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         ok: true,
+        seed_route_version: "bulk_v1",
         requested: totalCount,
-        created: created.length,
+        created: createdCount,
         chunks: Math.ceil(totalCount / chunkSize),
         elapsed_ms: ms,
-        sample: created.slice(0, 5), // só uma amostra para não inflar resposta
+        sample,
         note:
           "Questões geradas são originais (vinhetas educativas) e não reproduzem conteúdo proprietário de bancas.",
       },
