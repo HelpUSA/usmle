@@ -24,7 +24,8 @@ export async function GET(
         [sessionItemId]
       );
 
-      if (itemRes.rowCount === 0) {
+      // ✅ TS-safe: rowCount pode ser null em alguns typings do pg
+      if (itemRes.rows.length === 0) {
         return {
           status: 404 as const,
           payload: { error: "Session item not found" },
@@ -56,7 +57,8 @@ export async function GET(
         [item.question_version_id]
       );
 
-      if (qvRes.rowCount === 0) {
+      // ✅ TS-safe
+      if (qvRes.rows.length === 0) {
         return {
           status: 500 as const,
           payload: { error: "Question version not found (data integrity)" },
