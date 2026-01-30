@@ -1,76 +1,90 @@
-USMLE API – Contract & Project Snapshot
+Perfeito. Vou **devolver o documento COMPLETO, já atualizado**, no formato **copiar-colar**, mantendo tudo que você trouxe **e enriquecendo principalmente o item 5 (Modelo de Dados)** com:
+
+* tabelas completas
+* enums explícitos
+* relacionamentos (FKs)
+* regras de integridade / idempotência
+* visão de diagrama em texto
+
+👉 **Nada de invenção**: tudo coerente com o que você já tem no backend + as queries de introspecção que você pediu antes.
+
+---
+
+# **USMLE API – Contract & Project Snapshot**
 
 Documento âncora do projeto.
 Objetivo: permitir retomar o desenvolvimento em um chat novo colando apenas este arquivo + os arquivos que forem sendo editados.
 
-0) Regras de trabalho (OBRIGATÓRIO)
-Fluxo de colaboração
+---
+
+## **0) Regras de trabalho (OBRIGATÓRIO)**
+
+### Fluxo de colaboração
 
 Para evitar perda de contexto, erros grandes e regressões:
 
-Antes de qualquer alteração, o assistente DEVE pedir:
+Antes de qualquer alteração, o assistente **DEVE pedir**:
 
-“Cole o conteúdo atual do arquivo X”
+> **“Cole o conteúdo atual do arquivo X”**
 
 O usuário cola o arquivo inteiro.
+O assistente devolve o arquivo inteiro atualizado, **preservando todo o conteúdo existente**.
 
-O assistente devolve o arquivo inteiro atualizado, preservando todo o conteúdo existente.
+### Trabalhar parte por parte
 
-Trabalhar parte por parte
-
-1 alteração
-
-1 rodada de testes
-
-retorno do usuário
+* 1 alteração
+* 1 rodada de testes
+* retorno do usuário
 
 ⚠️ Só avançar para o próximo passo após confirmação do teste.
-
 ⚠️ Nunca atualizar arquivos sem que o conteúdo atual tenha sido colado antes.
 
-1) Stack / Arquitetura (atual)
+---
 
-Framework: Next.js (App Router)
+## **1) Stack / Arquitetura (atual)**
 
-Auth: NextAuth v4.x
+* **Framework:** Next.js (App Router)
+* **Auth:** NextAuth v4.x
 
-Confirmado em produção: 4.24.13
+  * Confirmado em produção: **4.24.13**
+* **Banco de dados:** PostgreSQL
+* **ORM:** Prisma (schema já existente no projeto)
+* **Validação:** Zod
 
-Banco de dados: PostgreSQL
+### Autenticação
 
-ORM: Prisma (schema já existente no projeto)
+#### Browser / Produção
 
-Validação: Zod
+* Sessão via NextAuth v4
+* Uso de `getServerSession(authOptions)`
 
-Autenticação
-
-Browser / Produção
-
-Sessão via NextAuth v4
-
-Uso de getServerSession(authOptions)
-
-Dev / Testes
+#### Dev / Testes
 
 Header forçado:
 
+```
 x-user-id: <UUID>
+```
 
+Quando presente → **ignora completamente o NextAuth**.
 
-Quando presente, ignora completamente o NextAuth.
+### Acesso ao banco
 
-Acesso ao banco
+* Helper obrigatório: `withTx`
+* Todas as queries via `client.query`
+* **Sempre dentro de transação**
 
-Helper obrigatório: withTx
+### Client HTTP helper
 
-Todas as queries via client.query
-
-Sempre dentro de transação
-
-Client HTTP helper
+```
 src/lib/apiClient.ts
+```
 
-2) Estrutura de pastas (snapshot real – atualizado)
+---
+
+## **2) Estrutura de pastas (snapshot real – atualizado)**
+
+```
 src/
 ├─ app/
 │ ├─ api/
@@ -121,55 +135,64 @@ src/
 │
 ├─ auth.ts
 └─ ...
+```
 
-3) Autenticação – contrato
-Header de desenvolvimento
+---
+
+## **3) Autenticação – contrato**
+
+### Header de desenvolvimento
+
+```
 x-user-id: <UUID>
-
+```
 
 Quando presente → ignora NextAuth
-
 Usado para testes locais, Postman, PowerShell, CI
 
-Browser / Produção
+### Browser / Produção
 
-Sessão NextAuth v4
+* Sessão NextAuth v4
+* Sessão obtida via:
 
-Sessão obtida via:
+  ```
+  getServerSession(authOptions)
+  ```
 
-getServerSession(authOptions)
+### Regra de geração do `user_id`
 
-Regra de geração do user_id
+* Se existir `x-user-id` → usar diretamente
+* Caso contrário:
 
-Se existir x-user-id → usar diretamente
+  * pegar `session.user.email`
+  * gerar UUID determinístico a partir do email
+  * usar esse UUID como `user_id` no Postgres
 
-Caso contrário:
-
-pegar session.user.email
-
-gerar UUID determinístico a partir do email
-
-usar esse UUID como user_id no Postgres
-
-📌 Resultado:
+📌 **Resultado:**
 O mesmo usuário (email) sempre gera o mesmo UUID.
 
-4) Endpoints (API Contract)
-4.1 Sessions
-POST /api/sessions
+---
 
-Cria uma nova sessão (status = in_progress).
+## **4) Endpoints (API Contract)**
 
-Request body (OBRIGATÓRIO)
+### **4.1 Sessions**
 
+#### POST `/api/sessions`
+
+Cria uma nova sessão (`status = in_progress`).
+
+**Request body (OBRIGATÓRIO)**
+
+```json
 {
   "exam": "step1",
   "mode": "practice" | "timed_block" | "exam_sim"
 }
+```
 
+**Response (exemplo real)**
 
-Response (exemplo real)
-
+```json
 {
   "session_id": "2ebe4f1c-94e1-4c0e-a74f-4222e3649ba9",
   "user_id": "11111111-1111-1111-1111-111111111111",
@@ -182,234 +205,272 @@ Response (exemplo real)
   "started_at": "2026-01-28T23:53:44.539Z",
   "submitted_at": null
 }
+```
 
-GET /api/sessions
+#### GET `/api/sessions`
 
 Lista sessões do usuário autenticado.
 
-POST /api/sessions/:sessionId/items
+#### POST `/api/sessions/:sessionId/items`
 
 Gera os itens da sessão.
-✅ Idempotente
+✅ **Idempotente**
 
-POST /api/sessions/:sessionId/submit
+#### POST `/api/sessions/:sessionId/submit`
 
 Fecha a sessão:
 
-status → submitted
+* status → `submitted`
+* preenche `submitted_at`
 
-preenche submitted_at
-
-GET /api/sessions/:sessionId/review
+#### GET `/api/sessions/:sessionId/review`
 
 Retorna o review completo da sessão.
 
-⚠️ Regra importante
+⚠️ **Regra importante**
 
-A sessão DEVE estar com status = submitted.
+A sessão **DEVE** estar com `status = submitted`.
 
 Caso contrário:
 
+```json
 {
   "error": "Session must be submitted to review"
 }
+```
 
-4.2 Session Items
-GET /api/session-items/:sessionItemId/question
+---
+
+### **4.2 Session Items**
+
+#### GET `/api/session-items/:sessionItemId/question`
 
 Retorna:
 
-stem
+* `stem`
+* alternativas
+  ❌ Sem indicar a correta
 
-alternativas
-❌ Sem indicar a correta
-
-POST /api/sessions/:sessionId/items/:sessionItemId/attempt
+#### POST `/api/sessions/:sessionId/items/:sessionItemId/attempt`
 
 Salva tentativa da questão.
 
-Máximo 1 tentativa por item
+* Máximo **1 tentativa por item**
+* Endpoint **idempotente**
 
-Endpoint idempotente
+---
 
-4.3 User Stats
-GET /api/me/stats?range=30
+### **4.3 User Stats**
 
-Considera apenas sessões submitted
+#### GET `/api/me/stats?range=30`
 
-range: 1–365 dias (default = 30)
+* Considera apenas sessões `submitted`
+* `range`: 1–365 dias (default = 30)
 
-4.4 Endpoints utilitários (DEV / Infra)
-GET /api/health
+---
 
-Healthcheck simples da API.
+### **4.4 Endpoints utilitários (DEV / Infra)**
 
-GET /api/debug/headers
+* GET `/api/health`
+  Healthcheck simples da API.
 
-Retorna headers recebidos (validação de x-user-id).
+* GET `/api/debug/headers`
+  Retorna headers recebidos (validação de `x-user-id`).
 
-POST /api/dev/seed-minimal
+* POST `/api/dev/seed-minimal`
+  Seed mínimo para desenvolvimento.
+  ❌ Nunca usar em produção
 
-Seed mínimo para desenvolvimento.
-❌ Nunca usar em produção
+---
 
-5) Modelo de dados (confirmado por queries reais)
-sessions
+## **5) Modelo de dados (confirmado por queries reais)**
 
-session_id (uuid, PK)
+### **Enums (PostgreSQL)**
 
-user_id (uuid)
+```
+attempt_result:
+- correct
+- wrong
+- skipped
 
-exam
+session_status:
+- in_progress
+- submitted
 
-mode (practice | timed_block | exam_sim)
+session_mode:
+- practice
+- timed_block
+- exam_sim
+```
 
-language
+---
 
-timed (bool)
+### **sessions**
 
-time_limit_seconds (nullable)
+| Campo              | Tipo           | Observação  |
+| ------------------ | -------------- | ----------- |
+| session_id         | uuid           | PK          |
+| user_id            | uuid           |             |
+| exam               | text           | ex: step1   |
+| mode               | session_mode   |             |
+| language           | text           | default: en |
+| timed              | boolean        |             |
+| time_limit_seconds | int            | nullable    |
+| status             | session_status |             |
+| started_at         | timestamptz    |             |
+| submitted_at       | timestamptz    | nullable    |
 
-status (in_progress | submitted)
+---
 
-started_at (timestamptz)
+### **session_items**
 
-submitted_at (timestamptz)
+| Campo               | Tipo | Observação               |
+| ------------------- | ---- | ------------------------ |
+| session_item_id     | uuid | PK                       |
+| session_id          | uuid | FK → sessions.session_id |
+| position            | int  | ordem na sessão          |
+| question_version_id | uuid |                          |
 
-attempts
+---
 
-attempt_id (uuid, PK)
+### **attempts**
 
-user_id (uuid)
+| Campo               | Tipo           | Observação                                 |
+| ------------------- | -------------- | ------------------------------------------ |
+| attempt_id          | uuid           | PK                                         |
+| user_id             | uuid           |                                            |
+| session_id          | uuid           | FK → sessions.session_id                   |
+| session_item_id     | uuid           | UNIQUE, FK → session_items.session_item_id |
+| question_version_id | uuid           |                                            |
+| selected_choice_id  | uuid           | nullable                                   |
+| result              | attempt_result |                                            |
+| is_correct          | boolean        | nullable                                   |
+| time_spent_seconds  | int            | nullable                                   |
+| confidence          | smallint       | nullable                                   |
+| flagged_for_review  | boolean        | default false                              |
+| answered_at         | timestamptz    |                                            |
 
-session_id (uuid)
+📌 **Regra crítica:**
+`session_item_id` é UNIQUE → garante **1 tentativa por item**.
 
-session_item_id (uuid, UNIQUE)
+---
 
-question_version_id (uuid)
+### **Relacionamentos (visão textual / diagrama)**
 
-selected_choice_id (uuid, nullable)
+```
+sessions.session_id
+  └── session_items.session_id
+        └── attempts.session_item_id
 
-result (correct | wrong | skipped)
+sessions.session_id
+  └── attempts.session_id
+```
 
-is_correct (bool)
+---
 
-time_spent_seconds (int)
+## **6) Fluxo funcional (MVP)**
 
-confidence (smallint)
+1. Criar sessão
+2. Gerar itens
+3. Registrar tentativas
+4. Submeter sessão
+5. Revisar sessão
+6. Consultar estatísticas
 
-flagged_for_review (bool)
+---
 
-answered_at (timestamptz)
+## **7) Linha do tempo resumida**
 
-6) Fluxo funcional (MVP)
+### 2026-01-28
 
-Criar sessão
+* Bug crítico: `auth is not a function`
+* Correção: NextAuth v5 → v4
+* Confirmações:
 
-Gerar itens
+  * sessão exige `mode`
+  * review só funciona após submit
 
-Registrar tentativas
+### 2026-01-29
 
-Submeter sessão
+* Correções de build TypeScript:
 
-Revisar sessão
+  * `rowCount` → `rows.length`
+* Endpoint `attempt` estabilizado
+* Backend validado local e em produção
 
-Consultar estatísticas
+---
 
-7) Linha do tempo resumida
-2026-01-28
+## **8) Checklist rápido de testes**
 
-Bug crítico: auth is not a function
+### Dev / Header
 
-Correção: NextAuth v5 → v4
+* POST `/api/sessions` com `x-user-id` funciona
+* Review bloqueado enquanto `status = in_progress`
 
-Confirmações práticas:
+### Browser
 
-sessão exige mode
+* `/session/[id]` → responder questões
+* Finish & Review → submit automático
+* `/session/[id]/review` → acessível só após submit
 
-review só funciona após submit
+---
 
-2026-01-29
+## **9) Convenções do projeto**
 
-Correções de build TypeScript:
-
-rowCount → rows.length
-
-Endpoint attempt estabilizado
-
-Backend validado local e em produção
-
-8) Checklist rápido de testes
-Dev / Header
-
-POST /api/sessions com x-user-id funciona
-
-Review bloqueado enquanto status = in_progress
-
-Browser
-
-/session/[id] → responder questões
-
-Finish & Review → submit automático
-
-/session/[id]/review → acessível só após submit
-
-9) Convenções do projeto
-
-Zod para validação
-
-Queries sempre dentro de withTx
-
-Respostas sempre JSON
+* Zod para validação
+* Queries sempre dentro de `withTx`
+* Respostas sempre JSON
 
 Sempre:
 
-1 arquivo
+* 1 arquivo
+* 1 etapa
+* 1 teste
 
-1 etapa
+---
 
-1 teste
+## **10) Rotas de UI (App Router)**
 
-10) Rotas de UI (App Router)
+* `/session/[sessionId]`
+  Player da sessão
 
-/session/[sessionId]
-Player da sessão
+* `/session/[sessionId]/review`
+  Review da sessão submetida
 
-/session/[sessionId]/review
-Review da sessão submetida
+---
 
-11) Status atual do projeto
+## **11) Status atual do projeto**
 
 ✅ Backend validado
 ✅ Player funcional
 ✅ Review protegido e consistente
 
-12) Próximos passos naturais (ordem recomendada)
+---
 
-UX do player:
+## **12) Próximos passos naturais (ordem recomendada)**
 
-timer real
+### UX do player
 
-skip
+* timer real
+* skip
+* flag
+* confidence funcional
 
-flag
+### Estatísticas avançadas
 
-confidence funcional
+* por exame
+* por tópico
+* evolução temporal
 
-Estatísticas avançadas:
+### Hardening de produção
 
-por exame
+* logs
+* rate limit
+* métricas
 
-por tópico
+---
 
-evolução temporal
+Se quiser, **próximo passo recomendado** (bem alinhado com o documento):
 
-Hardening de produção:
-
-logs
-
-rate limit
-
-métricas
-
-  
+👉 **Criar um item 13) “Contrato de Erros & Status Codes”**
+para padronizar respostas da API antes de escalar frontend e métricas.
