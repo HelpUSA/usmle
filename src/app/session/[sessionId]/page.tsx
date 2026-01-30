@@ -35,6 +35,13 @@
  *   - explicação por alternativa (choice.explanation)
  *   - bibliografia (references)
  * - Só avançamos com "Next" depois do submit (2-step flow)
+ *
+ * ✅ Atualização (2026-01-30):
+ * - Ajustes de responsividade (mobile-first) SEM UI lib:
+ *   - Header com wrap (quebra no mobile)
+ *   - Botões e cards com touch targets maiores
+ *   - Melhor legibilidade (fontSize/lineHeight/whiteSpace)
+ *   - Links e textos longos com wordBreak para não estourar layout
  */
 
 "use client";
@@ -328,9 +335,41 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
   }, [submitted, feedback?.choices]);
 
   return (
-    <main style={{ padding: 24, fontFamily: "system-ui", maxWidth: 900 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700 }}>
+    <main
+      style={{
+        /**
+         * ✅ Responsivo:
+         * - padding menor no mobile
+         * - centraliza no desktop
+         */
+        padding: "16px 14px",
+        fontFamily: "system-ui",
+        maxWidth: 980,
+        margin: "0 auto",
+      }}
+    >
+      <div
+        style={{
+          /**
+           * ✅ Responsivo:
+           * - flexWrap: wrap permite quebrar header no mobile
+           */
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 12,
+          alignItems: "flex-start",
+          flexWrap: "wrap",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            margin: 0,
+            lineHeight: 1.2,
+            flex: "1 1 260px",
+          }}
+        >
           Session {sessionId.slice(0, 8)}… — Q {items.length ? idx + 1 : "?"}/{items.length || "?"}
         </h1>
 
@@ -338,17 +377,25 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           onClick={finish}
           disabled={saving || loadingItems || items.length === 0}
           style={{
-            padding: "8px 12px",
-            borderRadius: 10,
+            /**
+             * ✅ Mobile-friendly:
+             * - botão maior
+             * - width 100% no mobile (até maxWidth)
+             */
+            padding: "10px 12px",
+            borderRadius: 12,
             border: "1px solid #ccc",
             cursor: saving || loadingItems || items.length === 0 ? "not-allowed" : "pointer",
+            width: "100%",
+            maxWidth: 210,
+            flex: "0 1 210px",
           }}
         >
           Finish & Review
         </button>
       </div>
 
-      {err && <p style={{ color: "crimson" }}>Error: {err}</p>}
+      {err && <p style={{ color: "crimson", marginTop: 12 }}>Error: {err}</p>}
 
       {loadingItems ? (
         <p style={{ marginTop: 16 }}>Loading session items…</p>
@@ -359,11 +406,27 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
       ) : (
         <div style={{ marginTop: 16 }}>
           {/* ✅ Preserva quebras de linha do stem */}
-          <p style={{ fontSize: 16, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{q.question.stem}</p>
+          <p
+            style={{
+              fontSize: 16,
+              lineHeight: 1.6,
+              whiteSpace: "pre-wrap",
+              margin: 0,
+            }}
+          >
+            {q.question.stem}
+          </p>
 
           {/* ✅ Prompt (se existir no GET; senão fica invisível) */}
           {q.question.prompt ? (
-            <p style={{ marginTop: 12, fontSize: 16, fontWeight: 700, whiteSpace: "pre-wrap" }}>
+            <p
+              style={{
+                marginTop: 12,
+                fontSize: 16,
+                fontWeight: 800,
+                whiteSpace: "pre-wrap",
+              }}
+            >
               {q.question.prompt}
             </p>
           ) : null}
@@ -382,10 +445,16 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                 <label
                   key={c.choice_id}
                   style={{
+                    /**
+                     * ✅ Mobile-friendly:
+                     * - padding maior
+                     * - bordas maiores
+                     * - cursor desabilitado após submit
+                     */
                     display: "flex",
                     gap: 10,
-                    padding: 12,
-                    borderRadius: 12,
+                    padding: 14,
+                    borderRadius: 14,
                     border: "1px solid #ddd",
                     cursor: submitted ? "default" : "pointer",
                     background: isCorrectChoice
@@ -403,26 +472,40 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                     checked={isSelected}
                     disabled={submitted} // ✅ trava mudança após submit (evita confusão)
                     onChange={() => setSelected(c.choice_id)}
+                    style={{
+                      marginTop: 2,
+                      transform: "scale(1.1)", // ✅ um pouco maior para toque
+                    }}
                   />
 
-                  <div style={{ width: "100%" }}>
+                  <div style={{ width: "100%", minWidth: 0 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                      <div style={{ fontWeight: 700 }}>
+                      <div style={{ fontWeight: 800 }}>
                         {c.label}
                         {showAfter && isCorrectChoice ? " ✅" : null}
                         {showAfter && isWrongSelected ? " ❌" : null}
                       </div>
 
                       {showAfter ? (
-                        <div style={{ fontSize: 12, opacity: 0.8 }}>{isCorrectChoice ? "Correct" : "Incorrect"}</div>
+                        <div style={{ fontSize: 12, opacity: 0.8, whiteSpace: "nowrap" }}>
+                          {isCorrectChoice ? "Correct" : "Incorrect"}
+                        </div>
                       ) : null}
                     </div>
 
-                    <div style={{ marginTop: 2 }}>{c.choice_text}</div>
+                    <div style={{ marginTop: 4, lineHeight: 1.45 }}>{c.choice_text}</div>
 
                     {/* ✅ Explicação por alternativa (o que você pediu) */}
                     {showAfter && c.explanation ? (
-                      <div style={{ marginTop: 8, fontSize: 13, opacity: 0.95, whiteSpace: "pre-wrap" }}>
+                      <div
+                        style={{
+                          marginTop: 10,
+                          fontSize: 13,
+                          opacity: 0.95,
+                          whiteSpace: "pre-wrap",
+                          lineHeight: 1.45,
+                        }}
+                      >
                         {c.explanation}
                       </div>
                     ) : null}
@@ -437,41 +520,45 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
             <div
               style={{
                 marginTop: 14,
-                padding: 12,
-                borderRadius: 12,
+                padding: 14,
+                borderRadius: 14,
                 border: "1px solid #ddd",
                 background: isCorrect === true ? "#e9f7ef" : isCorrect === false ? "#fdecea" : "#f7f7f7",
               }}
             >
-              <div style={{ fontWeight: 800, marginBottom: 6 }}>
+              <div style={{ fontWeight: 900, marginBottom: 8 }}>
                 {isCorrect === true ? "✅ Correct" : isCorrect === false ? "❌ Incorrect" : "Submitted"}
               </div>
 
               {/* ✅ Explicação curta: ideal para “alerta” rápido no submit */}
               {feedback?.explanation_short ? (
-                <div style={{ marginTop: 6, fontSize: 14, whiteSpace: "pre-wrap" }}>{feedback.explanation_short}</div>
+                <div style={{ marginTop: 6, fontSize: 14, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+                  {feedback.explanation_short}
+                </div>
               ) : null}
 
               {/* ✅ Explicação longa: inclui “why correct / why wrong” em alto nível */}
               {feedback?.explanation_long ? (
-                <div style={{ marginTop: 10, fontSize: 14, whiteSpace: "pre-wrap" }}>{feedback.explanation_long}</div>
+                <div style={{ marginTop: 10, fontSize: 14, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+                  {feedback.explanation_long}
+                </div>
               ) : null}
 
               {/* ✅ Referências bibliográficas abertas */}
               {Array.isArray(feedback?.bibliography) && feedback!.bibliography!.length > 0 ? (
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700, marginBottom: 6 }}>References</div>
+                  <div style={{ fontWeight: 800, marginBottom: 6 }}>References</div>
                   <ul style={{ margin: 0, paddingLeft: 18 }}>
                     {feedback!.bibliography!.map((b, i) => (
-                      <li key={i} style={{ marginBottom: 6 }}>
-                        <div style={{ fontSize: 13 }}>
-                          <span style={{ fontWeight: 700 }}>{b.title ?? "Reference"}</span>
+                      <li key={i} style={{ marginBottom: 10 }}>
+                        <div style={{ fontSize: 13, lineHeight: 1.4 }}>
+                          <span style={{ fontWeight: 800 }}>{b.title ?? "Reference"}</span>
                           {b.source ? ` — ${b.source}` : ""}
                           {typeof b.year === "number" ? ` (${b.year})` : ""}
                         </div>
 
                         {b.url ? (
-                          <div style={{ fontSize: 13 }}>
+                          <div style={{ fontSize: 13, marginTop: 4, wordBreak: "break-word" }}>
                             <a href={b.url} target="_blank" rel="noreferrer">
                               {b.url}
                             </a>
@@ -479,7 +566,9 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                         ) : null}
 
                         {b.note ? (
-                          <div style={{ fontSize: 12, opacity: 0.8, whiteSpace: "pre-wrap" }}>{b.note}</div>
+                          <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4, whiteSpace: "pre-wrap" }}>
+                            {b.note}
+                          </div>
                         ) : null}
                       </li>
                     ))}
@@ -494,11 +583,18 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
             onClick={submitOrNext}
             disabled={(!selected && !submitted) || saving}
             style={{
+              /**
+               * ✅ Mobile-friendly:
+               * - full width no mobile
+               * - mais alto para toque
+               */
               marginTop: 14,
-              padding: "10px 14px",
-              borderRadius: 10,
+              padding: "12px 14px",
+              borderRadius: 12,
               border: "1px solid #ccc",
               cursor: (!selected && !submitted) || saving ? "not-allowed" : "pointer",
+              width: "100%",
+              maxWidth: 340,
             }}
           >
             {saving
