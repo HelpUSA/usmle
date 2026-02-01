@@ -13,6 +13,7 @@
  *   - resultado (correct/wrong/skipped/unanswered)
  *   - resposta marcada pelo usuário
  *   - resposta correta
+ *   - ✅ TODAS as alternativas com explicação por alternativa (why correct/why wrong)
  *
  * Contrato de API utilizado:
  * - GET /api/sessions/:sessionId/review
@@ -41,12 +42,35 @@ type ReviewResponse = {
   items: Array<{
     session_item_id: string;
     position: number;
+
+    // ✅ Mantidos do seu backend atualizado
+    question_version_id?: string;
+    explanation_short?: string | null;
+    explanation_long?: string | null;
+    bibliography?: any | null; // jsonb
+    prompt?: string | null;
+
     stem: string;
     result: "correct" | "wrong" | "skipped" | null;
+
+    // ✅ IDs (para mapear seleção e correta)
+    selected_choice_id?: string | null;
+    correct_choice_id?: string | null;
+
     selected_label: string | null;
     selected_choice_text: string | null;
+
     correct_label: string | null;
     correct_choice_text: string | null;
+
+    // ✅ choices completas + explicação por alternativa (question_choices.explanation)
+    choices?: Array<{
+      choice_id: string;
+      label: string;
+      choice_text: string;
+      is_correct: boolean;
+      explanation: string | null;
+    }>;
   }>;
 };
 
@@ -309,41 +333,95 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                     {activeItem.stem}
                   </div>
 
-                  {/* Choices (MVP: only shows user + correct; future: real list from API) */}
+                  {/* ✅ FULL CHOICES + EXPLANATION PER CHOICE */}
                   <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
-                    <ChoiceCard
-                      title="Your answer"
-                      label={activeItem.selected_label}
-                      text={activeItem.selected_choice_text}
-                      tone={activeItem.result === "wrong" ? "wrong" : activeItem.result === "correct" ? "correct" : "neutral"}
-                      fontScale={fontScale}
-                    />
-                    <ChoiceCard
-                      title="Correct answer"
-                      label={activeItem.correct_label}
-                      text={activeItem.correct_choice_text}
-                      tone="correct"
-                      fontScale={fontScale}
-                    />
+                    {Array.isArray(activeItem.choices) && activeItem.choices.length > 0 ? (
+                      activeItem.choices.map((c) => {
+                        const isSelected = (activeItem.selected_choice_id ?? null) === c.choice_id;
+                        const isCorrect = c.is_correct === true;
+
+                        // Tone:
+                        // - correct => green
+                        // - selected but wrong => red
+                        // - others => neutral
+                        const tone: "neutral" | "correct" | "wrong" =
+                          isCorrect ? "correct" : isSelected ? "wrong" : "neutral";
+
+                        // Title aligns with user expectation
+                        const title =
+                          isCorrect && isSelected
+                            ? "✅ Your answer (correct)"
+                            : isCorrect
+                            ? "✅ Correct answer"
+                            : isSelected
+                            ? "❌ Your answer"
+                            : "Choice";
+
+                        // We show explanation for:
+                        // - correct choice
+                        // - selected choice (even if wrong)
+                        const showExplain = isCorrect || isSelected;
+
+                        return (
+                          <ChoiceCardV2
+                            key={c.choice_id}
+                            title={title}
+                            label={c.label}
+                            text={c.choice_text}
+                            tone={tone}
+                            fontScale={fontScale}
+                            explanation={c.explanation}
+                            showExplanation={showExplain}
+                          />
+                        );
+                      })
+                    ) : (
+                      <>
+                        {/* Fallback: keep your old 2-card view if API hasn't been updated */}
+                        <ChoiceCard
+                          title="Your answer"
+                          label={activeItem.selected_label}
+                          text={activeItem.selected_choice_text}
+                          tone={activeItem.result === "wrong" ? "wrong" : activeItem.result === "correct" ? "correct" : "neutral"}
+                          fontScale={fontScale}
+                        />
+                        <ChoiceCard
+                          title="Correct answer"
+                          label={activeItem.correct_label}
+                          text={activeItem.correct_choice_text}
+                          tone="correct"
+                          fontScale={fontScale}
+                        />
+                      </>
+                    )}
                   </div>
 
-                  {/* Placeholder blocks (future-ready) */}
+                  {/* Blocks */}
                   <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
                     <InfoBlock
                       title="Educational Objective"
-                      body="(Coming soon) Structured educational blocks will appear here."
+                      body={activeItem.explanation_short ? activeItem.explanation_short : "(Coming soon) Structured educational blocks will appear here."}
                       kind="amber"
                       fontScale={fontScale}
                     />
                     <InfoBlock
                       title="Key Concept / Bottom Line"
-                      body="(Coming soon) Distilled takeaways will appear here."
+                      body={activeItem.explanation_long ? activeItem.explanation_long : "(Coming soon) Distilled takeaways will appear here."}
                       kind="green"
                       fontScale={fontScale}
                     />
                     <InfoBlock
                       title="References & Resources"
-                      body="(Coming soon) Clickable references and external learning resources will appear here."
+                      body={
+                        activeItem.bibliography || activeItem.prompt
+                          ? [
+                              activeItem.prompt ? `Prompt: ${activeItem.prompt}` : null,
+                              activeItem.bibliography ? `Bibliography: ${JSON.stringify(activeItem.bibliography)}` : null,
+                            ]
+                              .filter(Boolean)
+                              .join("\n\n")
+                          : "(Coming soon) Clickable references and external learning resources will appear here."
+                      }
                       kind="neutral"
                       fontScale={fontScale}
                     />
@@ -461,6 +539,53 @@ function ChoiceCard(props: {
   );
 }
 
+/**
+ * ✅ V2: Choice card com explicação ("Why correct/Why wrong").
+ * Mantém o estilo do seu componente, só adiciona a seção de explanation.
+ */
+function ChoiceCardV2(props: {
+  title: string;
+  label: string | null;
+  text: string | null;
+  tone: "neutral" | "correct" | "wrong";
+  fontScale: number;
+  explanation: string | null | undefined;
+  showExplanation: boolean;
+}) {
+  const { title, label, text, tone, fontScale, explanation, showExplanation } = props;
+
+  const colors =
+    tone === "correct"
+      ? { border: "rgba(34,197,94,0.35)", bg: "rgba(34,197,94,0.10)", badge: "rgba(34,197,94,0.22)" }
+      : tone === "wrong"
+      ? { border: "rgba(239,68,68,0.35)", bg: "rgba(239,68,68,0.10)", badge: "rgba(239,68,68,0.20)" }
+      : { border: "rgba(255,255,255,0.10)", bg: "rgba(255,255,255,0.03)", badge: "rgba(255,255,255,0.06)" };
+
+  const explainTitle = tone === "correct" ? "Why correct" : "Why wrong";
+
+  return (
+    <div style={{ borderRadius: 16, border: `1px solid ${colors.border}`, background: colors.bg, padding: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+        <div style={{ fontWeight: 800, fontSize: 13 }}>{title}</div>
+        <span style={{ ...pill(), background: colors.badge }}>{label ?? "—"}</span>
+      </div>
+
+      <div style={{ marginTop: 8, fontSize: `${0.98 * fontScale}rem`, lineHeight: 1.5, color: "rgba(244,244,245,0.92)" }}>
+        {text ?? "—"}
+      </div>
+
+      {showExplanation && (
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.10)" }}>
+          <div style={{ fontWeight: 850, fontSize: 12, color: "rgba(244,244,245,0.90)" }}>{explainTitle}</div>
+          <div style={{ marginTop: 6, fontSize: `${0.94 * fontScale}rem`, lineHeight: 1.5, color: "rgba(244,244,245,0.78)", whiteSpace: "pre-wrap" }}>
+            {explanation && String(explanation).trim().length > 0 ? explanation : "(No explanation provided yet.)"}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function InfoBlock(props: { title: string; body: string; kind: "neutral" | "amber" | "green"; fontScale: number }) {
   const { title, body, kind, fontScale } = props;
 
@@ -474,7 +599,7 @@ function InfoBlock(props: { title: string; body: string; kind: "neutral" | "ambe
   return (
     <div style={{ borderRadius: 16, border: `1px solid ${colors.border}`, background: colors.bg, padding: 12 }}>
       <div style={{ fontWeight: 850, fontSize: 13 }}>{title}</div>
-      <div style={{ marginTop: 8, fontSize: `${0.95 * fontScale}rem`, lineHeight: 1.5, color: "rgba(244,244,245,0.80)" }}>
+      <div style={{ marginTop: 8, fontSize: `${0.95 * fontScale}rem`, lineHeight: 1.5, color: "rgba(244,244,245,0.80)", whiteSpace: "pre-wrap" }}>
         {body}
       </div>
     </div>

@@ -40,14 +40,15 @@ export async function GET(
       }
 
       // ✅ Blindagem: review só para sessão submetida
+      // (Semântica melhor: conflito de estado => 409)
       if (session.status !== "submitted") {
         return {
-          status: 400 as const,
+          status: 409 as const,
           payload: { error: "Session must be submitted to review" },
         };
       }
 
-      // 2) Itens + tentativa (se houver) + correta/selecionada + explicações + flagged
+      // 2) Itens + tentativa + correta/selecionada + explicações + flagged
       // Não fazemos JOIN em "todas as choices" aqui para não duplicar linhas.
       const itemsRes = await client.query(
         `
@@ -55,9 +56,12 @@ export async function GET(
           si.session_item_id,
           si.position,
           si.question_version_id,
+
           qv.stem,
           qv.explanation_short,
           qv.explanation_long,
+          qv.bibliography,
+          qv.prompt,
 
           a.attempt_id,
           a.result,
@@ -96,18 +100,51 @@ export async function GET(
 
       const rows = itemsRes.rows as Array<any>;
 
-      // 3) Buscar todas as alternativas (choices) de todos question_version_id retornados
-      const qvIds = Array.from(new Set(rows.map((r) => r.question_version_id))) as string[];
+      // Se por algum motivo ainda não existirem itens, devolve vazio com sessão válida
+      if (rows.length === 0) {
+        return {
+          status: 200 as const,
+          payload: {
+            session: {
+              session_id: session.session_id,
+              user_id: session.user_id,
+              status: session.status,
+              exam: session.exam,
+              language: session.language,
+              started_at: session.started_at,
+              submitted_at: session.submitted_at,
+            },
+            items: [],
+          },
+        };
+      }
+
+      // 3) Buscar todas as alternativas (choices) + explanation por alternativa
+      const qvIds = Array.from(
+        new Set(rows.map((r) => r.question_version_id))
+      ) as string[];
 
       const choicesByQvId: Record<
         string,
-        Array<{ choice_id: string; label: string; choice_text: string; is_correct: boolean }>
+        Array<{
+          choice_id: string;
+          label: string;
+          choice_text: string;
+          is_correct: boolean;
+          explanation: string | null;
+        }>
       > = {};
 
       if (qvIds.length > 0) {
         const choicesRes = await client.query(
           `
-          SELECT question_version_id, choice_id, label, choice_text, is_correct
+          SELECT
+            question_version_id,
+            choice_id,
+            label,
+            choice_text,
+            is_correct,
+            explanation
           FROM question_choices
           WHERE question_version_id = ANY($1)
           ORDER BY question_version_id, label ASC
@@ -116,12 +153,15 @@ export async function GET(
         );
 
         for (const c of choicesRes.rows) {
-          if (!choicesByQvId[c.question_version_id]) choicesByQvId[c.question_version_id] = [];
+          if (!choicesByQvId[c.question_version_id]) {
+            choicesByQvId[c.question_version_id] = [];
+          }
           choicesByQvId[c.question_version_id].push({
             choice_id: c.choice_id,
             label: c.label,
             choice_text: c.choice_text,
             is_correct: c.is_correct,
+            explanation: c.explanation ?? null,
           });
         }
       }
@@ -130,10 +170,14 @@ export async function GET(
         session_item_id: r.session_item_id,
         position: r.position,
         question_version_id: r.question_version_id,
-        stem: r.stem,
 
+        stem: r.stem,
         explanation_short: r.explanation_short,
         explanation_long: r.explanation_long,
+
+        // ✅ para References & Resources / Podcasts
+        bibliography: r.bibliography ?? null,
+        prompt: r.prompt ?? null,
 
         attempt_id: r.attempt_id,
         result: r.result,
@@ -151,7 +195,7 @@ export async function GET(
         selected_label: r.selected_label,
         selected_choice_text: r.selected_choice_text,
 
-        // ✅ review completo
+        // ✅ review completo: alternativas + explicação por alternativa
         choices: choicesByQvId[r.question_version_id] ?? [],
       }));
 
