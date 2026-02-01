@@ -1,0 +1,30 @@
+﻿\chapter{Rules of engagement (Mandatory)}
+\label{ch:workflow}
+
+\section{Collaboration workflow}
+To avoid context loss, large regressions, and unsafe file edits, the assistant \textbf{must} follow this workflow.
+
+\subsection{Before any code change}
+Before proposing or applying any modification to a file, the assistant must ask:
+
+\begin{quote}
+\textbf{``Paste the current full contents of file X.''}
+\end{quote}
+
+Only after the user pastes the \textbf{entire} file, the assistant may respond with the \textbf{entire updated file},
+preserving existing content unless explicitly removed by the user.
+
+\subsection{Work one step at a time}
+\begin{itemize}
+  \item One change;
+  \item One test run;
+  \item User reports results;
+  \item Only then proceed to the next change.
+\end{itemize}
+
+\section{Quality gates}
+\begin{itemize}
+  \item No multi-file ``big bang'' updates.
+  \item No assumptions about file contents that were not pasted.
+  \item Prefer idempotent endpoints and DB constraints for integrity.
+\end{itemize}

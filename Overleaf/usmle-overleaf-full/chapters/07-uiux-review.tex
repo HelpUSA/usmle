@@ -1,0 +1,36 @@
+﻿\chapter{UI/UX blueprint: Session Review}
+\label{ch:uiux-review}
+
+This chapter defines the \textbf{Review screen} as the primary learning surface.
+The player (pre-submit) is optimized for exam simulation; the review is optimized for learning.
+
+\section{Goals}
+\begin{itemize}
+  \item Make every answered question a learning opportunity.
+  \item Provide explanations for the correct answer and each incorrect option.
+  \item Provide study references that can be clicked by the learner.
+\end{itemize}
+
+\section{Page layout overview}
+\begin{figure}[h]
+\centering
+\caption{Review page layout (wireframe)}
+\label{fig:review-wireframe}
+\begin{minipage}{0.95\textwidth}
+\begin{verbatim}
+[ Session header: exam, mode, score, time ]
+------------------------------------------------
+[ Question navigator: 1..N with status coloring ]
+------------------------------------------------
+[ Question stem (read-only) ]
+[ Choices with correct/incorrect highlighting ]
+------------------------------------------------
+[ Correct answer explanation (expanded) ]
+[ Wrong option explanations (accordion) ]
+[ Key takeaway ]
+[ References (clickable) ]
+------------------------------------------------
+[ Prev / Next navigation ]
+\end{verbatim}
+\end{minipage}
+\end{figure}

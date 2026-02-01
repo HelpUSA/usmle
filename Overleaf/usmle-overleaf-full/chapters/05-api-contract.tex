@@ -1,0 +1,100 @@
+﻿\chapter{API contract}
+\label{ch:api}
+
+\section{Sessions}
+\subsection{Create session: \texttt{POST /api/sessions}}
+Creates a new session with status \texttt{in\_progress}.
+
+\subsubsection*{Request}
+\begin{verbatim}
+{
+  "exam": "step1",
+  "mode": "practice" | "timed_block" | "exam_sim"
+}
+\end{verbatim}
+
+\subsubsection*{Response (example)}
+\begin{verbatim}
+{
+  "session_id": "...",
+  "user_id": "...",
+  "exam": "step1",
+  "mode": "practice",
+  "language": "en",
+  "timed": false,
+  "time_limit_seconds": null,
+  "status": "in_progress",
+  "started_at": "...",
+  "submitted_at": null
+}
+\end{verbatim}
+
+\subsection{List sessions: \texttt{GET /api/sessions}}
+Lists sessions for the authenticated user.
+
+\subsection{Generate items: \texttt{POST /api/sessions/:sessionId/items}}
+Generates session items.
+\textbf{Idempotent}: if items already exist, do not recreate.
+
+\subsection{Submit session: \texttt{POST /api/sessions/:sessionId/submit}}
+Finalizes a session:
+\begin{itemize}
+  \item \texttt{status} becomes \texttt{submitted}
+  \item \texttt{submitted\_at} is set
+\end{itemize}
+
+\subsection{Review session: \texttt{GET /api/sessions/:sessionId/review}}
+Returns the full review for a session.
+
+\paragraph{Rule} Session must be \texttt{submitted}. Otherwise return:
+\begin{verbatim}
+{ "error": "Session must be submitted to review" }
+\end{verbatim}
+
+\section{Session items}
+\subsection{Get question: \texttt{GET /api/session-items/:sessionItemId/question}}
+Returns stem and choices \textbf{without} revealing the correct answer.
+
+\subsection{Attempt: \texttt{POST /api/sessions/:sessionId/items/:sessionItemId/attempt}}
+Records (or updates) the user's attempt for one session item.
+
+\paragraph{Rule} Maximum \textbf{one} attempt per item. The endpoint is designed to be \textbf{idempotent} (see \cref{sec:attempt-uniqueness}).
+
+\section{User stats}
+\subsection{Stats: \texttt{GET /api/me/stats?range=30}}
+\begin{itemize}
+  \item Considers only \texttt{submitted} sessions.
+  \item \texttt{range} in days: 1--365 (default 30).
+\end{itemize}
+
+\section{Utility endpoints}
+\subsection{\texttt{GET /api/health}}
+Simple health check.
+
+\subsection{\texttt{GET /api/debug/headers}}
+Echoes request headers for debugging authentication (especially \texttt{x-user-id}).
+
+\subsection{\texttt{POST /api/dev/seed-minimal}}
+Seed endpoint for development only.
+\textbf{Do not run in production.}
+
+\section{Endpoint summary table}
+\label{sec:endpoint-table}
+
+\begin{table}[h]
+\centering
+\caption{Primary endpoints}
+\label{tab:endpoints}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Area & Method/Path & Purpose \\ \midrule
+Sessions & POST /api/sessions & Create session \\
+Sessions & POST /api/sessions/:id/items & Generate items (idempotent) \\
+Sessions & POST /api/sessions/:id/submit & Submit session \\
+Sessions & GET /api/sessions/:id/review & Review submitted session \\
+Items & GET /api/session-items/:id/question & Stem + choices \\
+Attempts & POST /api/sessions/:sid/items/:iid/attempt & Record attempt \\
+Stats & GET /api/me/stats?range=N & Aggregate stats \\
+\bottomrule
+\end{tabular}
+\end{table}

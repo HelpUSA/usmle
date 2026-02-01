@@ -1,0 +1,34 @@
+﻿\chapter{Repository layout (snapshot)}
+\label{ch:folders}
+
+\section{Backend routes (App Router)}
+\label{sec:route-tree}
+
+\begin{verbatim}
+src/
+├─ app/
+│ ├─ api/
+│ │ ├─ auth/[...nextauth]/route.ts
+│ │ ├─ sessions/route.ts
+│ │ ├─ sessions/[sessionId]/items/route.ts
+│ │ ├─ sessions/[sessionId]/submit/route.ts
+│ │ ├─ sessions/[sessionId]/review/route.ts
+│ │ ├─ session-items/[sessionItemId]/question/route.ts
+│ │ ├─ sessions/[sessionId]/items/[sessionItemId]/attempt/route.ts
+│ │ ├─ me/stats/route.ts
+│ │ ├─ health/route.ts
+│ │ ├─ debug/headers/route.ts
+│ │ └─ dev/seed-minimal/route.ts
+│ ├─ session/[sessionId]/page.tsx
+│ └─ session/[sessionId]/review/page.tsx
+└─ lib/
+   ├─ db.ts
+   ├─ auth.ts
+   └─ apiClient.ts
+\end{verbatim}
+
+\section{Client helper}
+The UI uses a shared HTTP helper:
+\begin{verbatim}
+src/lib/apiClient.ts
+\end{verbatim}

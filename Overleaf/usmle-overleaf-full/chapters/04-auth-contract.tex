@@ -1,0 +1,32 @@
+﻿\chapter{Authentication contract}
+\label{ch:auth}
+
+\section{Development override header}
+\label{sec:x-user-id}
+
+\begin{verbatim}
+x-user-id: <UUID>
+\end{verbatim}
+
+When this header is present:
+\begin{itemize}
+  \item NextAuth is fully bypassed.
+  \item The value is used as \texttt{user\_id}.
+\end{itemize}
+
+\section{Browser/production}
+When \cref{sec:x-user-id} is not present:
+\begin{itemize}
+  \item Use NextAuth v4 session via \texttt{getServerSession(authOptions)}.
+  \item Derive \texttt{user\_id} deterministically from \texttt{session.user.email}.
+\end{itemize}
+
+\section{Deterministic user id}
+Rule:
+\begin{enumerate}
+  \item If \texttt{x-user-id} exists, use it.
+  \item Else, take \texttt{session.user.email}.
+  \item Generate a deterministic UUID from email.
+\end{enumerate}
+
+This guarantees the same email maps to the same \texttt{user\_id} across environments.

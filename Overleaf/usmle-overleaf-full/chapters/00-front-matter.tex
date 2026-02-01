@@ -1,0 +1,30 @@
+﻿\chapter*{About this document}
+\addcontentsline{toc}{chapter}{About this document}
+\label{ch:about}
+
+This document is the \textbf{anchor} for the USMLE practice platform project.
+Its goal is to allow the team to restart work in a new chat or a new day by
+consulting a single source of truth.
+
+\section*{How to use}
+\begin{itemize}
+  \item Keep this document updated as the system evolves.
+  \item When resuming work: open \texttt{main.tex} and use the table of contents.
+  \item For code changes: follow the mandatory workflow rules in \cref{ch:workflow}.
+\end{itemize}
+
+\section*{Scope}
+This handbook captures:
+\begin{itemize}
+  \item Collaboration rules and development workflow;
+  \item Stack and architecture decisions;
+  \item API contract and routes;
+  \item Data model (tables, enums, integrity rules);
+  \item UI/UX blueprint for the Review screen;
+  \item Infrastructure and deployment notes;
+  \item Current status and recommended next steps.
+\end{itemize}
+
+\section*{Living document}
+This is a living document; it is expected to change frequently.
+Use \LaTeX{} cross-references (e.g., \cref{ch:data-model}) to keep the structure stable as content grows.

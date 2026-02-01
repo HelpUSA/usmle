@@ -1,0 +1,73 @@
+﻿\documentclass[12pt]{report}
+
+% -----------------------------
+% Project: USMLE API Handbook
+% -----------------------------
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{caption}
+
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue,
+  pdftitle={USMLE API -- Contract \& Project Snapshot},
+  pdfauthor={HelpUS},
+}
+
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{csquotes}
+
+% Bibliography (BibLaTeX + Biber)
+\usepackage[backend=biber,style=ieee,sorting=nyt]{biblatex}
+\addbibresource{references.bib}
+
+\title{USMLE API -- Contract \& Project Snapshot\\\large ``Living'' Engineering Handbook}
+\author{HelpUS}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\pagenumbering{roman}
+\tableofcontents
+\listoffigures
+\listoftables
+
+\clearpage
+\pagenumbering{arabic}
+
+\include{chapters/00-front-matter}
+\include{chapters/01-workflow-rules}
+\include{chapters/02-stack-architecture}
+\include{chapters/03-folder-structure}
+\include{chapters/04-auth-contract}
+\include{chapters/05-api-contract}
+\include{chapters/06-data-model}
+\include{chapters/07-uiux-review}
+\include{chapters/08-infra-deploy}
+\include{chapters/09-status-roadmap}
+
+\appendix
+\include{appendices/A-error-contract-template}
+
+\clearpage
+\printbibliography
+
+\end{document}
