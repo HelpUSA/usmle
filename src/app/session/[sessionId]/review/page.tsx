@@ -357,10 +357,9 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                             ? "❌ Your answer"
                             : "Choice";
 
-                        // We show explanation for:
-                        // - correct choice
-                        // - selected choice (even if wrong)
-                        const showExplain = isCorrect || isSelected;
+                        // ✅ Agora mostramos explicação para TODAS as alternativas
+                        // (resolve seu problema: incorretas também precisam ter review)
+                        const showExplain = true;
 
                         return (
                           <ChoiceCardV2
