@@ -1,0 +1,22 @@
+SOURCE_XML:
+tmp\PMC10464289.ncbi.xml
+
+--------------------------------------------------------------------------------
+
+TITLE:
+Correction: Empagliflozin-associated postoperative mixed metabolic acidosis. Case report and review of pathogenesis
+
+--------------------------------------------------------------------------------
+
+BODY:
+Correction: BMC Endocr Disord 23, 81 (2023).
+
+10.1186/s12902-023-01339-w
+
+Following publication of the original article [1], the authors reported that the funding information was mistakenly missed in the manuscript.
+
+The correct funding statement should be:
+
+The study was supported by the European Regional Development Fund - Project ENOCH (No. CZ.02.1.01/0.0/0.0/16_019/0000868).
+
+The original article [1] has been updated.

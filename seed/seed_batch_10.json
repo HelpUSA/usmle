@@ -1,0 +1,424 @@
+{
+  "chunkSize": 10,
+  "questions": [
+    {
+      "stem": "A term male newborn becomes progressively cyanotic at 6 hours of life. Pulse oximetry shows an oxygen saturation of 93% in the right hand and 76% in the right foot. He received indomethacin shortly after birth for a presumed patent ductus arteriosus. Echocardiography now demonstrates transposition of the great arteries with a restrictive foramen ovale and a constricting ductus arteriosus. Which fetal circulatory feature best explains the higher preductal saturation, and what is the most appropriate immediate pharmacologic action to improve systemic oxygen delivery?",
+      "difficulty": "hard",
+      "explanation_short": "Preductal blood reflects oxygen-rich IVC streaming across the foramen ovale; prostaglandin E1 maintains ductal patency to improve mixing.",
+      "explanation_long": "In fetal circulation, relatively oxygenated blood from the placenta reaches the right atrium via the inferior vena cava and is preferentially directed across the foramen ovale into the left atrium, then into the left ventricle and ascending aorta—supplying coronary/cerebral circulation and the right upper extremity (preductal). Postductal saturation reflects distal mixing near the ductus. In transposition of the great arteries, systemic and pulmonary circulations run in parallel; survival depends on mixing via the foramen ovale and/or ductus arteriosus. Indomethacin decreases prostaglandins and promotes ductal closure, reducing mixing and worsening hypoxemia. Immediate management is prostaglandin E1 infusion to reopen/maintain the ductus and improve systemic oxygenation while arranging definitive intervention.",
+      "bibliography": {
+        "provenance": {
+          "source_name": "open-structure-blueprint",
+          "license": "to-be-filled",
+          "source_item_id": "blueprint-neonate-prepostductal-tga",
+          "note": "Blueprint inspiration only; final wording and explanations are original."
+        }
+      },
+      "prompt": "Blueprint: neonatal cyanosis; preductal vs postductal; TGA; mixing via FO/DA; indomethacin worsens; treat with PGE1.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Preferential streaming across the ductus arteriosus into the descending aorta; administer indomethacin again",
+          "correct": false,
+          "explanation": "The ductus arteriosus enters the descending aorta (postductal), and indomethacin promotes ductal closure—both would worsen mixing and systemic oxygenation in ductal-dependent disease."
+        },
+        {
+          "label": "B",
+          "text": "Preferential streaming across the foramen ovale into the left atrium; start prostaglandin E1 infusion",
+          "correct": true,
+          "explanation": "Oxygen-rich IVC blood is preferentially shunted across the foramen ovale to the left heart, elevating preductal saturation. Prostaglandin E1 keeps the ductus open to increase mixing and improve systemic oxygen delivery."
+        },
+        {
+          "label": "C",
+          "text": "Preferential drainage through the ductus venosus into the hepatic sinusoids; give furosemide to reduce pulmonary edema",
+          "correct": false,
+          "explanation": "The ductus venosus bypasses hepatic sinusoids into the IVC, and diuresis does not address the primary issue: insufficient mixing between parallel circulations."
+        },
+        {
+          "label": "D",
+          "text": "Preferential return via the umbilical arteries to the placenta; administer a medication to close the ductus arteriosus",
+          "correct": false,
+          "explanation": "Umbilical arteries are fetal-only and not relevant postnatally. Closing the ductus reduces mixing and worsens hypoxemia in ductal-dependent congenital heart disease."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 27-year-old woman has episodic palpitations, tremor, and sweating. During episodes her blood pressure is 178/102 mm Hg. Plasma metanephrines are elevated. Contrast-enhanced CT reveals an adrenal mass. Which mechanism best explains her symptoms, and what additional laboratory finding is most likely?",
+      "difficulty": "medium",
+      "explanation_short": "A catecholamine-secreting tumor causes paroxysmal adrenergic symptoms; hyperglycemia is common due to increased gluconeogenesis and glycogenolysis.",
+      "explanation_long": "Pheochromocytomas secrete catecholamines episodically, producing paroxysmal hypertension, palpitations, sweating, and tremor. Catecholamines increase hepatic glycogenolysis and gluconeogenesis and can decrease insulin secretion, leading to hyperglycemia. Elevated metanephrines support the diagnosis. Definitive management involves resection after alpha blockade (then beta blockade if needed) to avoid unopposed alpha vasoconstriction.",
+      "bibliography": {
+        "provenance": {
+          "source_name": "open-structure-blueprint",
+          "license": "to-be-filled",
+          "source_item_id": "blueprint-pheo-paroxysmal-htn",
+          "note": "Blueprint inspiration only; final text is original."
+        }
+      },
+      "prompt": "Blueprint: pheochromocytoma; episodic symptoms; metanephrines; metabolic effects.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Excess cortisol production; decreased fasting glucose",
+          "correct": false,
+          "explanation": "Cortisol excess tends to increase glucose and usually causes more sustained findings; elevated metanephrines and episodic spells indicate catecholamine excess."
+        },
+        {
+          "label": "B",
+          "text": "Episodic catecholamine release; elevated fasting glucose",
+          "correct": true,
+          "explanation": "Catecholamines raise glucose by promoting glycogenolysis and gluconeogenesis and can reduce insulin secretion."
+        },
+        {
+          "label": "C",
+          "text": "Excess aldosterone production; metabolic acidosis",
+          "correct": false,
+          "explanation": "Hyperaldosteronism causes hypokalemic metabolic alkalosis (not acidosis) and does not fit episodic adrenergic symptoms with elevated metanephrines."
+        },
+        {
+          "label": "D",
+          "text": "Beta-2–mediated vasodilation predominance; persistent hypotension",
+          "correct": false,
+          "explanation": "Catecholamine excess typically produces hypertension due to alpha-1 vasoconstriction; hypotension is not the expected primary effect."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 63-year-old man with a long history of smoking presents with weight loss and proximal muscle weakness. He has new-onset hypertension. Labs show hypokalemia and metabolic alkalosis. Serum cortisol is elevated and does not suppress with low-dose dexamethasone. Which additional finding is most likely?",
+      "difficulty": "hard",
+      "explanation_short": "Ectopic ACTH (often from small cell lung carcinoma) causes hypercortisolism with hypokalemic metabolic alkalosis; ACTH is elevated and may cause hyperpigmentation.",
+      "explanation_long": "Small cell lung carcinoma can produce ectopic ACTH, leading to hypercortisolism. High cortisol can activate mineralocorticoid receptors, causing hypertension, hypokalemia, and metabolic alkalosis. Lack of suppression with low-dose dexamethasone supports a pathologic source. Ectopic ACTH is associated with elevated ACTH and may cause hyperpigmentation via melanocyte stimulation.",
+      "bibliography": {
+        "provenance": {
+          "source_name": "open-structure-blueprint",
+          "license": "to-be-filled",
+          "source_item_id": "blueprint-ectopic-acth-sclc",
+          "note": "Blueprint inspiration only; final text is original."
+        }
+      },
+      "prompt": "Blueprint: ectopic ACTH; smoking; hypokalemic alkalosis; no suppression.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Low ACTH due to an adrenal adenoma",
+          "correct": false,
+          "explanation": "An adrenal cortisol-producing adenoma suppresses ACTH via negative feedback; ectopic ACTH produces elevated ACTH."
+        },
+        {
+          "label": "B",
+          "text": "Hyperpigmentation with elevated ACTH",
+          "correct": true,
+          "explanation": "Ectopic ACTH increases ACTH levels; ACTH can stimulate melanocytes leading to hyperpigmentation."
+        },
+        {
+          "label": "C",
+          "text": "Suppression of cortisol with low-dose dexamethasone",
+          "correct": false,
+          "explanation": "Failure to suppress with low-dose dexamethasone is expected in ectopic ACTH or adrenal tumors; suppression would argue against these."
+        },
+        {
+          "label": "D",
+          "text": "Hyperkalemia with metabolic acidosis",
+          "correct": false,
+          "explanation": "Cortisol’s mineralocorticoid effect causes hypokalemic alkalosis, not hyperkalemic acidosis."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 19-year-old college student has fever, sore throat, malaise, and posterior cervical lymphadenopathy. She has splenomegaly. A heterophile antibody test is positive. Two days after starting amoxicillin for presumed bacterial pharyngitis, she develops a diffuse maculopapular rash. What best explains this rash?",
+      "difficulty": "medium",
+      "explanation_short": "EBV infection predisposes to a diffuse aminopenicillin-associated rash via an immune-mediated mechanism rather than a classic IgE allergy.",
+      "explanation_long": "Epstein–Barr virus causes infectious mononucleosis with posterior cervical lymphadenopathy and splenomegaly. Aminopenicillins (ampicillin/amoxicillin) can trigger a diffuse maculopapular rash during EBV infection. This is not a classic immediate IgE-mediated allergy; rather, it is a non-allergic immune-mediated drug eruption associated with the altered immune environment in EBV infection.",
+      "bibliography": {
+        "provenance": {
+          "source_name": "open-structure-blueprint",
+          "license": "to-be-filled",
+          "source_item_id": "blueprint-ebv-aminopenicillin-rash",
+          "note": "Blueprint inspiration only; final text is original."
+        }
+      },
+      "prompt": "Blueprint: EBV mono; amoxicillin rash; not IgE.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Immediate IgE-mediated hypersensitivity to penicillin",
+          "correct": false,
+          "explanation": "IgE-mediated reactions cause urticaria, angioedema, bronchospasm, or anaphylaxis shortly after exposure, not the classic EBV-associated maculopapular eruption."
+        },
+        {
+          "label": "B",
+          "text": "Immune-mediated drug eruption associated with EBV infection",
+          "correct": true,
+          "explanation": "During EBV infection, aminopenicillins are associated with a diffuse maculopapular rash due to immune-mediated mechanisms rather than true IgE allergy."
+        },
+        {
+          "label": "C",
+          "text": "Direct toxic effect of amoxicillin on the skin",
+          "correct": false,
+          "explanation": "The rash is classically linked to EBV-associated immune changes rather than direct medication toxicity."
+        },
+        {
+          "label": "D",
+          "text": "Complement deficiency leading to immune complex disease",
+          "correct": false,
+          "explanation": "Complement deficiencies predispose to certain infections and immune complex disorders but do not explain this characteristic EBV-aminopenicillin rash pattern."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 58-year-old man with progressive dyspnea and chronic cough worked in shipbuilding for 25 years. Imaging shows pleural plaques. Pulmonary function tests demonstrate a restrictive pattern. Which additional finding is most likely, and what is the key disease association?",
+      "difficulty": "medium",
+      "explanation_short": "Asbestos exposure causes pleural plaques and restrictive lung disease; ferruginous bodies and increased risk of mesothelioma are expected.",
+      "explanation_long": "Asbestos exposure is associated with pleural plaques and interstitial fibrosis causing restrictive disease. Asbestos fibers may become coated with iron-containing proteinaceous material (ferruginous bodies). Exposure increases risk of bronchogenic carcinoma and malignant mesothelioma; smoking synergistically increases bronchogenic carcinoma risk.",
+      "bibliography": {
+        "provenance": {
+          "source_name": "open-structure-blueprint",
+          "license": "to-be-filled",
+          "source_item_id": "blueprint-asbestos-pleural-plaques",
+          "note": "Blueprint inspiration only; final text is original."
+        }
+      },
+      "prompt": "Blueprint: asbestos; shipbuilding; pleural plaques; restrictive; mesothelioma risk.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Charcot–Leyden crystals; eosinophilic asthma",
+          "correct": false,
+          "explanation": "Charcot–Leyden crystals indicate eosinophil breakdown (asthma), not asbestos-related pleural plaques and restrictive physiology."
+        },
+        {
+          "label": "B",
+          "text": "Ferruginous bodies; increased risk of malignant mesothelioma",
+          "correct": true,
+          "explanation": "Asbestos exposure produces ferruginous bodies and is strongly associated with mesothelioma and bronchogenic carcinoma."
+        },
+        {
+          "label": "C",
+          "text": "Upper lobe cavitation; reactivation tuberculosis",
+          "correct": false,
+          "explanation": "TB can cause cavitation and systemic symptoms; pleural plaques with shipbuilding exposure are classic for asbestos."
+        },
+        {
+          "label": "D",
+          "text": "Hyperinflation with low FEV1/FVC; alpha-1 antitrypsin deficiency",
+          "correct": false,
+          "explanation": "Alpha-1 antitrypsin deficiency causes emphysema with obstructive physiology, not pleural plaques and restrictive disease."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 46-year-old woman has fatigue and pruritus. Labs show elevated alkaline phosphatase and gamma-glutamyl transferase with mild aminotransferase elevation. Antimitochondrial antibodies are positive. Which histologic finding is most consistent with this disease process?",
+      "difficulty": "medium",
+      "explanation_short": "Primary biliary cholangitis causes autoimmune granulomatous destruction of intrahepatic bile ducts in portal tracts.",
+      "explanation_long": "Primary biliary cholangitis is an autoimmune destruction of intrahepatic bile ducts leading to cholestasis and pruritus. Antimitochondrial antibodies are characteristic. Histology shows portal tract inflammation with granulomas and bile duct damage (florid duct lesions).",
+      "bibliography": {
+        "provenance": {
+          "source_name": "open-structure-blueprint",
+          "license": "to-be-filled",
+          "source_item_id": "blueprint-pbc-ama",
+          "note": "Blueprint inspiration only; final text is original."
+        }
+      },
+      "prompt": "Blueprint: PBC; AMA; cholestatic labs; granulomas; bile duct destruction.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Macrovesicular steatosis with Mallory-Denk bodies",
+          "correct": false,
+          "explanation": "Steatosis and Mallory-Denk bodies suggest alcoholic liver disease, not AMA-positive cholestatic autoimmune bile duct destruction."
+        },
+        {
+          "label": "B",
+          "text": "Granulomatous destruction of intrahepatic bile ducts in portal tracts",
+          "correct": true,
+          "explanation": "PBC classically shows portal granulomas and bile duct destruction (florid duct lesions)."
+        },
+        {
+          "label": "C",
+          "text": "Hemosiderin deposition in hepatocytes and pancreas",
+          "correct": false,
+          "explanation": "This pattern suggests hemochromatosis, which presents with different labs and is not associated with antimitochondrial antibodies."
+        },
+        {
+          "label": "D",
+          "text": "Diffuse hepatic necrosis with Councilman bodies",
+          "correct": false,
+          "explanation": "Councilman bodies are apoptotic hepatocytes seen in acute viral hepatitis or yellow fever, not classic for PBC."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 35-year-old man returned from a hiking trip and recalls a target-shaped rash that resolved. Weeks later he develops intermittent palpitations and lightheadedness. ECG shows varying degrees of atrioventricular block. What is the most appropriate next step in management?",
+      "difficulty": "hard",
+      "explanation_short": "Lyme carditis can cause AV block; treat with antibiotics (often IV for high-grade block) and monitor cardiac conduction.",
+      "explanation_long": "Erythema migrans after outdoor exposure suggests Lyme disease. Carditis can cause conduction abnormalities, including AV block. Management is antibiotics; higher-grade AV block or significant symptoms require IV antibiotics (e.g., ceftriaxone) and monitoring. Conduction often improves with treatment; pacing may be temporary if needed.",
+      "bibliography": {
+        "provenance": {
+          "source_name": "open-structure-blueprint",
+          "license": "to-be-filled",
+          "source_item_id": "blueprint-lyme-carditis-avblock",
+          "note": "Blueprint inspiration only; final text is original."
+        }
+      },
+      "prompt": "Blueprint: Lyme; erythema migrans; AV block; IV antibiotics + monitoring if high-grade.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "High-dose corticosteroids to reduce myocardial inflammation",
+          "correct": false,
+          "explanation": "Lyme carditis is treated primarily with antibiotics; steroids are not first-line and do not eradicate the infection."
+        },
+        {
+          "label": "B",
+          "text": "IV ceftriaxone and continuous cardiac monitoring",
+          "correct": true,
+          "explanation": "High-grade or symptomatic AV block due to Lyme carditis warrants IV antibiotics and monitoring."
+        },
+        {
+          "label": "C",
+          "text": "No therapy because cardiac findings always resolve spontaneously",
+          "correct": false,
+          "explanation": "Lyme carditis can progress and is treatable; AV block requires appropriate antibiotics and monitoring."
+        },
+        {
+          "label": "D",
+          "text": "Immediate permanent pacemaker placement without antibiotics",
+          "correct": false,
+          "explanation": "Conduction often improves with antibiotics; temporary pacing may be needed, but treating the infection is essential."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 72-year-old woman is brought in for confusion and lethargy. Sodium is 118 mEq/L, serum osmolality is low, and urine osmolality is inappropriately high. She has a history of small cell lung carcinoma. Which mechanism explains her hyponatremia, and what is the most appropriate initial management?",
+      "difficulty": "hard",
+      "explanation_short": "SIADH causes euvolemic hyponatremia with concentrated urine due to ADH-mediated water retention; start with fluid restriction and careful correction.",
+      "explanation_long": "Small cell lung carcinoma can secrete ADH ectopically, producing SIADH. This causes euvolemic hyponatremia, low serum osmolality, and inappropriately concentrated urine. Initial management is fluid restriction. Severe neurologic symptoms may require hypertonic saline with careful monitoring to avoid overly rapid correction and osmotic demyelination.",
+      "bibliography": {
+        "provenance": {
+          "source_name": "open-structure-blueprint",
+          "license": "to-be-filled",
+          "source_item_id": "blueprint-siadh-sclc-hyponatremia",
+          "note": "Blueprint inspiration only; final text is original."
+        }
+      },
+      "prompt": "Blueprint: SIADH; SCLC; euvolemic hyponatremia; concentrated urine; treatment.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Aldosterone deficiency with salt wasting; treat with fludrocortisone",
+          "correct": false,
+          "explanation": "Aldosterone deficiency causes hypovolemia and hyperkalemia; SIADH causes euvolemic hyponatremia with concentrated urine."
+        },
+        {
+          "label": "B",
+          "text": "Ectopic ADH causing water retention; restrict free water (hypertonic saline if severe)",
+          "correct": true,
+          "explanation": "SIADH is due to excessive ADH action, so fluid restriction is initial therapy; severe symptoms may need hypertonic saline carefully."
+        },
+        {
+          "label": "C",
+          "text": "Excess ANP causing natriuresis; give isotonic saline bolus",
+          "correct": false,
+          "explanation": "ANP is not the classic mechanism here; isotonic saline alone does not correct SIADH and may worsen free water retention."
+        },
+        {
+          "label": "D",
+          "text": "Renal tubular injury causing inability to concentrate urine; give loop diuretic only",
+          "correct": false,
+          "explanation": "SIADH features inappropriately concentrated urine (not dilute urine from tubular injury); loop diuretics may be adjunctive but not the sole initial step."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 24-year-old man has recurrent episodes of hematuria that occur within 1–2 days of upper respiratory infections. His blood pressure is mildly elevated. Serum creatinine is normal. Urinalysis shows dysmorphic red blood cells and red blood cell casts. What is the most likely diagnosis, and what is the underlying pathogenesis?",
+      "difficulty": "hard",
+      "explanation_short": "Hematuria within days of URI suggests IgA nephropathy due to mesangial IgA deposition after mucosal immune activation.",
+      "explanation_long": "IgA nephropathy classically causes episodic hematuria shortly after mucosal infections (often within days). Pathogenesis involves abnormal IgA production and immune complex deposition in the mesangium, activating complement and causing glomerular injury. This contrasts with poststreptococcal glomerulonephritis, which occurs 1–3 weeks after infection.",
+      "bibliography": {
+        "provenance": {
+          "source_name": "open-structure-blueprint",
+          "license": "to-be-filled",
+          "source_item_id": "blueprint-iga-nephropathy-synpharyngitic",
+          "note": "Blueprint inspiration only; final text is original."
+        }
+      },
+      "prompt": "Blueprint: synpharyngitic hematuria; IgA nephropathy; mesangial deposition.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Poststreptococcal glomerulonephritis due to subepithelial immune complex deposition",
+          "correct": false,
+          "explanation": "PSGN occurs 1–3 weeks after infection and is associated with subepithelial humps; hematuria within 1–2 days supports IgA nephropathy instead."
+        },
+        {
+          "label": "B",
+          "text": "IgA nephropathy due to mesangial IgA immune complex deposition after mucosal infections",
+          "correct": true,
+          "explanation": "Synpharyngitic hematuria is classic for IgA nephropathy; mesangial IgA deposition drives the glomerular injury."
+        },
+        {
+          "label": "C",
+          "text": "Anti-GBM disease due to antibodies targeting type IV collagen",
+          "correct": false,
+          "explanation": "Anti-GBM typically causes rapidly progressive glomerulonephritis and may have pulmonary hemorrhage; the episodic timing after URIs points to IgA nephropathy."
+        },
+        {
+          "label": "D",
+          "text": "Alport syndrome due to defective type I collagen synthesis",
+          "correct": false,
+          "explanation": "Alport syndrome involves type IV collagen defects and is associated with hearing and ocular issues; it does not present as synpharyngitic episodic hematuria."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 54-year-old man develops sudden-onset severe epigastric pain radiating to the back. He is febrile and tachycardic. Serum amylase and lipase are elevated. Over the next 24 hours, he becomes hypotensive despite fluid resuscitation. Which mechanism best explains this deterioration, and what complication is most likely to occur?",
+      "difficulty": "hard",
+      "explanation_short": "Severe pancreatitis can trigger systemic inflammatory response and capillary leak leading to shock; complications include ARDS and hypocalcemia from fat saponification.",
+      "explanation_long": "Acute pancreatitis causes enzymatic injury and intense inflammation. Severe cases produce systemic inflammatory response with increased vascular permeability (capillary leak), third-spacing, and distributive shock. Complications include ARDS due to inflammatory lung injury and hypocalcemia from fat necrosis (saponification) binding calcium.",
+      "bibliography": {
+        "provenance": {
+          "source_name": "open-structure-blueprint",
+          "license": "to-be-filled",
+          "source_item_id": "blueprint-severe-pancreatitis-shock-ards",
+          "note": "Blueprint inspiration only; final text is original."
+        }
+      },
+      "prompt": "Blueprint: pancreatitis; shock via capillary leak/SIRS; ARDS; hypocalcemia.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Obstructive shock from pulmonary embolism; hypercalcemia due to bone resorption",
+          "correct": false,
+          "explanation": "The scenario is severe pancreatitis with SIRS; pancreatitis is associated with hypocalcemia (fat saponification), not hypercalcemia."
+        },
+        {
+          "label": "B",
+          "text": "Distributive physiology from systemic inflammation and capillary leak; acute respiratory distress syndrome",
+          "correct": true,
+          "explanation": "Severe pancreatitis can cause SIRS with capillary leak and shock; ARDS is a classic serious complication."
+        },
+        {
+          "label": "C",
+          "text": "Cardiogenic shock from myocardial infarction; elevated troponins as the defining complication",
+          "correct": false,
+          "explanation": "While stress can affect the heart, the primary mechanism here is inflammatory capillary leak; the clinical picture fits severe pancreatitis complications rather than MI."
+        },
+        {
+          "label": "D",
+          "text": "Neurogenic shock from vagal stimulation; bradycardia as the primary feature",
+          "correct": false,
+          "explanation": "Neurogenic shock features bradycardia and warm skin due to loss of sympathetic tone; severe pancreatitis more commonly causes tachycardia and distributive shock physiology."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+abstract_words=0, body_words=56, quality=too_little_text

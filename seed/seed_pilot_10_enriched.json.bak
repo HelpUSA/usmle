@@ -1,0 +1,693 @@
+{
+  "batch_meta": {
+    "batch_id": "pilot-10-2026-02-02",
+    "source_policy": "pmc_oa_only",
+    "created_at": "2026-02-02T09:30:00-03:00",
+    "notes": "Step1-like pilot batch; validation_profile=dryrun; choice-level explanations required.",
+    "enriched_with": "europe_pmc",
+    "enriched_at": "2026-02-02T11:18:35-0300",
+    "missing_pmcid_count": 0
+  },
+  "questions": [
+    {
+      "external_refs": {
+        "source": "pmc_oa",
+        "pmcid": "PMC10464289",
+        "doi": "10.1186/s12902-023-01436-w",
+        "license": "cc by",
+        "retrieved_at": "2026-02-02T10:56:47-0300",
+        "meta": {
+          "title": "Correction: Empagliflozin-associated postoperative mixed metabolic acidosis. Case report and review of pathogenesis.",
+          "journal": null,
+          "year": 2023,
+          "authorString": "Sitina M, Lukes M, Sramek V.",
+          "firstAuthor": null,
+          "isOpenAccess": "Y",
+          "pmid": "37641105",
+          "source": "MED",
+          "hasFullText": null
+        }
+      },
+      "question": {
+        "stem": "[PLACEHOLDER] Rewrite a Step1-like vignette for PMC10464289. Add history, exam, labs, and a clear question prompt.",
+        "difficulty": 3,
+        "prompt": null,
+        "bibliography": [
+          {
+            "label": "Primary OA Source",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10464289/"
+          }
+        ],
+        "educational_blocks": {
+          "educational_objective": "[PLACEHOLDER] Educational Objective",
+          "bottom_line": "[PLACEHOLDER] Bottom Line",
+          "exam_tip": "[PLACEHOLDER] Exam Tip"
+        }
+      },
+      "choices": [
+        {
+          "label": "A",
+          "text": "[PLACEHOLDER] Option A",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "B",
+          "text": "[PLACEHOLDER] Option B",
+          "is_correct": true,
+          "explanation": "[PLACEHOLDER] Why correct"
+        },
+        {
+          "label": "C",
+          "text": "[PLACEHOLDER] Option C",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "D",
+          "text": "[PLACEHOLDER] Option D",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "E",
+          "text": "[PLACEHOLDER] Option E",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        }
+      ]
+    },
+    {
+      "external_refs": {
+        "source": "pmc_oa",
+        "pmcid": "PMC10103020",
+        "doi": "10.1186/s12902-023-01339-w",
+        "license": "cc by",
+        "retrieved_at": "2026-02-02T10:56:47-0300",
+        "meta": {
+          "title": "Empagliflozin-associated postoperative mixed metabolic acidosis. Case report and review of pathogenesis.",
+          "journal": null,
+          "year": 2023,
+          "authorString": "Sitina M, Lukes M, Sramek V.",
+          "firstAuthor": null,
+          "isOpenAccess": "Y",
+          "pmid": "37060078",
+          "source": "MED",
+          "hasFullText": null
+        }
+      },
+      "question": {
+        "stem": "[PLACEHOLDER] Rewrite a Step1-like vignette for PMC10103020. Add history, exam, labs, and a clear question prompt.",
+        "difficulty": 3,
+        "prompt": null,
+        "bibliography": [
+          {
+            "label": "Primary OA Source",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10103020/"
+          }
+        ],
+        "educational_blocks": {
+          "educational_objective": "[PLACEHOLDER] Educational Objective",
+          "bottom_line": "[PLACEHOLDER] Bottom Line",
+          "exam_tip": "[PLACEHOLDER] Exam Tip"
+        }
+      },
+      "choices": [
+        {
+          "label": "A",
+          "text": "[PLACEHOLDER] Option A",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "B",
+          "text": "[PLACEHOLDER] Option B",
+          "is_correct": true,
+          "explanation": "[PLACEHOLDER] Why correct"
+        },
+        {
+          "label": "C",
+          "text": "[PLACEHOLDER] Option C",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "D",
+          "text": "[PLACEHOLDER] Option D",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "E",
+          "text": "[PLACEHOLDER] Option E",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        }
+      ]
+    },
+    {
+      "external_refs": {
+        "source": "pmc_oa",
+        "pmcid": "PMC8642236",
+        "doi": null,
+        "license": "UNKNOWN",
+        "retrieved_at": "2026-02-02T10:56:47-0300",
+        "meta": {
+          "title": "Sodium chloride : Metabolic acidosis: case report",
+          "journal": null,
+          "year": 2021,
+          "authorString": null,
+          "firstAuthor": null,
+          "isOpenAccess": "Y",
+          "pmid": null,
+          "source": "PMC",
+          "hasFullText": null
+        }
+      },
+      "question": {
+        "stem": "[PLACEHOLDER] Rewrite a Step1-like vignette for PMC8642236. Add history, exam, labs, and a clear question prompt.",
+        "difficulty": 3,
+        "prompt": null,
+        "bibliography": [
+          {
+            "label": "Primary OA Source",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8642236/"
+          }
+        ],
+        "educational_blocks": {
+          "educational_objective": "[PLACEHOLDER] Educational Objective",
+          "bottom_line": "[PLACEHOLDER] Bottom Line",
+          "exam_tip": "[PLACEHOLDER] Exam Tip"
+        }
+      },
+      "choices": [
+        {
+          "label": "A",
+          "text": "[PLACEHOLDER] Option A",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "B",
+          "text": "[PLACEHOLDER] Option B",
+          "is_correct": true,
+          "explanation": "[PLACEHOLDER] Why correct"
+        },
+        {
+          "label": "C",
+          "text": "[PLACEHOLDER] Option C",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "D",
+          "text": "[PLACEHOLDER] Option D",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "E",
+          "text": "[PLACEHOLDER] Option E",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        }
+      ]
+    },
+    {
+      "external_refs": {
+        "source": "pmc_oa",
+        "pmcid": "PMC8195731",
+        "doi": null,
+        "license": "UNKNOWN",
+        "retrieved_at": "2026-02-02T10:56:47-0300",
+        "meta": {
+          "title": "Flucloxacillin/paracetamol : High-anion gap metabolic acidosis : case report",
+          "journal": null,
+          "year": 2021,
+          "authorString": null,
+          "firstAuthor": null,
+          "isOpenAccess": "Y",
+          "pmid": null,
+          "source": "PMC",
+          "hasFullText": null
+        }
+      },
+      "question": {
+        "stem": "[PLACEHOLDER] Rewrite a Step1-like vignette for PMC8195731. Add history, exam, labs, and a clear question prompt.",
+        "difficulty": 3,
+        "prompt": null,
+        "bibliography": [
+          {
+            "label": "Primary OA Source",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8195731/"
+          }
+        ],
+        "educational_blocks": {
+          "educational_objective": "[PLACEHOLDER] Educational Objective",
+          "bottom_line": "[PLACEHOLDER] Bottom Line",
+          "exam_tip": "[PLACEHOLDER] Exam Tip"
+        }
+      },
+      "choices": [
+        {
+          "label": "A",
+          "text": "[PLACEHOLDER] Option A",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "B",
+          "text": "[PLACEHOLDER] Option B",
+          "is_correct": true,
+          "explanation": "[PLACEHOLDER] Why correct"
+        },
+        {
+          "label": "C",
+          "text": "[PLACEHOLDER] Option C",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "D",
+          "text": "[PLACEHOLDER] Option D",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "E",
+          "text": "[PLACEHOLDER] Option E",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        }
+      ]
+    },
+    {
+      "external_refs": {
+        "source": "pmc_oa",
+        "pmcid": "PMC12849829",
+        "doi": null,
+        "license": "cc by",
+        "retrieved_at": "2026-02-02T10:56:47-0300",
+        "meta": {
+          "title": "Primary Sjögren’s Syndrome Presenting With Severe Hypokalemia Due to Distal Renal Tubular Acidosis: A Case Report",
+          "journal": null,
+          "year": null,
+          "authorString": "Nguyen N, Dang D, Le T, Le T, Nguyen S.",
+          "firstAuthor": null,
+          "isOpenAccess": "Y",
+          "pmid": null,
+          "source": "PMC",
+          "hasFullText": null
+        }
+      },
+      "question": {
+        "stem": "[PLACEHOLDER] Rewrite a Step1-like vignette for PMC12849829. Add history, exam, labs, and a clear question prompt.",
+        "difficulty": 3,
+        "prompt": null,
+        "bibliography": [
+          {
+            "label": "Primary OA Source",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12849829/"
+          }
+        ],
+        "educational_blocks": {
+          "educational_objective": "[PLACEHOLDER] Educational Objective",
+          "bottom_line": "[PLACEHOLDER] Bottom Line",
+          "exam_tip": "[PLACEHOLDER] Exam Tip"
+        }
+      },
+      "choices": [
+        {
+          "label": "A",
+          "text": "[PLACEHOLDER] Option A",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "B",
+          "text": "[PLACEHOLDER] Option B",
+          "is_correct": true,
+          "explanation": "[PLACEHOLDER] Why correct"
+        },
+        {
+          "label": "C",
+          "text": "[PLACEHOLDER] Option C",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "D",
+          "text": "[PLACEHOLDER] Option D",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "E",
+          "text": "[PLACEHOLDER] Option E",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        }
+      ]
+    },
+    {
+      "external_refs": {
+        "source": "pmc_oa",
+        "pmcid": "PMC12778412",
+        "doi": "10.1002/ccr3.71818",
+        "license": "cc by",
+        "retrieved_at": "2026-02-02T10:56:47-0300",
+        "meta": {
+          "title": "Euglycemic Ketoacidosis Induced by Dapagliflozin in a Non-Diabetic Patient With Cardiac Amyloidosis.",
+          "journal": null,
+          "year": 2026,
+          "authorString": "Hamoud SAS, Harding E.",
+          "firstAuthor": null,
+          "isOpenAccess": "Y",
+          "pmid": "41509085",
+          "source": "MED",
+          "hasFullText": null
+        }
+      },
+      "question": {
+        "stem": "[PLACEHOLDER] Rewrite a Step1-like vignette for PMC12778412. Add history, exam, labs, and a clear question prompt.",
+        "difficulty": 3,
+        "prompt": null,
+        "bibliography": [
+          {
+            "label": "Primary OA Source",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12778412/"
+          }
+        ],
+        "educational_blocks": {
+          "educational_objective": "[PLACEHOLDER] Educational Objective",
+          "bottom_line": "[PLACEHOLDER] Bottom Line",
+          "exam_tip": "[PLACEHOLDER] Exam Tip"
+        }
+      },
+      "choices": [
+        {
+          "label": "A",
+          "text": "[PLACEHOLDER] Option A",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "B",
+          "text": "[PLACEHOLDER] Option B",
+          "is_correct": true,
+          "explanation": "[PLACEHOLDER] Why correct"
+        },
+        {
+          "label": "C",
+          "text": "[PLACEHOLDER] Option C",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "D",
+          "text": "[PLACEHOLDER] Option D",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "E",
+          "text": "[PLACEHOLDER] Option E",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        }
+      ]
+    },
+    {
+      "external_refs": {
+        "source": "pmc_oa",
+        "pmcid": "PMC12522166",
+        "doi": "10.7759/cureus.92353",
+        "license": "cc by",
+        "retrieved_at": "2026-02-02T10:56:47-0300",
+        "meta": {
+          "title": "Alpha-Thalassemia Unmasked in a Patient With Sickle Cell Trait: A Case Report.",
+          "journal": null,
+          "year": 2025,
+          "authorString": "Chuquimarca B, Carrión C, Matosas V, Riva E.",
+          "firstAuthor": null,
+          "isOpenAccess": "Y",
+          "pmid": "41103829",
+          "source": "MED",
+          "hasFullText": null
+        }
+      },
+      "question": {
+        "stem": "[PLACEHOLDER] Rewrite a Step1-like vignette for PMC12522166. Add history, exam, labs, and a clear question prompt.",
+        "difficulty": 3,
+        "prompt": null,
+        "bibliography": [
+          {
+            "label": "Primary OA Source",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12522166/"
+          }
+        ],
+        "educational_blocks": {
+          "educational_objective": "[PLACEHOLDER] Educational Objective",
+          "bottom_line": "[PLACEHOLDER] Bottom Line",
+          "exam_tip": "[PLACEHOLDER] Exam Tip"
+        }
+      },
+      "choices": [
+        {
+          "label": "A",
+          "text": "[PLACEHOLDER] Option A",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "B",
+          "text": "[PLACEHOLDER] Option B",
+          "is_correct": true,
+          "explanation": "[PLACEHOLDER] Why correct"
+        },
+        {
+          "label": "C",
+          "text": "[PLACEHOLDER] Option C",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "D",
+          "text": "[PLACEHOLDER] Option D",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "E",
+          "text": "[PLACEHOLDER] Option E",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        }
+      ]
+    },
+    {
+      "external_refs": {
+        "source": "pmc_oa",
+        "pmcid": "PMC12746173",
+        "doi": "10.1155/crh/9718800",
+        "license": "cc by",
+        "retrieved_at": "2026-02-02T10:56:47-0300",
+        "meta": {
+          "title": "Caught by Whole-Exome Sequencing: Hemoglobin Sun Prairie in a Patient With Unexplained Hemolytic Anemia From Nepal.",
+          "journal": null,
+          "year": 2025,
+          "authorString": "Upadhaya P, Shrestha A.",
+          "firstAuthor": null,
+          "isOpenAccess": "Y",
+          "pmid": "41473418",
+          "source": "MED",
+          "hasFullText": null
+        }
+      },
+      "question": {
+        "stem": "[PLACEHOLDER] Rewrite a Step1-like vignette for PMC12746173. Add history, exam, labs, and a clear question prompt.",
+        "difficulty": 3,
+        "prompt": null,
+        "bibliography": [
+          {
+            "label": "Primary OA Source",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12746173/"
+          }
+        ],
+        "educational_blocks": {
+          "educational_objective": "[PLACEHOLDER] Educational Objective",
+          "bottom_line": "[PLACEHOLDER] Bottom Line",
+          "exam_tip": "[PLACEHOLDER] Exam Tip"
+        }
+      },
+      "choices": [
+        {
+          "label": "A",
+          "text": "[PLACEHOLDER] Option A",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "B",
+          "text": "[PLACEHOLDER] Option B",
+          "is_correct": true,
+          "explanation": "[PLACEHOLDER] Why correct"
+        },
+        {
+          "label": "C",
+          "text": "[PLACEHOLDER] Option C",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "D",
+          "text": "[PLACEHOLDER] Option D",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "E",
+          "text": "[PLACEHOLDER] Option E",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        }
+      ]
+    },
+    {
+      "external_refs": {
+        "source": "pmc_oa",
+        "pmcid": "PMC12619769",
+        "doi": "10.1007/s00277-025-06607-4",
+        "license": "cc by-nc-nd",
+        "retrieved_at": "2026-02-02T10:56:47-0300",
+        "meta": {
+          "title": "The diagnosis and clinical characterization of -α3.7/--SEA thalassemia patients: two cases report.",
+          "journal": null,
+          "year": 2025,
+          "authorString": "Wang X, Ding Y, Huang Z, Huang J.",
+          "firstAuthor": null,
+          "isOpenAccess": "Y",
+          "pmid": "40970922",
+          "source": "MED",
+          "hasFullText": null
+        }
+      },
+      "question": {
+        "stem": "[PLACEHOLDER] Rewrite a Step1-like vignette for PMC12619769. Add history, exam, labs, and a clear question prompt.",
+        "difficulty": 3,
+        "prompt": null,
+        "bibliography": [
+          {
+            "label": "Primary OA Source",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12619769/"
+          }
+        ],
+        "educational_blocks": {
+          "educational_objective": "[PLACEHOLDER] Educational Objective",
+          "bottom_line": "[PLACEHOLDER] Bottom Line",
+          "exam_tip": "[PLACEHOLDER] Exam Tip"
+        }
+      },
+      "choices": [
+        {
+          "label": "A",
+          "text": "[PLACEHOLDER] Option A",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "B",
+          "text": "[PLACEHOLDER] Option B",
+          "is_correct": true,
+          "explanation": "[PLACEHOLDER] Why correct"
+        },
+        {
+          "label": "C",
+          "text": "[PLACEHOLDER] Option C",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "D",
+          "text": "[PLACEHOLDER] Option D",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "E",
+          "text": "[PLACEHOLDER] Option E",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        }
+      ]
+    },
+    {
+      "external_refs": {
+        "source": "pmc_oa",
+        "pmcid": "PMC12620583",
+        "doi": "10.2147/tacg.s544633",
+        "license": "cc by-nc",
+        "retrieved_at": "2026-02-02T10:56:47-0300",
+        "meta": {
+          "title": "The Masked Thalassemia: A Rare Case of a Patient with Normal HbA2 Levels, β-Thalassemia Pathogenic Variant (CD39 C&gt;T), and a Novel δ-Globin Gene Deletion.",
+          "journal": null,
+          "year": 2025,
+          "authorString": "Chetta M, Salamandra A, Tarsitano M, D'Antonio M, Sannino E, Torre S, Fatigati C, Costantini S, D'Ambrosio P, Priolo M, Ricchi P.",
+          "firstAuthor": null,
+          "isOpenAccess": "Y",
+          "pmid": "41255956",
+          "source": "MED",
+          "hasFullText": null
+        }
+      },
+      "question": {
+        "stem": "[PLACEHOLDER] Rewrite a Step1-like vignette for PMC12620583. Add history, exam, labs, and a clear question prompt.",
+        "difficulty": 3,
+        "prompt": null,
+        "bibliography": [
+          {
+            "label": "Primary OA Source",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12620583/"
+          }
+        ],
+        "educational_blocks": {
+          "educational_objective": "[PLACEHOLDER] Educational Objective",
+          "bottom_line": "[PLACEHOLDER] Bottom Line",
+          "exam_tip": "[PLACEHOLDER] Exam Tip"
+        }
+      },
+      "choices": [
+        {
+          "label": "A",
+          "text": "[PLACEHOLDER] Option A",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "B",
+          "text": "[PLACEHOLDER] Option B",
+          "is_correct": true,
+          "explanation": "[PLACEHOLDER] Why correct"
+        },
+        {
+          "label": "C",
+          "text": "[PLACEHOLDER] Option C",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "D",
+          "text": "[PLACEHOLDER] Option D",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        },
+        {
+          "label": "E",
+          "text": "[PLACEHOLDER] Option E",
+          "is_correct": false,
+          "explanation": "[PLACEHOLDER] Why wrong"
+        }
+      ]
+    }
+  ]
+}

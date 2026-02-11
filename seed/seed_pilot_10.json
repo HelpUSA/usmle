@@ -1,0 +1,449 @@
+{
+  "chunkSize": 10,
+  "questions": [
+    {
+      "stem": "A 6-hour-old term male newborn develops progressive cyanosis and tachypnea. Pulse oximetry shows preductal oxygen saturation of 93% in the right hand and postductal saturation of 76% in the right foot. The pregnancy was uncomplicated, and the infant initially appeared well. He received indomethacin earlier for a presumed patent ductus arteriosus. Echocardiography now demonstrates transposition of the great arteries with a restrictive foramen ovale and a constricting ductus arteriosus. Which pharmacologic intervention is most appropriate to improve systemic oxygen delivery while awaiting definitive management?",
+      "difficulty": "hard",
+      "explanation_short": "TGA requires mixing; prostaglandin E1 keeps the PDA open and improves oxygenation.",
+      "explanation_long": "In transposition of the great arteries (TGA), the aorta arises from the right ventricle and the pulmonary artery arises from the left ventricle, creating parallel circulations. Survival depends on mixing between these circuits via an atrial septal defect (foramen ovale), ventricular septal defect, or patent ductus arteriosus (PDA). A restrictive foramen ovale and a constricting ductus severely limit mixing, producing hypoxemia. Indomethacin closes the PDA and therefore worsens mixing in ductal-dependent physiology. The immediate pharmacologic step is prostaglandin E1 (alprostadil) to maintain/reopen the ductus and improve systemic oxygen delivery while awaiting interventions such as balloon atrial septostomy and surgical correction.",
+      "bibliography": {
+        "sources": [
+          {
+            "title": "OpenStax Anatomy & Physiology – Fetal circulation and transitional physiology",
+            "url": "https://openstax.org/details/books/anatomy-and-physiology",
+            "license": "CC BY 4.0"
+          },
+          {
+            "title": "MedlinePlus – Congenital heart defects overview",
+            "url": "https://medlineplus.gov/congenitalheartdefects.html",
+            "license": "US government public domain"
+          }
+        ],
+        "provenance_note": "Original vignette; only general physiology concepts referenced from open sources."
+      },
+      "prompt": "Write a long Step-1-like neonatal cyanosis vignette testing ductal-dependent lesions (TGA) and the opposite effects of indomethacin vs PGE1. Provide why-correct/why-wrong for each option.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Indomethacin infusion",
+          "correct": false,
+          "explanation": "Indomethacin inhibits prostaglandin synthesis and promotes closure of the ductus arteriosus, which would further reduce mixing and worsen hypoxemia in TGA."
+        },
+        {
+          "label": "B",
+          "text": "Prostaglandin E1 (alprostadil) infusion",
+          "correct": true,
+          "explanation": "PGE1 maintains or reopens the ductus arteriosus, improving mixing between the pulmonary and systemic circuits and increasing systemic oxygen delivery in ductal-dependent physiology."
+        },
+        {
+          "label": "C",
+          "text": "Furosemide therapy",
+          "correct": false,
+          "explanation": "Diuretics may help volume overload in some cardiac lesions but do not address the immediate life-threatening problem in TGA: inadequate mixing between circulations."
+        },
+        {
+          "label": "D",
+          "text": "Propranolol therapy",
+          "correct": false,
+          "explanation": "Beta-blockade does not improve mixing or oxygenation in TGA and may worsen hemodynamics in a critically ill neonate."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 27-year-old woman comes to the clinic because of episodic palpitations, tremor, diaphoresis, and severe headaches that occur several times per week. During an episode in the office, she appears anxious and diaphoretic. Blood pressure is 198/112 mm Hg and heart rate is 122/min. Physical examination between episodes is unremarkable. Laboratory studies show normal TSH and free T4. Plasma metanephrines are markedly elevated. Which preoperative medication regimen is most appropriate before surgical resection of the underlying condition?",
+      "difficulty": "hard",
+      "explanation_short": "Pheochromocytoma needs alpha blockade first, then beta blockade if needed.",
+      "explanation_long": "This presentation strongly suggests pheochromocytoma (paroxysmal hypertension, palpitations, diaphoresis, headaches, elevated metanephrines). Preoperative preparation requires alpha-adrenergic blockade first (e.g., phenoxybenzamine) to control hypertension and prevent intraoperative hypertensive crisis. After adequate alpha blockade, a beta blocker can be added for tachycardia. Starting beta blockade first is dangerous because it leaves alpha stimulation unopposed, worsening vasoconstriction and hypertension.",
+      "bibliography": {
+        "sources": [
+          {
+            "title": "MedlinePlus – Pheochromocytoma overview",
+            "url": "https://medlineplus.gov/ency/article/000357.htm",
+            "license": "US government public domain"
+          }
+        ],
+        "provenance_note": "Original vignette; general concept referenced from open medical overview."
+      },
+      "prompt": "Create a long Step-1-like pheochromocytoma vignette emphasizing pre-op alpha then beta blockade. Provide choice-level rationales.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Start propranolol first, then add phenoxybenzamine",
+          "correct": false,
+          "explanation": "Beta blockade first can precipitate unopposed alpha-adrenergic vasoconstriction, worsening hypertension and risking hypertensive crisis."
+        },
+        {
+          "label": "B",
+          "text": "Start phenoxybenzamine first, then add a beta blocker if needed",
+          "correct": true,
+          "explanation": "Alpha blockade first prevents catecholamine-mediated vasoconstriction; beta blockade can then be safely added for tachycardia after adequate alpha control."
+        },
+        {
+          "label": "C",
+          "text": "Start hydrochlorothiazide alone for 1 week before surgery",
+          "correct": false,
+          "explanation": "A thiazide may lower blood pressure somewhat but does not address catecholamine surges and does not provide the necessary intraoperative protection."
+        },
+        {
+          "label": "D",
+          "text": "Start labetalol alone as first-line preoperative therapy",
+          "correct": false,
+          "explanation": "Although labetalol has alpha and beta effects, standard pre-op preparation is reliable irreversible alpha blockade (e.g., phenoxybenzamine) first; beta blockade is secondary."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 62-year-old man with long-standing hypertension and type 2 diabetes mellitus is brought to the emergency department because of confusion and lethargy. Family reports he has had several days of vomiting and poor oral intake after a viral illness. He has not been urinating much. Physical examination shows dry mucous membranes and delayed capillary refill. Blood pressure is 92/58 mm Hg and pulse is 112/min. Laboratory studies show BUN 78 mg/dL and creatinine 3.0 mg/dL (baseline 1.0 mg/dL). Urinalysis is bland. Which additional finding most strongly supports a prerenal etiology for this acute kidney injury?",
+      "difficulty": "medium",
+      "explanation_short": "Prerenal AKI: low FeNa, concentrated urine, no tubular casts.",
+      "explanation_long": "Prerenal azotemia results from decreased renal perfusion with intact tubular function. The kidneys conserve sodium and water, producing low urine sodium, low FeNa (<1%), high urine osmolality, and a high BUN:Cr ratio. Intrinsic renal injury such as ATN impairs sodium reabsorption, leading to higher FeNa and muddy brown casts.",
+      "bibliography": {
+        "sources": [
+          {
+            "title": "OpenStax Anatomy & Physiology – Renal physiology (filtration and tubular function)",
+            "url": "https://openstax.org/details/books/anatomy-and-physiology",
+            "license": "CC BY 4.0"
+          }
+        ],
+        "provenance_note": "Original vignette; general renal conservation physiology referenced from open source."
+      },
+      "prompt": "Create a long Step-1-like prerenal azotemia vignette. Provide why-correct/why-wrong for FeNa and urinalysis patterns.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Fractional excretion of sodium (FeNa) < 1%",
+          "correct": true,
+          "explanation": "In prerenal states, intact tubules avidly reabsorb sodium to preserve intravascular volume, resulting in low urine sodium and FeNa < 1%."
+        },
+        {
+          "label": "B",
+          "text": "Muddy brown granular casts on urinalysis",
+          "correct": false,
+          "explanation": "Muddy brown casts are characteristic of acute tubular necrosis, an intrinsic renal injury with tubular epithelial damage."
+        },
+        {
+          "label": "C",
+          "text": "Urine sodium > 40 mEq/L",
+          "correct": false,
+          "explanation": "High urine sodium suggests impaired tubular reabsorption (intrinsic renal injury) rather than appropriate sodium conservation."
+        },
+        {
+          "label": "D",
+          "text": "FeNa > 2%",
+          "correct": false,
+          "explanation": "FeNa > 2% typically indicates intrinsic renal failure such as ATN due to inability to reabsorb sodium."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 6-year-old boy is brought to the pediatrician because of recurrent sinus infections and episodes of otitis media. He has required multiple courses of antibiotics over the past year. His immunizations are up to date. Physical examination is notable for mild splenomegaly. Laboratory studies show a normal total leukocyte count. The physician suspects an increased risk from encapsulated bacteria. Which immune mechanism is most directly impaired in a patient who cannot effectively clear encapsulated organisms?",
+      "difficulty": "medium",
+      "explanation_short": "Encapsulated bacteria resist phagocytosis; clearance depends on opsonization and splenic function.",
+      "explanation_long": "Capsules inhibit phagocytosis by reducing effective opsonization by antibodies and complement (e.g., C3b). The spleen plays a key role in filtering blood-borne encapsulated organisms and generating IgM responses. Conditions with impaired splenic function or impaired opsonization increase risk of severe infection with encapsulated bacteria.",
+      "bibliography": {
+        "sources": [
+          {
+            "title": "OpenStax Microbiology – Innate immune defenses and bacterial virulence factors",
+            "url": "https://openstax.org/details/books/microbiology",
+            "license": "CC BY 4.0"
+          }
+        ],
+        "provenance_note": "Original vignette; general capsule/opsinization concept referenced from open textbook."
+      },
+      "prompt": "Write a long Step-1-like vignette on recurrent infections with encapsulated organisms; test opsonization and splenic clearance.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Reduced opsonization leading to impaired phagocytosis",
+          "correct": true,
+          "explanation": "Capsules prevent effective opsonization; without antibody/complement tagging, phagocytes cannot efficiently recognize and ingest the bacteria."
+        },
+        {
+          "label": "B",
+          "text": "Increased IgA protease activity at mucosal surfaces",
+          "correct": false,
+          "explanation": "IgA protease is a bacterial virulence factor of certain organisms, not the host immune mechanism for clearing encapsulated bacteria."
+        },
+        {
+          "label": "C",
+          "text": "Defective MHC class I presentation to CD8+ T cells",
+          "correct": false,
+          "explanation": "MHC I presentation is central to antiviral and intracellular pathogen defense, not primary clearance of extracellular encapsulated bacteria."
+        },
+        {
+          "label": "D",
+          "text": "Inability to form granulomas via Th1 activation",
+          "correct": false,
+          "explanation": "Granuloma formation is important for intracellular organisms (e.g., mycobacteria) and does not explain failure to clear encapsulated extracellular bacteria."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 35-year-old woman with a history of asthma is started on a new medication for migraine prophylaxis. Two days later, she presents with wheezing and shortness of breath that is worse at night. She has scattered expiratory wheezes on auscultation. Oxygen saturation is 95% on room air. Which receptor blockade most directly explains her new respiratory symptoms?",
+      "difficulty": "easy",
+      "explanation_short": "Nonselective beta blockade can trigger bronchospasm by blocking beta-2 receptors.",
+      "explanation_long": "Beta-2 adrenergic receptors mediate bronchodilation in bronchial smooth muscle. Nonselective beta blockers (e.g., propranolol) block beta-2 receptors and may precipitate bronchospasm in patients with asthma or reactive airway disease. Beta-1 selective agents are safer but can still have some beta-2 effect at higher doses.",
+      "bibliography": {
+        "sources": [
+          {
+            "title": "OpenStax Pharmacology (concepts) – Adrenergic receptors",
+            "url": "https://openstax.org/",
+            "license": "OpenStax content (check specific title as needed)"
+          }
+        ],
+        "provenance_note": "Original vignette; general adrenergic receptor physiology referenced from open education material."
+      },
+      "prompt": "Write a long Step-1-like vignette on bronchospasm triggered by nonselective beta blockers; provide per-choice rationales.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Beta-2 receptor blockade in bronchial smooth muscle",
+          "correct": true,
+          "explanation": "Blocking beta-2 removes bronchodilatory tone, promoting bronchoconstriction and wheezing in susceptible patients."
+        },
+        {
+          "label": "B",
+          "text": "Beta-1 receptor blockade in cardiac myocytes",
+          "correct": false,
+          "explanation": "Beta-1 blockade reduces heart rate/contractility and does not directly cause bronchospasm."
+        },
+        {
+          "label": "C",
+          "text": "Muscarinic M3 receptor blockade in bronchial smooth muscle",
+          "correct": false,
+          "explanation": "Blocking M3 would reduce bronchoconstriction and secretions, which would improve—not worsen—wheezing."
+        },
+        {
+          "label": "D",
+          "text": "Alpha-1 receptor blockade in vascular smooth muscle",
+          "correct": false,
+          "explanation": "Alpha-1 blockade leads to vasodilation and can cause orthostatic hypotension, not bronchospasm."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 58-year-old woman comes to the clinic because of fatigue, diffuse bone pain, and constipation. She has also had two episodes of nephrolithiasis in the last year. Physical examination is unremarkable. Laboratory studies show serum calcium 11.8 mg/dL and phosphate 2.1 mg/dL. Which additional laboratory finding is most likely present?",
+      "difficulty": "medium",
+      "explanation_short": "Primary hyperparathyroidism: high PTH, hypercalcemia, low phosphate.",
+      "explanation_long": "Primary hyperparathyroidism increases PTH secretion, causing increased bone resorption, increased renal calcium reabsorption, and increased activation of vitamin D, raising serum calcium. PTH decreases phosphate reabsorption in the proximal tubule, producing hypophosphatemia. Kidney stones can occur due to hypercalcemia and hypercalciuria.",
+      "bibliography": {
+        "sources": [
+          {
+            "title": "OpenStax Anatomy & Physiology – Calcium homeostasis",
+            "url": "https://openstax.org/details/books/anatomy-and-physiology",
+            "license": "CC BY 4.0"
+          }
+        ],
+        "provenance_note": "Original vignette; general endocrine physiology referenced from open textbook."
+      },
+      "prompt": "Write a long Step-1-like hyperparathyroidism vignette. Provide choice rationales distinguishing malignancy, FHH, etc.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Elevated parathyroid hormone (PTH)",
+          "correct": true,
+          "explanation": "Hypercalcemia with low phosphate and recurrent stones fits primary hyperparathyroidism, which presents with elevated PTH."
+        },
+        {
+          "label": "B",
+          "text": "Suppressed PTH with elevated PTH-related peptide",
+          "correct": false,
+          "explanation": "Humoral hypercalcemia of malignancy causes low PTH and elevated PTHrP; phosphate is often low but the clinical context usually suggests cancer."
+        },
+        {
+          "label": "C",
+          "text": "Low urinary calcium excretion",
+          "correct": false,
+          "explanation": "Low urinary calcium suggests familial hypocalciuric hypercalcemia (FHH), which is typically benign and less associated with kidney stones."
+        },
+        {
+          "label": "D",
+          "text": "Markedly decreased 1,25-dihydroxyvitamin D",
+          "correct": false,
+          "explanation": "PTH increases 1α-hydroxylase activity, tending to increase rather than decrease 1,25-(OH)2 vitamin D."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 46-year-old man presents to the emergency department 5 hours after the onset of crushing substernal chest pain radiating to his left arm. He is diaphoretic and nauseated. ECG shows ST-segment elevations in leads II, III, and aVF. Which serum marker is most specific for myocardial injury at this time and why?",
+      "difficulty": "easy",
+      "explanation_short": "Troponin I is most specific and rises within hours after MI.",
+      "explanation_long": "Cardiac troponins (I and T) are structural proteins unique to cardiac muscle. They become detectable within hours after myocardial injury and remain elevated for days, offering both early detection and high specificity. CK-MB can also rise but is less specific, and myoglobin rises early but is not specific for cardiac tissue.",
+      "bibliography": {
+        "sources": [
+          {
+            "title": "OpenStax Anatomy & Physiology – Cardiac muscle and injury concepts",
+            "url": "https://openstax.org/details/books/anatomy-and-physiology",
+            "license": "CC BY 4.0"
+          }
+        ],
+        "provenance_note": "Original vignette; general marker concepts referenced from open physiology education."
+      },
+      "prompt": "Write a long Step-1-like MI vignette testing biomarkers and specificity.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Myoglobin because it is released first after injury",
+          "correct": false,
+          "explanation": "Myoglobin rises early but is nonspecific because it is present in both skeletal and cardiac muscle."
+        },
+        {
+          "label": "B",
+          "text": "CK-MB because it is cardiac-specific and rises fastest",
+          "correct": false,
+          "explanation": "CK-MB is more cardiac-associated than total CK but is still less specific than troponin and can rise with skeletal muscle injury."
+        },
+        {
+          "label": "C",
+          "text": "Troponin I because it is highly specific for cardiac muscle injury",
+          "correct": true,
+          "explanation": "Troponin I is highly specific to cardiac muscle and rises within hours, making it the most specific marker for MI in this time window."
+        },
+        {
+          "label": "D",
+          "text": "LDH-1 because it peaks early after myocardial necrosis",
+          "correct": false,
+          "explanation": "LDH-1 rises later and is historically used; it is not the most specific nor the best early marker compared with troponin."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 32-year-old woman presents with fatigue and decreased exercise tolerance. She reports heavy menstrual bleeding for the past year. She denies melena or hematemesis. Physical examination shows conjunctival pallor. CBC shows hemoglobin 8.9 g/dL with MCV 72 fL and increased RDW. Which laboratory pattern is most consistent with the underlying cause of her anemia?",
+      "difficulty": "medium",
+      "explanation_short": "Iron deficiency anemia: low ferritin, high TIBC, low serum iron.",
+      "explanation_long": "Iron deficiency from chronic blood loss causes depletion of iron stores (low ferritin). The liver increases transferrin production, increasing TIBC. Serum iron is decreased, and RDW is often elevated early due to mixed RBC populations. In anemia of chronic disease, ferritin is normal/high and TIBC is low.",
+      "bibliography": {
+        "sources": [
+          {
+            "title": "OpenStax Anatomy & Physiology – Blood and hematologic concepts",
+            "url": "https://openstax.org/details/books/anatomy-and-physiology",
+            "license": "CC BY 4.0"
+          }
+        ],
+        "provenance_note": "Original vignette; general iron deficiency patterns referenced from open education."
+      },
+      "prompt": "Write a long Step-1-like iron deficiency vignette, emphasize microcytosis and lab patterns; include per-choice rationales.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Low ferritin and increased total iron-binding capacity (TIBC)",
+          "correct": true,
+          "explanation": "Iron deficiency depletes stores (low ferritin) and increases transferrin (high TIBC), matching chronic blood loss."
+        },
+        {
+          "label": "B",
+          "text": "High ferritin and decreased TIBC",
+          "correct": false,
+          "explanation": "This pattern is typical of anemia of chronic disease due to hepcidin-mediated iron sequestration, not iron deficiency."
+        },
+        {
+          "label": "C",
+          "text": "High ferritin and increased serum iron",
+          "correct": false,
+          "explanation": "High ferritin and high serum iron suggests iron overload states rather than iron deficiency."
+        },
+        {
+          "label": "D",
+          "text": "Normal ferritin and normal TIBC with low MCV",
+          "correct": false,
+          "explanation": "Normal ferritin/TIBC does not fit iron deficiency; microcytosis with normal iron stores suggests other causes (e.g., thalassemia)."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 23-year-old man develops jaundice and dark urine one week after starting a new antibiotic for sinusitis. He reports fatigue and mild shortness of breath. Physical examination shows scleral icterus. Labs show hemoglobin 9.2 g/dL, elevated LDH, and elevated indirect bilirubin. A direct antiglobulin (direct Coombs) test is positive. Which immunologic mechanism best explains this condition?",
+      "difficulty": "medium",
+      "explanation_short": "Direct Coombs positive hemolysis is Type II antibody-mediated cytotoxicity.",
+      "explanation_long": "A positive direct Coombs test indicates antibodies (often IgG) bound to RBC membranes, leading to hemolysis via complement activation or opsonization and splenic clearance. Drug-induced hemolytic anemia and warm autoimmune hemolytic anemia are classic Type II hypersensitivity reactions.",
+      "bibliography": {
+        "sources": [
+          {
+            "title": "OpenStax Microbiology – Hypersensitivity reactions overview",
+            "url": "https://openstax.org/details/books/microbiology",
+            "license": "CC BY 4.0"
+          }
+        ],
+        "provenance_note": "Original vignette; general immunology concepts referenced from open textbook."
+      },
+      "prompt": "Write a long Step-1-like Coombs-positive hemolysis vignette; test Type II hypersensitivity. Provide per-choice rationales.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Type I hypersensitivity: IgE-mediated mast cell degranulation",
+          "correct": false,
+          "explanation": "Type I causes immediate allergic symptoms (urticaria, anaphylaxis), not Coombs-positive hemolytic anemia."
+        },
+        {
+          "label": "B",
+          "text": "Type II hypersensitivity: antibody-mediated cytotoxicity",
+          "correct": true,
+          "explanation": "Antibodies directed against RBC surface antigens lead to hemolysis; direct Coombs positivity is classic for Type II mechanisms."
+        },
+        {
+          "label": "C",
+          "text": "Type III hypersensitivity: immune complex deposition",
+          "correct": false,
+          "explanation": "Type III involves circulating immune complexes depositing in tissues (e.g., serum sickness), not direct antibody binding to RBCs."
+        },
+        {
+          "label": "D",
+          "text": "Type IV hypersensitivity: T-cell mediated delayed response",
+          "correct": false,
+          "explanation": "Type IV is delayed and T-cell mediated (contact dermatitis, TB test), not antibody-mediated hemolysis with Coombs positivity."
+        }
+      ]
+    },
+
+    {
+      "stem": "A 29-year-old man presents with fever, productive cough, and pleuritic chest pain. Chest x-ray shows lobar consolidation. Sputum Gram stain demonstrates gram-positive diplococci. He has a history of splenectomy after a motor vehicle accident. Which feature of the causative organism most directly contributes to this patient’s increased susceptibility, and what is the primary host defense normally responsible for clearance?",
+      "difficulty": "hard",
+      "explanation_short": "Encapsulated organisms are cleared by opsonization and splenic macrophages.",
+      "explanation_long": "Streptococcus pneumoniae is an encapsulated organism. The polysaccharide capsule is antiphagocytic because it reduces effective opsonization by antibodies and complement. The spleen is critical for filtering blood-borne encapsulated bacteria and generating IgM responses; splenectomy increases susceptibility to severe infections by encapsulated organisms.",
+      "bibliography": {
+        "sources": [
+          {
+            "title": "OpenStax Microbiology – Streptococcus pneumoniae and capsule virulence",
+            "url": "https://openstax.org/details/books/microbiology",
+            "license": "CC BY 4.0"
+          }
+        ],
+        "provenance_note": "Original vignette; organism features referenced from open microbiology text."
+      },
+      "prompt": "Write a long Step-1-like pneumonia vignette in an asplenic patient; test capsule + opsonization + splenic macrophages.",
+      "choices": [
+        {
+          "label": "A",
+          "text": "Capsule prevents opsonization; splenic macrophages normally clear opsonized bacteria",
+          "correct": true,
+          "explanation": "The pneumococcal capsule reduces opsonization; the spleen is essential for clearing encapsulated organisms via antibody/complement opsonization and phagocytosis."
+        },
+        {
+          "label": "B",
+          "text": "IgA protease allows mucosal invasion; neutrophils are the primary defense",
+          "correct": false,
+          "explanation": "IgA protease is not the main reason asplenic patients are high-risk; the key issue is impaired clearance of encapsulated bacteria from the bloodstream."
+        },
+        {
+          "label": "C",
+          "text": "Intracellular survival by blocking phagolysosome fusion; CD8+ T cells are primary defense",
+          "correct": false,
+          "explanation": "Blocking phagolysosome fusion is a strategy of intracellular pathogens (e.g., Mycobacterium), not S. pneumoniae; CD8+ T cells target virally infected cells."
+        },
+        {
+          "label": "D",
+          "text": "Antigenic variation; Th1 granuloma formation is primary defense",
+          "correct": false,
+          "explanation": "Antigenic variation and granuloma formation are not central to pneumococcal clearance; opsonization and phagocytosis are key."
+        }
+      ]
+    }
+  ]
+}

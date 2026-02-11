@@ -1,0 +1,102 @@
+[
+  {
+    "index": 1,
+    "pmcid": "PMC12700024",
+    "doi": "10.21470/1678-9741-2024-0234",
+    "ncbi_xml_kb": 35.9,
+    "abstract_words": 99,
+    "body_words": 1799,
+    "status": "OK_FULLTEXT",
+    "error": null
+  },
+  {
+    "index": 2,
+    "pmcid": "PMC10103020",
+    "doi": "10.1186/s12902-023-01339-w",
+    "ncbi_xml_kb": 61.0,
+    "abstract_words": 150,
+    "body_words": 1944,
+    "status": "OK_FULLTEXT",
+    "error": null
+  },
+  {
+    "index": 3,
+    "pmcid": "PMC8642236",
+    "doi": null,
+    "ncbi_xml_kb": 7.5,
+    "abstract_words": 0,
+    "body_words": 292,
+    "status": "OK_FULLTEXT",
+    "error": null
+  },
+  {
+    "index": 4,
+    "pmcid": "PMC8195731",
+    "doi": null,
+    "ncbi_xml_kb": 7.1,
+    "abstract_words": 0,
+    "body_words": 243,
+    "status": "OK_FULLTEXT",
+    "error": null
+  },
+  {
+    "index": 5,
+    "pmcid": "PMC12849829",
+    "doi": null,
+    "ncbi_xml_kb": 45.8,
+    "abstract_words": 135,
+    "body_words": 1627,
+    "status": "OK_FULLTEXT",
+    "error": null
+  },
+  {
+    "index": 6,
+    "pmcid": "PMC12778412",
+    "doi": "10.1002/ccr3.71818",
+    "ncbi_xml_kb": 40.6,
+    "abstract_words": 40,
+    "body_words": 1331,
+    "status": "OK_FULLTEXT",
+    "error": null
+  },
+  {
+    "index": 7,
+    "pmcid": "PMC12522166",
+    "doi": "10.7759/cureus.92353",
+    "ncbi_xml_kb": 31.3,
+    "abstract_words": 144,
+    "body_words": 1456,
+    "status": "OK_FULLTEXT",
+    "error": null
+  },
+  {
+    "index": 8,
+    "pmcid": "PMC12746173",
+    "doi": "10.1155/crh/9718800",
+    "ncbi_xml_kb": 35.4,
+    "abstract_words": 178,
+    "body_words": 1185,
+    "status": "OK_FULLTEXT",
+    "error": null
+  },
+  {
+    "index": 9,
+    "pmcid": "PMC12619769",
+    "doi": "10.1007/s00277-025-06607-4",
+    "ncbi_xml_kb": 59.6,
+    "abstract_words": 216,
+    "body_words": 2171,
+    "status": "OK_FULLTEXT",
+    "error": null
+  },
+  {
+    "index": 10,
+    "pmcid": "PMC12620583",
+    "doi": "10.2147/tacg.s544633",
+    "ncbi_xml_kb": 64.0,
+    "abstract_words": 229,
+    "body_words": 3494,
+    "status": "OK_FULLTEXT",
+    "error": null
+  }
+]

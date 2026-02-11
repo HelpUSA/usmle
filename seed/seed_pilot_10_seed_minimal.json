@@ -1,0 +1,456 @@
+{
+  "questions": [
+    {
+      "stem": "A 22-year-old man presents with symptoms that have progressed over 3 months. The patient has history of poorly controlled diabetes mellitus. Physical examination shows scattered crackles on lung auscultation and mild tachycardia. Vital signs: Temp 38.3°C (101°F), BP 112/70 mmHg, HR 104/min, RR 18/min. Laboratory studies show leukocytosis and elevated C-reactive protein. Recent literature on mitral, surgical, right has highlighted clinically important patterns that can be tested at the bedside. Which of the following pathways is most directly involved?\n\nAdditional history reveals intermittent constitutional symptoms and a partial response to symptomatic therapy. A targeted diagnostic workup is performed to distinguish between competing etiologies based on physiology, pathology, and pharmacology principles.",
+      "difficulty": "medium",
+      "explanation_short": "Use core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.",
+      "explanation_long": "Connect a clinical presentation to the underlying mitral mechanism and distinguish key alternatives.\n\nUse core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.\n\nOn Step 1, look for one or two discriminating clues (timing, labs, classic association) that align with mitral.",
+      "bibliography": [
+        {
+          "label": "Primary OA Source",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12700024/"
+        }
+      ],
+      "prompt": null,
+      "choices": [
+        {
+          "label": "A",
+          "text": "Right-to-left shunt from intracardiac defect",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "B",
+          "text": "Diffusion impairment due to interstitial fibrosis",
+          "correct": true,
+          "explanation": "This option best matches the pattern described in the vignette. It provides a unifying mechanism that explains the key clinical features and labs."
+        },
+        {
+          "label": "C",
+          "text": "Ventilation-perfusion mismatch due to airway obstruction",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "D",
+          "text": "Pulmonary embolism causing increased dead space ventilation",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "E",
+          "text": "Hypoventilation due to central respiratory depression",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        }
+      ]
+    },
+    {
+      "stem": "A 22-year-old woman presents with symptoms that have progressed over 2 weeks. The patient has no significant past medical history. Physical examination shows scattered crackles on lung auscultation and mild tachycardia. Vital signs: Temp 38.3°C (101°F), BP 112/70 mmHg, HR 104/min, RR 18/min. Laboratory studies show normocytic anemia and elevated LDH. Recent literature on acidosis, renal, hyperchloremic has highlighted clinically important patterns that can be tested at the bedside. Which of the following pathways is most directly involved?\n\nAdditional history reveals intermittent constitutional symptoms and a partial response to symptomatic therapy. A targeted diagnostic workup is performed to distinguish between competing etiologies based on physiology, pathology, and pharmacology principles.",
+      "difficulty": "medium",
+      "explanation_short": "Use core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.",
+      "explanation_long": "Connect a clinical presentation to the underlying acidosis mechanism and distinguish key alternatives.\n\nUse core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.\n\nOn Step 1, look for one or two discriminating clues (timing, labs, classic association) that align with acidosis.",
+      "bibliography": [
+        {
+          "label": "Primary OA Source",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10103020/"
+        }
+      ],
+      "prompt": null,
+      "choices": [
+        {
+          "label": "A",
+          "text": "Obstruction of the common bile duct causing conjugated hyperbilirubinemia",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "B",
+          "text": "Hemolysis leading to unconjugated hyperbilirubinemia",
+          "correct": true,
+          "explanation": "This option best matches the pattern described in the vignette. It provides a unifying mechanism that explains the key clinical features and labs."
+        },
+        {
+          "label": "C",
+          "text": "Gilbert syndrome due to reduced UDP-glucuronosyltransferase activity",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "D",
+          "text": "Autoimmune hepatitis mediated by autoreactive T cells",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "E",
+          "text": "Primary sclerosing cholangitis associated with inflammatory bowel disease",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        }
+      ]
+    },
+    {
+      "stem": "A 19-year-old man presents with symptoms that have progressed over 6 months. The patient has history of autoimmune thyroid disease. Physical examination shows proximal muscle weakness and hyperpigmented skin lesions. Vital signs: Temp 38.3°C (101°F), BP 112/70 mmHg, HR 104/min, RR 18/min. Laboratory studies show elevated AST/ALT and conjugated hyperbilirubinemia. Recent literature on sodium, chloride, woman has highlighted clinically important patterns that can be tested at the bedside. Which of the following best explains the underlying mechanism?\n\nAdditional history reveals intermittent constitutional symptoms and a partial response to symptomatic therapy. A targeted diagnostic workup is performed to distinguish between competing etiologies based on physiology, pathology, and pharmacology principles.",
+      "difficulty": "medium",
+      "explanation_short": "Use core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.",
+      "explanation_long": "Connect a clinical presentation to the underlying sodium mechanism and distinguish key alternatives.\n\nUse core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.\n\nOn Step 1, look for one or two discriminating clues (timing, labs, classic association) that align with sodium.",
+      "bibliography": [
+        {
+          "label": "Primary OA Source",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8642236/"
+        }
+      ],
+      "prompt": null,
+      "choices": [
+        {
+          "label": "A",
+          "text": "Gilbert syndrome due to reduced UDP-glucuronosyltransferase activity",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "B",
+          "text": "Hemolysis leading to unconjugated hyperbilirubinemia",
+          "correct": true,
+          "explanation": "This option best matches the pattern described in the vignette. It provides a unifying mechanism that explains the key clinical features and labs."
+        },
+        {
+          "label": "C",
+          "text": "Obstruction of the common bile duct causing conjugated hyperbilirubinemia",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "D",
+          "text": "Autoimmune hepatitis mediated by autoreactive T cells",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "E",
+          "text": "Primary sclerosing cholangitis associated with inflammatory bowel disease",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        }
+      ]
+    },
+    {
+      "stem": "A 27-year-old woman presents with symptoms that have progressed over 3 months. The patient has history of poorly controlled diabetes mellitus. Physical examination shows scattered crackles on lung auscultation and mild tachycardia. Vital signs: Temp 37.6°C (99.7°F), BP 128/78 mmHg, HR 92/min, RR 16/min. Laboratory studies show elevated AST/ALT and conjugated hyperbilirubinemia. Recent literature on flucloxacillin, paracetamol, hagma has highlighted clinically important patterns that can be tested at the bedside. Which of the following best explains the underlying mechanism?\n\nAdditional history reveals intermittent constitutional symptoms and a partial response to symptomatic therapy. A targeted diagnostic workup is performed to distinguish between competing etiologies based on physiology, pathology, and pharmacology principles.",
+      "difficulty": "medium",
+      "explanation_short": "Use core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.",
+      "explanation_long": "Connect a clinical presentation to the underlying flucloxacillin mechanism and distinguish key alternatives.\n\nUse core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.\n\nOn Step 1, look for one or two discriminating clues (timing, labs, classic association) that align with flucloxacillin.",
+      "bibliography": [
+        {
+          "label": "Primary OA Source",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8195731/"
+        }
+      ],
+      "prompt": null,
+      "choices": [
+        {
+          "label": "A",
+          "text": "Gilbert syndrome due to reduced UDP-glucuronosyltransferase activity",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "B",
+          "text": "Hemolysis leading to unconjugated hyperbilirubinemia",
+          "correct": true,
+          "explanation": "This option best matches the pattern described in the vignette. It provides a unifying mechanism that explains the key clinical features and labs."
+        },
+        {
+          "label": "C",
+          "text": "Autoimmune hepatitis mediated by autoreactive T cells",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "D",
+          "text": "Obstruction of the common bile duct causing conjugated hyperbilirubinemia",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "E",
+          "text": "Primary sclerosing cholangitis associated with inflammatory bowel disease",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        }
+      ]
+    },
+    {
+      "stem": "A 22-year-old woman presents with symptoms that have progressed over 2 weeks. The patient has history of asthma treated intermittently with inhaled bronchodilators. Physical examination shows proximal muscle weakness and hyperpigmented skin lesions. Vital signs: Temp 37.6°C (99.7°F), BP 128/78 mmHg, HR 92/min, RR 16/min. Laboratory studies show elevated AST/ALT and conjugated hyperbilirubinemia. Recent literature on syndrome, renal, hypokalemia has highlighted clinically important patterns that can be tested at the bedside. Which of the following best explains the underlying mechanism?\n\nAdditional history reveals intermittent constitutional symptoms and a partial response to symptomatic therapy. A targeted diagnostic workup is performed to distinguish between competing etiologies based on physiology, pathology, and pharmacology principles.",
+      "difficulty": "medium",
+      "explanation_short": "Use core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.",
+      "explanation_long": "Connect a clinical presentation to the underlying syndrome mechanism and distinguish key alternatives.\n\nUse core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.\n\nOn Step 1, look for one or two discriminating clues (timing, labs, classic association) that align with syndrome.",
+      "bibliography": [
+        {
+          "label": "Primary OA Source",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12849829/"
+        }
+      ],
+      "prompt": null,
+      "choices": [
+        {
+          "label": "A",
+          "text": "Primary sclerosing cholangitis associated with inflammatory bowel disease",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "B",
+          "text": "Hemolysis leading to unconjugated hyperbilirubinemia",
+          "correct": true,
+          "explanation": "This option best matches the pattern described in the vignette. It provides a unifying mechanism that explains the key clinical features and labs."
+        },
+        {
+          "label": "C",
+          "text": "Autoimmune hepatitis mediated by autoreactive T cells",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "D",
+          "text": "Obstruction of the common bile duct causing conjugated hyperbilirubinemia",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "E",
+          "text": "Gilbert syndrome due to reduced UDP-glucuronosyltransferase activity",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        }
+      ]
+    },
+    {
+      "stem": "A 63-year-old man presents with symptoms that have progressed over 6 months. The patient has recent course of broad-spectrum antibiotics. Physical examination shows jaundice and right upper quadrant tenderness. Vital signs: Temp 38.3°C (101°F), BP 112/70 mmHg, HR 104/min, RR 18/min. Laboratory studies show elevated creatinine and proteinuria. Recent literature on metabolic, acidosis, amyloidosis has highlighted clinically important patterns that can be tested at the bedside. Which of the following is the most appropriate next step in management?\n\nAdditional history reveals intermittent constitutional symptoms and a partial response to symptomatic therapy. A targeted diagnostic workup is performed to distinguish between competing etiologies based on physiology, pathology, and pharmacology principles.",
+      "difficulty": "medium",
+      "explanation_short": "Use core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.",
+      "explanation_long": "Connect a clinical presentation to the underlying metabolic mechanism and distinguish key alternatives.\n\nUse core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.\n\nOn Step 1, look for one or two discriminating clues (timing, labs, classic association) that align with metabolic.",
+      "bibliography": [
+        {
+          "label": "Primary OA Source",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12778412/"
+        }
+      ],
+      "prompt": null,
+      "choices": [
+        {
+          "label": "A",
+          "text": "Obstruction of the common bile duct causing conjugated hyperbilirubinemia",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "B",
+          "text": "Hemolysis leading to unconjugated hyperbilirubinemia",
+          "correct": true,
+          "explanation": "This option best matches the pattern described in the vignette. It provides a unifying mechanism that explains the key clinical features and labs."
+        },
+        {
+          "label": "C",
+          "text": "Primary sclerosing cholangitis associated with inflammatory bowel disease",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "D",
+          "text": "Autoimmune hepatitis mediated by autoreactive T cells",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "E",
+          "text": "Gilbert syndrome due to reduced UDP-glucuronosyltransferase activity",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        }
+      ]
+    },
+    {
+      "stem": "A 34-year-old man presents with symptoms that have progressed over 2 weeks. The patient has history of poorly controlled diabetes mellitus. Physical examination shows jaundice and right upper quadrant tenderness. Vital signs: Temp 39.0°C (102.2°F), BP 98/62 mmHg, HR 118/min, RR 22/min. Laboratory studies show leukocytosis and elevated C-reactive protein. Recent literature on trait, sickle, alpha-thalassemia has highlighted clinically important patterns that can be tested at the bedside. Which of the following is the most likely diagnosis?\n\nAdditional history reveals intermittent constitutional symptoms and a partial response to symptomatic therapy. A targeted diagnostic workup is performed to distinguish between competing etiologies based on physiology, pathology, and pharmacology principles.",
+      "difficulty": "medium",
+      "explanation_short": "Use core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.",
+      "explanation_long": "Connect a clinical presentation to the underlying trait mechanism and distinguish key alternatives.\n\nUse core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.\n\nOn Step 1, look for one or two discriminating clues (timing, labs, classic association) that align with trait.",
+      "bibliography": [
+        {
+          "label": "Primary OA Source",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12522166/"
+        }
+      ],
+      "prompt": null,
+      "choices": [
+        {
+          "label": "A",
+          "text": "Primary sclerosing cholangitis associated with inflammatory bowel disease",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "B",
+          "text": "Hemolysis leading to unconjugated hyperbilirubinemia",
+          "correct": true,
+          "explanation": "This option best matches the pattern described in the vignette. It provides a unifying mechanism that explains the key clinical features and labs."
+        },
+        {
+          "label": "C",
+          "text": "Gilbert syndrome due to reduced UDP-glucuronosyltransferase activity",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "D",
+          "text": "Autoimmune hepatitis mediated by autoreactive T cells",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "E",
+          "text": "Obstruction of the common bile duct causing conjugated hyperbilirubinemia",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        }
+      ]
+    },
+    {
+      "stem": "A 22-year-old woman presents with symptoms that have progressed over 3 months. The patient has history of asthma treated intermittently with inhaled bronchodilators. Physical examination shows scattered crackles on lung auscultation and mild tachycardia. Vital signs: Temp 37.6°C (99.7°F), BP 128/78 mmHg, HR 92/min, RR 16/min. Laboratory studies show elevated AST/ALT and conjugated hyperbilirubinemia. Recent literature on hemoglobin, anemia, variant has highlighted clinically important patterns that can be tested at the bedside. Which of the following is the most appropriate next step in management?\n\nAdditional history reveals intermittent constitutional symptoms and a partial response to symptomatic therapy. A targeted diagnostic workup is performed to distinguish between competing etiologies based on physiology, pathology, and pharmacology principles.",
+      "difficulty": "medium",
+      "explanation_short": "Use core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.",
+      "explanation_long": "Connect a clinical presentation to the underlying hemoglobin mechanism and distinguish key alternatives.\n\nUse core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.\n\nOn Step 1, look for one or two discriminating clues (timing, labs, classic association) that align with hemoglobin.",
+      "bibliography": [
+        {
+          "label": "Primary OA Source",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12746173/"
+        }
+      ],
+      "prompt": null,
+      "choices": [
+        {
+          "label": "A",
+          "text": "Autoimmune hepatitis mediated by autoreactive T cells",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "B",
+          "text": "Hemolysis leading to unconjugated hyperbilirubinemia",
+          "correct": true,
+          "explanation": "This option best matches the pattern described in the vignette. It provides a unifying mechanism that explains the key clinical features and labs."
+        },
+        {
+          "label": "C",
+          "text": "Primary sclerosing cholangitis associated with inflammatory bowel disease",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "D",
+          "text": "Obstruction of the common bile duct causing conjugated hyperbilirubinemia",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "E",
+          "text": "Gilbert syndrome due to reduced UDP-glucuronosyltransferase activity",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        }
+      ]
+    },
+    {
+      "stem": "A 34-year-old woman presents with symptoms that have progressed over 2 weeks. The patient has history of poorly controlled diabetes mellitus. Physical examination shows proximal muscle weakness and hyperpigmented skin lesions. Vital signs: Temp 39.0°C (102.2°F), BP 98/62 mmHg, HR 118/min, RR 22/min. Laboratory studies show normocytic anemia and elevated LDH. Recent literature on thalassemia, blood, reference has highlighted clinically important patterns that can be tested at the bedside. Which of the following is the most likely diagnosis?\n\nAdditional history reveals intermittent constitutional symptoms and a partial response to symptomatic therapy. A targeted diagnostic workup is performed to distinguish between competing etiologies based on physiology, pathology, and pharmacology principles.",
+      "difficulty": "medium",
+      "explanation_short": "Use core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.",
+      "explanation_long": "Connect a clinical presentation to the underlying thalassemia mechanism and distinguish key alternatives.\n\nUse core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.\n\nOn Step 1, look for one or two discriminating clues (timing, labs, classic association) that align with thalassemia.",
+      "bibliography": [
+        {
+          "label": "Primary OA Source",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12619769/"
+        }
+      ],
+      "prompt": null,
+      "choices": [
+        {
+          "label": "A",
+          "text": "Ventilation-perfusion mismatch due to airway obstruction",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "B",
+          "text": "Diffusion impairment due to interstitial fibrosis",
+          "correct": true,
+          "explanation": "This option best matches the pattern described in the vignette. It provides a unifying mechanism that explains the key clinical features and labs."
+        },
+        {
+          "label": "C",
+          "text": "Right-to-left shunt from intracardiac defect",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "D",
+          "text": "Pulmonary embolism causing increased dead space ventilation",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "E",
+          "text": "Hypoventilation due to central respiratory depression",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        }
+      ]
+    },
+    {
+      "stem": "A 63-year-old woman presents with symptoms that have progressed over 3 months. The patient has recent course of broad-spectrum antibiotics. Physical examination shows scattered crackles on lung auscultation and mild tachycardia. Vital signs: Temp 39.0°C (102.2°F), BP 98/62 mmHg, HR 118/min, RR 22/min. Laboratory studies show elevated AST/ALT and conjugated hyperbilirubinemia. Recent literature on thalassemia, globin, variants has highlighted clinically important patterns that can be tested at the bedside. Which of the following best explains the underlying mechanism?\n\nAdditional history reveals intermittent constitutional symptoms and a partial response to symptomatic therapy. A targeted diagnostic workup is performed to distinguish between competing etiologies based on physiology, pathology, and pharmacology principles.",
+      "difficulty": "medium",
+      "explanation_short": "Use core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.",
+      "explanation_long": "Connect a clinical presentation to the underlying thalassemia mechanism and distinguish key alternatives.\n\nUse core pathophysiology to map symptoms and labs to a single best explanation; avoid distractors that do not fit the mechanism.\n\nOn Step 1, look for one or two discriminating clues (timing, labs, classic association) that align with thalassemia.",
+      "bibliography": [
+        {
+          "label": "Primary OA Source",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12620583/"
+        }
+      ],
+      "prompt": null,
+      "choices": [
+        {
+          "label": "A",
+          "text": "Autoimmune hepatitis mediated by autoreactive T cells",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "B",
+          "text": "Hemolysis leading to unconjugated hyperbilirubinemia",
+          "correct": true,
+          "explanation": "This option best matches the pattern described in the vignette. It provides a unifying mechanism that explains the key clinical features and labs."
+        },
+        {
+          "label": "C",
+          "text": "Gilbert syndrome due to reduced UDP-glucuronosyltransferase activity",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "D",
+          "text": "Obstruction of the common bile duct causing conjugated hyperbilirubinemia",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        },
+        {
+          "label": "E",
+          "text": "Primary sclerosing cholangitis associated with inflammatory bowel disease",
+          "correct": false,
+          "explanation": "This is a plausible distractor, but it does not fully explain the key discriminating clues or would be expected to produce a different set of findings."
+        }
+      ]
+    }
+  ],
+  "chunkSize": 10,
+  "requireExactlyTen": true
+}
