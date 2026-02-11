@@ -149,9 +149,17 @@ async function insertOne(client: any, q: ImportQuestion) {
       : JSON.stringify(q.bibliography);
 
   // 2) question_versions
-  // Observação:
-  // - $7::json força validação/cast no Postgres.
-  // - Se sua coluna for jsonb e você quiser, pode trocar ::json por ::jsonb.
+  // ✅ FIX: número de colunas == número de valores
+  //
+  // Colunas:
+  //   question_id, version, exam, language, difficulty, stem,
+  //   explanation_short, explanation_long, bibliography, prompt, is_active
+  //
+  // Valores:
+  //   $1, 1, 'step1', 'en', $2, $3, $4, $5, $6::json, $7, true
+  //
+  // Obs:
+  // - Se sua coluna for jsonb, troque ::json por ::jsonb.
   const qvRes = await client.query(
     `
     INSERT INTO question_versions (
@@ -161,19 +169,20 @@ async function insertOne(client: any, q: ImportQuestion) {
     )
     VALUES (
       $1, 1, 'step1', 'en',
-      $2, $3, $4, $5, $6, $7::json, $8,
+      $2, $3, $4, $5,
+      $6::json, $7,
       true
     )
     RETURNING question_version_id
     `,
     [
-      questionId,
-      q.difficulty,
-      q.stem,
-      q.explanation_short,
-      q.explanation_long,
-      bibliographyJson, // ✅ json string ou null
-      q.prompt ?? null, // ✅ null no banco se prompt ausente
+      questionId,             // $1
+      q.difficulty,           // $2
+      q.stem,                 // $3
+      q.explanation_short,    // $4
+      q.explanation_long,     // $5
+      bibliographyJson,       // $6 (json string ou null)
+      q.prompt ?? null,       // $7
     ]
   );
   const questionVersionId = qvRes.rows[0].question_version_id as string;
