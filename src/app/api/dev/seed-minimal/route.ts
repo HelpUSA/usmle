@@ -1,4 +1,4 @@
-// app/api/dev/seed-minimal/route.ts
+// src/app/api/dev/seed-minimal/route.ts
 //
 // DEV Seed Import Endpoint (import-only)
 //
@@ -39,6 +39,12 @@
 // - Seu JSON pode ter "prompt": null.
 // - zod `z.string().optional()` NÃO aceita null (só undefined).
 // - Então aceitamos null e normalizamos para undefined.
+//
+// Nota de runtime:
+// - Este endpoint usa `pg` (node-only). Garanta runtime NodeJS.
+// - Sem isso, Vercel pode tentar Edge e causar erros/intermitência.
+
+export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { withTx } from "@/lib/db";
@@ -186,6 +192,8 @@ async function insertOne(client: any, q: ImportQuestion) {
 }
 
 export async function POST(req: Request) {
+  const startedAt = Date.now();
+
   try {
     const adminKey = req.headers.get("x-admin-key");
     if (!adminKey || adminKey !== process.env.ADMIN_SEED_KEY) {
@@ -209,9 +217,7 @@ export async function POST(req: Request) {
     const chunkSize = body.chunkSize ?? 10;
     const totalCount = body.questions.length;
 
-    const startedAt = Date.now();
     let createdCount = 0;
-
     const sample: Array<{
       question_id: string;
       question_version_id: string;
@@ -276,6 +282,15 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (err: any) {
+    // ✅ log útil no Vercel (sem segredos)
+    const ms = Date.now() - startedAt;
+    console.error("[seed-minimal] error", {
+      message: err?.message,
+      code: err?.code,
+      name: err?.name,
+      elapsed_ms: ms,
+    });
+
     return NextResponse.json(
       { error: err?.message ?? "Unknown error" },
       { status: 400 }
