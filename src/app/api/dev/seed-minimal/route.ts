@@ -8,6 +8,7 @@
 //
 // Segurança:
 // - Requer header: x-admin-key == process.env.ADMIN_SEED_KEY
+// - Deve estar DESABILITADO em produção (guardrail).
 //
 // Body:
 // {
@@ -43,7 +44,7 @@
 // Bugfix (bibliography JSON no Postgres):
 // - Colunas json/jsonb no Postgres exigem JSON válido.
 // - O driver `pg` nem sempre serializa objetos JS automaticamente.
-// - Então: JSON.stringify + cast ::json no INSERT.
+// - Então: JSON.stringify + cast ::jsonb (com fallback pra ::json se necessário).
 //
 // Nota de runtime:
 // - Este endpoint usa `pg` (node-only). Garanta runtime NodeJS.
@@ -53,7 +54,7 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { withTx } from "@/lib/db";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { randomUUID } from "crypto";
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -73,6 +74,19 @@ type ImportQuestion = {
     explanation: string;
   }>;
 };
+
+function errorJson(code: string, message: string, details?: any, status = 400) {
+  return NextResponse.json(
+    {
+      error: {
+        code,
+        message,
+        ...(details ? { details } : {}),
+      },
+    },
+    { status }
+  );
+}
 
 const ChoiceSchema = z.object({
   label: z.enum(["A", "B", "C", "D", "E"]),
@@ -149,42 +163,71 @@ async function insertOne(client: any, q: ImportQuestion) {
       : JSON.stringify(q.bibliography);
 
   // 2) question_versions
-  // ✅ FIX: número de colunas == número de valores
   //
   // Colunas:
   //   question_id, version, exam, language, difficulty, stem,
   //   explanation_short, explanation_long, bibliography, prompt, is_active
   //
-  // Valores:
-  //   $1, 1, 'step1', 'en', $2, $3, $4, $5, $6::json, $7, true
-  //
   // Obs:
-  // - Se sua coluna for jsonb, troque ::json por ::jsonb.
-  const qvRes = await client.query(
-    `
-    INSERT INTO question_versions (
-      question_id, version, exam, language, difficulty, stem,
-      explanation_short, explanation_long, bibliography, prompt,
-      is_active
-    )
-    VALUES (
-      $1, 1, 'step1', 'en',
-      $2, $3, $4, $5,
-      $6::json, $7,
-      true
-    )
-    RETURNING question_version_id
-    `,
-    [
-      questionId,             // $1
-      q.difficulty,           // $2
-      q.stem,                 // $3
-      q.explanation_short,    // $4
-      q.explanation_long,     // $5
-      bibliographyJson,       // $6 (json string ou null)
-      q.prompt ?? null,       // $7
-    ]
-  );
+  // - Se sua coluna for jsonb, ::jsonb é o ideal.
+  // - Se for json, ::json também funciona (fallback).
+  //
+  let qvRes;
+  try {
+    qvRes = await client.query(
+      `
+      INSERT INTO question_versions (
+        question_id, version, exam, language, difficulty, stem,
+        explanation_short, explanation_long, bibliography, prompt,
+        is_active
+      )
+      VALUES (
+        $1, 1, 'step1', 'en',
+        $2, $3, $4, $5,
+        $6::jsonb, $7,
+        true
+      )
+      RETURNING question_version_id
+      `,
+      [
+        questionId, // $1
+        q.difficulty, // $2
+        q.stem, // $3
+        q.explanation_short, // $4
+        q.explanation_long, // $5
+        bibliographyJson, // $6
+        q.prompt ?? null, // $7
+      ]
+    );
+  } catch (e: any) {
+    // fallback para ::json caso a coluna seja json (ou ambiente antigo)
+    qvRes = await client.query(
+      `
+      INSERT INTO question_versions (
+        question_id, version, exam, language, difficulty, stem,
+        explanation_short, explanation_long, bibliography, prompt,
+        is_active
+      )
+      VALUES (
+        $1, 1, 'step1', 'en',
+        $2, $3, $4, $5,
+        $6::json, $7,
+        true
+      )
+      RETURNING question_version_id
+      `,
+      [
+        questionId,
+        q.difficulty,
+        q.stem,
+        q.explanation_short,
+        q.explanation_long,
+        bibliographyJson,
+        q.prompt ?? null,
+      ]
+    );
+  }
+
   const questionVersionId = qvRes.rows[0].question_version_id as string;
 
   // 3) question_choices
@@ -218,9 +261,19 @@ export async function POST(req: Request) {
   const startedAt = Date.now();
 
   try {
+    // ✅ guardrail: este endpoint não pode rodar em produção
+    if (process.env.NODE_ENV === "production") {
+      return errorJson(
+        "AUTH_FORBIDDEN",
+        "Development seed endpoint is disabled in production.",
+        undefined,
+        403
+      );
+    }
+
     const adminKey = req.headers.get("x-admin-key");
     if (!adminKey || adminKey !== process.env.ADMIN_SEED_KEY) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return errorJson("AUTH_FORBIDDEN", "Forbidden", undefined, 403);
     }
 
     const bodyJson = await req.json();
@@ -229,11 +282,11 @@ export async function POST(req: Request) {
     // trava do piloto: exige 10 questões
     const requireExactlyTen = body.requireExactlyTen ?? true;
     if (requireExactlyTen && body.questions.length !== 10) {
-      return NextResponse.json(
-        {
-          error: `Pilot mode requires exactly 10 questions. Received: ${body.questions.length}`,
-        },
-        { status: 400 }
+      return errorJson(
+        "VALIDATION_FAILED",
+        `Pilot mode requires exactly 10 questions. Received: ${body.questions.length}`,
+        { received: body.questions.length, requireExactlyTen },
+        400
       );
     }
 
@@ -315,9 +368,21 @@ export async function POST(req: Request) {
       elapsed_ms: ms,
     });
 
-    return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 400 }
+    // Zod -> 422 com detalhes
+    if (err instanceof ZodError) {
+      return errorJson(
+        "VALIDATION_FAILED",
+        "Request failed schema validation",
+        { issues: err.issues },
+        422
+      );
+    }
+
+    return errorJson(
+      "INTERNAL_ERROR",
+      err?.message ?? "Unknown error",
+      undefined,
+      400
     );
   }
 }
