@@ -8,7 +8,7 @@
 //
 // Segurança:
 // - Requer header: x-admin-key == process.env.ADMIN_SEED_KEY
-// - Deve estar DESABILITADO em produção (guardrail).
+// - (Sem guardrail de produção nesta versão, para permitir rodar no domínio production)
 //
 // Body:
 // {
@@ -162,7 +162,7 @@ async function insertOne(client: any, q: ImportQuestion) {
       ? null
       : JSON.stringify(q.bibliography);
 
-  // 2) question_versions
+  // 2) question_versions (jsonb preferido, com fallback json)
   let qvRes;
   try {
     qvRes = await client.query(
@@ -191,7 +191,6 @@ async function insertOne(client: any, q: ImportQuestion) {
       ]
     );
   } catch (e: any) {
-    // fallback para ::json caso a coluna seja json (ou ambiente antigo)
     qvRes = await client.query(
       `
       INSERT INTO question_versions (
@@ -252,27 +251,12 @@ export async function POST(req: Request) {
   const startedAt = Date.now();
 
   try {
-    // ✅ guardrail (Vercel): bloquear SOMENTE produção real
-    // - production: bloqueia
-    // - preview/development: permite (com ADMIN_SEED_KEY)
-    if (process.env.VERCEL_ENV === "production") {
-      return errorJson(
-        "AUTH_FORBIDDEN",
-        "Seed endpoint is disabled in Vercel production.",
-        { vercel_env: process.env.VERCEL_ENV },
-        403
-      );
-    }
-
     const adminKey = req.headers.get("x-admin-key");
     if (!adminKey || adminKey !== process.env.ADMIN_SEED_KEY) {
       return errorJson(
         "AUTH_FORBIDDEN",
         "Invalid or missing x-admin-key.",
-        {
-          vercel_env: process.env.VERCEL_ENV ?? null,
-          has_admin_key: Boolean(adminKey),
-        },
+        { has_admin_key: Boolean(adminKey) },
         403
       );
     }
@@ -366,7 +350,6 @@ export async function POST(req: Request) {
       code: err?.code,
       name: err?.name,
       elapsed_ms: ms,
-      vercel_env: process.env.VERCEL_ENV ?? null,
     });
 
     if (err instanceof ZodError) {
