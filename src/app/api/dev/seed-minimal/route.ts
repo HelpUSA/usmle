@@ -163,15 +163,6 @@ async function insertOne(client: any, q: ImportQuestion) {
       : JSON.stringify(q.bibliography);
 
   // 2) question_versions
-  //
-  // Colunas:
-  //   question_id, version, exam, language, difficulty, stem,
-  //   explanation_short, explanation_long, bibliography, prompt, is_active
-  //
-  // Obs:
-  // - Se sua coluna for jsonb, ::jsonb é o ideal.
-  // - Se for json, ::json também funciona (fallback).
-  //
   let qvRes;
   try {
     qvRes = await client.query(
@@ -261,19 +252,29 @@ export async function POST(req: Request) {
   const startedAt = Date.now();
 
   try {
-    // ✅ guardrail: este endpoint não pode rodar em produção
-    if (process.env.NODE_ENV === "production") {
+    // ✅ guardrail (Vercel): bloquear SOMENTE produção real
+    // - production: bloqueia
+    // - preview/development: permite (com ADMIN_SEED_KEY)
+    if (process.env.VERCEL_ENV === "production") {
       return errorJson(
         "AUTH_FORBIDDEN",
-        "Development seed endpoint is disabled in production.",
-        undefined,
+        "Seed endpoint is disabled in Vercel production.",
+        { vercel_env: process.env.VERCEL_ENV },
         403
       );
     }
 
     const adminKey = req.headers.get("x-admin-key");
     if (!adminKey || adminKey !== process.env.ADMIN_SEED_KEY) {
-      return errorJson("AUTH_FORBIDDEN", "Forbidden", undefined, 403);
+      return errorJson(
+        "AUTH_FORBIDDEN",
+        "Invalid or missing x-admin-key.",
+        {
+          vercel_env: process.env.VERCEL_ENV ?? null,
+          has_admin_key: Boolean(adminKey),
+        },
+        403
+      );
     }
 
     const bodyJson = await req.json();
@@ -360,15 +361,14 @@ export async function POST(req: Request) {
   } catch (err: any) {
     const ms = Date.now() - startedAt;
 
-    // ✅ log útil no Vercel (sem segredos)
     console.error("[seed-minimal] error", {
       message: err?.message,
       code: err?.code,
       name: err?.name,
       elapsed_ms: ms,
+      vercel_env: process.env.VERCEL_ENV ?? null,
     });
 
-    // Zod -> 422 com detalhes
     if (err instanceof ZodError) {
       return errorJson(
         "VALIDATION_FAILED",
