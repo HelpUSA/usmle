@@ -1,43 +1,49 @@
+// app/api/dev/seed-minimal/route.ts
+//
+// DEV Seed Import Endpoint (import-only)
+//
+// Objetivo:
+// - Importar questões (longas, estilo Step 1) a partir de JSON.
+// - Não gera questões no código.
+//
+// Segurança:
+// - Requer header: x-admin-key == process.env.ADMIN_SEED_KEY
+//
+// Body:
+// {
+//   "questions": [
+//     {
+//       "stem": "...",
+//       "difficulty": "easy"|"medium"|"hard",
+//       "explanation_short": "...",
+//       "explanation_long": "...",
+//       "bibliography": {...},   // opcional (json)
+//       "prompt": "...",         // opcional (string) OU null (será tratado como ausente)
+//       "choices": [
+//         {"label":"A","text":"...","correct":false,"explanation":"why wrong..."},
+//         {"label":"B","text":"...","correct":true ,"explanation":"why correct..."},
+//         {"label":"C","text":"...","correct":false,"explanation":"why wrong..."},
+//         {"label":"D","text":"...","correct":false,"explanation":"why wrong..."}
+//       ]
+//     }
+//   ],
+//   "chunkSize": 10,
+//   "requireExactlyTen": true
+// }
+//
+// Importante:
+// - Por padrão, exige exatamente 10 questões para o "pilot".
+// - Depois a gente remove/relaxa essa trava.
+//
+// Bugfix (prompt null):
+// - Seu JSON pode ter "prompt": null.
+// - zod `z.string().optional()` NÃO aceita null (só undefined).
+// - Então aceitamos null e normalizamos para undefined.
+
 import { NextResponse } from "next/server";
 import { withTx } from "@/lib/db";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-
-/**
- * DEV Import (POST) - IMPORT ONLY
- *
- * Objetivo:
- * - Importar questões (longas, estilo Step 1) a partir de JSON.
- * - Não gera questões no código.
- *
- * Segurança:
- * - Requer header: x-admin-key == process.env.ADMIN_SEED_KEY
- *
- * Body:
- * {
- *   "questions": [
- *     {
- *       "stem": "...",
- *       "difficulty": "easy"|"medium"|"hard",
- *       "explanation_short": "...",
- *       "explanation_long": "...",
- *       "bibliography": {...},   // opcional (json)
- *       "prompt": "...",         // opcional
- *       "choices": [
- *         {"label":"A","text":"...","correct":false,"explanation":"why wrong..."},
- *         {"label":"B","text":"...","correct":true ,"explanation":"why correct..."},
- *         {"label":"C","text":"...","correct":false,"explanation":"why wrong..."},
- *         {"label":"D","text":"...","correct":false,"explanation":"why wrong..."}
- *       ]
- *     }
- *   ],
- *   "chunkSize": 10
- * }
- *
- * Importante:
- * - Por padrão, exige exatamente 10 questões para o "pilot".
- * - Depois a gente remove/relaxa essa trava.
- */
 
 type Difficulty = "easy" | "medium" | "hard";
 type ChoiceLabel = "A" | "B" | "C" | "D" | "E";
@@ -48,7 +54,7 @@ type ImportQuestion = {
   explanation_short: string;
   explanation_long: string;
   bibliography?: any;
-  prompt?: string;
+  prompt?: string; // internamente: string | undefined (null é normalizado)
   choices: Array<{
     label: ChoiceLabel;
     text: string;
@@ -70,19 +76,19 @@ const ImportQuestionSchema = z.object({
   explanation_short: z.string().min(1),
   explanation_long: z.string().min(1),
   bibliography: z.any().optional(),
-  prompt: z.string().optional(),
+
+  // ✅ aceita string OU null e normaliza para undefined
+  prompt: z
+    .union([z.string(), z.null()])
+    .optional()
+    .transform((v) => (v === null ? undefined : v)),
+
   choices: z.array(ChoiceSchema).min(4).max(5),
 });
 
 const BodySchema = z.object({
-  // Somente import
   questions: z.array(ImportQuestionSchema).min(1).max(5000),
-
-  // chunk por segurança (default 10)
   chunkSize: z.number().int().min(1).max(500).optional(),
-
-  // trava do piloto: por padrão exige 10.
-  // depois podemos setar false.
   requireExactlyTen: z.boolean().optional(),
 });
 
@@ -147,7 +153,7 @@ async function insertOne(client: any, q: ImportQuestion) {
       q.explanation_short,
       q.explanation_long,
       q.bibliography ?? null,
-      q.prompt ?? null,
+      q.prompt ?? null, // ✅ null no banco se prompt ausente
     ]
   );
   const questionVersionId = qvRes.rows[0].question_version_id as string;

@@ -1,3 +1,15 @@
+// src/lib/db.ts
+//
+// Postgres helper (pg Pool + transaction wrapper)
+//
+// Env vars:
+// - DATABASE_URL: PostgreSQL connection string (Railway / local)
+// - PGSSL_DISABLE: if set (any truthy string), disables SSL (useful for local dev)
+//
+// Notes:
+// - Railway Postgres typically requires SSL; we default to SSL enabled with rejectUnauthorized=false.
+// - Use withTx() for multi-step writes to ensure atomicity.
+
 import { Pool, PoolClient } from "pg";
 
 const pool = new Pool({
