@@ -17,8 +17,8 @@
 //       "difficulty": "easy"|"medium"|"hard",
 //       "explanation_short": "...",
 //       "explanation_long": "...",
-//       "bibliography": {...},   // opcional (json)
-//       "prompt": "...",         // opcional (string) OU null (será tratado como ausente)
+//       "bibliography": {...} | [...] ,   // opcional (json)
+//       "prompt": "...",                  // opcional (string) OU null (será tratado como ausente)
 //       "choices": [
 //         {"label":"A","text":"...","correct":false,"explanation":"why wrong..."},
 //         {"label":"B","text":"...","correct":true ,"explanation":"why correct..."},
@@ -39,6 +39,11 @@
 // - Seu JSON pode ter "prompt": null.
 // - zod `z.string().optional()` NÃO aceita null (só undefined).
 // - Então aceitamos null e normalizamos para undefined.
+//
+// Bugfix (bibliography JSON no Postgres):
+// - Colunas json/jsonb no Postgres exigem JSON válido.
+// - O driver `pg` nem sempre serializa objetos JS automaticamente.
+// - Então: JSON.stringify + cast ::json no INSERT.
 //
 // Nota de runtime:
 // - Este endpoint usa `pg` (node-only). Garanta runtime NodeJS.
@@ -137,7 +142,16 @@ async function insertOne(client: any, q: ImportQuestion) {
   );
   const questionId = qRes.rows[0].question_id as string;
 
+  // ✅ bibliography precisa ser JSON válido para coluna json/jsonb
+  const bibliographyJson =
+    q.bibliography === undefined || q.bibliography === null
+      ? null
+      : JSON.stringify(q.bibliography);
+
   // 2) question_versions
+  // Observação:
+  // - $7::json força validação/cast no Postgres.
+  // - Se sua coluna for jsonb e você quiser, pode trocar ::json por ::jsonb.
   const qvRes = await client.query(
     `
     INSERT INTO question_versions (
@@ -147,7 +161,7 @@ async function insertOne(client: any, q: ImportQuestion) {
     )
     VALUES (
       $1, 1, 'step1', 'en',
-      $2, $3, $4, $5, $6, $7,
+      $2, $3, $4, $5, $6, $7::json, $8,
       true
     )
     RETURNING question_version_id
@@ -158,7 +172,7 @@ async function insertOne(client: any, q: ImportQuestion) {
       q.stem,
       q.explanation_short,
       q.explanation_long,
-      q.bibliography ?? null,
+      bibliographyJson, // ✅ json string ou null
       q.prompt ?? null, // ✅ null no banco se prompt ausente
     ]
   );
@@ -282,8 +296,9 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (err: any) {
-    // ✅ log útil no Vercel (sem segredos)
     const ms = Date.now() - startedAt;
+
+    // ✅ log útil no Vercel (sem segredos)
     console.error("[seed-minimal] error", {
       message: err?.message,
       code: err?.code,
