@@ -1,3 +1,15 @@
+// src/app/api/sessions/[sessionId]/review/route.ts
+//
+// Review Endpoint
+// - Só permite review se a sessão estiver submitted
+// - Retorna: sessão + items com stem, explanations, bibliography/prompt,
+//   attempt info, alternativa correta, alternativa marcada,
+//   e TODAS as choices com is_correct + explanation (review UX v2)
+//
+// Observação: TS-safe (evita rowCount).
+
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { withTx } from "@/lib/db";
 import { getUserIdFromRequest } from "@/lib/auth";
@@ -21,7 +33,8 @@ export async function GET(
         [sessionId]
       );
 
-      if (sRes.rowCount === 0) {
+      // ✅ TS-safe
+      if (sRes.rows.length === 0) {
         return { status: 404 as const, payload: { error: "Session not found" } };
       }
 
@@ -40,7 +53,6 @@ export async function GET(
       }
 
       // ✅ Blindagem: review só para sessão submetida
-      // (Semântica melhor: conflito de estado => 409)
       if (session.status !== "submitted") {
         return {
           status: 409 as const,
@@ -48,8 +60,7 @@ export async function GET(
         };
       }
 
-      // 2) Itens + tentativa + correta/selecionada + explicações + flagged
-      // Não fazemos JOIN em "todas as choices" aqui para não duplicar linhas.
+      // 2) Itens + attempt + correta/selecionada (sem expandir choices aqui pra não duplicar)
       const itemsRes = await client.query(
         `
         SELECT
@@ -100,7 +111,6 @@ export async function GET(
 
       const rows = itemsRes.rows as Array<any>;
 
-      // Se por algum motivo ainda não existirem itens, devolve vazio com sessão válida
       if (rows.length === 0) {
         return {
           status: 200 as const,
@@ -119,7 +129,7 @@ export async function GET(
         };
       }
 
-      // 3) Buscar todas as alternativas (choices) + explanation por alternativa
+      // 3) Buscar todas as alternatives (choices) com explanation por alternativa
       const qvIds = Array.from(
         new Set(rows.map((r) => r.question_version_id))
       ) as string[];
@@ -146,7 +156,7 @@ export async function GET(
             is_correct,
             explanation
           FROM question_choices
-          WHERE question_version_id = ANY($1)
+          WHERE question_version_id = ANY($1::uuid[])
           ORDER BY question_version_id, label ASC
           `,
           [qvIds]
@@ -160,7 +170,7 @@ export async function GET(
             choice_id: c.choice_id,
             label: c.label,
             choice_text: c.choice_text,
-            is_correct: c.is_correct,
+            is_correct: Boolean(c.is_correct),
             explanation: c.explanation ?? null,
           });
         }
@@ -172,30 +182,28 @@ export async function GET(
         question_version_id: r.question_version_id,
 
         stem: r.stem,
-        explanation_short: r.explanation_short,
-        explanation_long: r.explanation_long,
+        explanation_short: r.explanation_short ?? null,
+        explanation_long: r.explanation_long ?? null,
 
-        // ✅ para References & Resources / Podcasts
         bibliography: r.bibliography ?? null,
         prompt: r.prompt ?? null,
 
-        attempt_id: r.attempt_id,
-        result: r.result,
-        is_correct: r.is_correct,
-        selected_choice_id: r.selected_choice_id,
-        time_spent_seconds: r.time_spent_seconds,
-        confidence: r.confidence,
+        attempt_id: r.attempt_id ?? null,
+        result: r.result ?? null,
+        is_correct: r.is_correct ?? null,
+        selected_choice_id: r.selected_choice_id ?? null,
+        time_spent_seconds: r.time_spent_seconds ?? null,
+        confidence: r.confidence ?? null,
         flagged_for_review: r.flagged_for_review ?? false,
-        answered_at: r.answered_at,
+        answered_at: r.answered_at ?? null,
 
-        correct_choice_id: r.correct_choice_id,
-        correct_label: r.correct_label,
-        correct_choice_text: r.correct_choice_text,
+        correct_choice_id: r.correct_choice_id ?? null,
+        correct_label: r.correct_label ?? null,
+        correct_choice_text: r.correct_choice_text ?? null,
 
-        selected_label: r.selected_label,
-        selected_choice_text: r.selected_choice_text,
+        selected_label: r.selected_label ?? null,
+        selected_choice_text: r.selected_choice_text ?? null,
 
-        // ✅ review completo: alternativas + explicação por alternativa
         choices: choicesByQvId[r.question_version_id] ?? [],
       }));
 
