@@ -21,7 +21,13 @@
  * Observação (build/TS):
  * - Em alguns typings do driver `pg`, `rowCount` pode ser `number | null`.
  *   Para evitar falha no build (Vercel), usamos `rows.length` em vez de `rowCount`.
+ *
+ * Patch (DEV seed isolation):
+ * - Evita misturar conteúdo de seed DEV com produção:
+ *   filtra questions.source <> 'dev_seed' e questions.status='published'
  */
+
+export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -159,7 +165,7 @@ export async function POST(
       // - depois as menos vistas (times_seen ASC)
       // - balanceia por dificuldade (quando disponível)
       //
-      // Observação: se o schema não tiver user_question_state (ou estiver vazio), funciona igual.
+      // Patch: filtra questions.status='published' e questions.source<>'dev_seed'
       const target = splitByDifficulty(body.count);
 
       async function pickByDifficulty(diff: Difficulty, limit: number) {
@@ -176,6 +182,8 @@ export async function POST(
             AND qv.language = $2
             AND qv.is_active = true
             AND qv.difficulty = $6
+            AND q.status = 'published'
+            AND q.source <> 'dev_seed'
             AND NOT EXISTS (
               SELECT 1
               FROM session_items si
@@ -218,6 +226,8 @@ export async function POST(
           WHERE qv.exam = $1
             AND qv.language = $2
             AND qv.is_active = true
+            AND q.status = 'published'
+            AND q.source <> 'dev_seed'
             AND NOT EXISTS (
               SELECT 1
               FROM session_items si
@@ -234,7 +244,9 @@ export async function POST(
           [session.exam, session.language, sessionId, remaining, userId, picked]
         );
 
-        picked.push(...fillRes.rows.map((r: any) => r.question_version_id as string));
+        picked.push(
+          ...fillRes.rows.map((r: any) => r.question_version_id as string)
+        );
       }
 
       if (picked.length === 0) {
@@ -252,7 +264,9 @@ export async function POST(
 
       picked.forEach((qvId, idx) => {
         const position = idx + 1;
-        placeholders.push(`($${idx * 3 + 1}, $${idx * 3 + 2}, $${idx * 3 + 3})`);
+        placeholders.push(
+          `($${idx * 3 + 1}, $${idx * 3 + 2}, $${idx * 3 + 3})`
+        );
         insertValues.push(sessionId, position, qvId);
       });
 
