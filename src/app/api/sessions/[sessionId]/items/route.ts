@@ -24,7 +24,7 @@
  *
  * Patch (DEV seed isolation):
  * - Evita misturar conteúdo de seed DEV com produção:
- *   filtra questions.source <> 'dev_seed' e questions.status='published'
+ *   filtra questions.status = 'published' e questions.source <> 'seed_dev'
  */
 
 export const runtime = "nodejs";
@@ -67,7 +67,6 @@ export async function GET(
         [sessionId]
       );
 
-      // ✅ TS-safe
       if (s.rows.length === 0) {
         return { status: 404 as const, payload: { error: "Session not found" } };
       }
@@ -121,7 +120,6 @@ export async function POST(
         [sessionId]
       );
 
-      // ✅ TS-safe
       if (sessionRes.rows.length === 0) {
         return { status: 404 as const, payload: { error: "Session not found" } };
       }
@@ -160,12 +158,8 @@ export async function POST(
         return { status: 200 as const, payload: { items: existing.rows } };
       }
 
-      // 3) Seleção "melhor para o usuário":
-      // - prioriza questões não vistas (user_question_state ausente -> aparece primeiro)
-      // - depois as menos vistas (times_seen ASC)
-      // - balanceia por dificuldade (quando disponível)
-      //
-      // Patch: filtra questions.status='published' e questions.source<>'dev_seed'
+      // 3) Seleção "melhor para o usuário"
+      // Patch: filtra questions.status='published' e questions.source<>'seed_dev'
       const target = splitByDifficulty(body.count);
 
       async function pickByDifficulty(diff: Difficulty, limit: number) {
@@ -183,7 +177,7 @@ export async function POST(
             AND qv.is_active = true
             AND qv.difficulty = $6
             AND q.status = 'published'
-            AND q.source <> 'dev_seed'
+            AND q.source <> 'seed_dev'
             AND NOT EXISTS (
               SELECT 1
               FROM session_items si
@@ -203,16 +197,11 @@ export async function POST(
       }
 
       const picked: string[] = [];
-      const easyIds = await pickByDifficulty("easy", target.easy);
-      picked.push(...easyIds);
+      picked.push(...(await pickByDifficulty("easy", target.easy)));
+      picked.push(...(await pickByDifficulty("medium", target.medium)));
+      picked.push(...(await pickByDifficulty("hard", target.hard)));
 
-      const mediumIds = await pickByDifficulty("medium", target.medium);
-      picked.push(...mediumIds);
-
-      const hardIds = await pickByDifficulty("hard", target.hard);
-      picked.push(...hardIds);
-
-      // Se não deu para completar (falta de questões daquela dificuldade), completa com o que houver
+      // Completar se faltar
       if (picked.length < body.count) {
         const remaining = body.count - picked.length;
 
@@ -227,7 +216,7 @@ export async function POST(
             AND qv.language = $2
             AND qv.is_active = true
             AND q.status = 'published'
-            AND q.source <> 'dev_seed'
+            AND q.source <> 'seed_dev'
             AND NOT EXISTS (
               SELECT 1
               FROM session_items si
@@ -244,9 +233,7 @@ export async function POST(
           [session.exam, session.language, sessionId, remaining, userId, picked]
         );
 
-        picked.push(
-          ...fillRes.rows.map((r: any) => r.question_version_id as string)
-        );
+        picked.push(...fillRes.rows.map((r: any) => r.question_version_id as string));
       }
 
       if (picked.length === 0) {
@@ -264,9 +251,7 @@ export async function POST(
 
       picked.forEach((qvId, idx) => {
         const position = idx + 1;
-        placeholders.push(
-          `($${idx * 3 + 1}, $${idx * 3 + 2}, $${idx * 3 + 3})`
-        );
+        placeholders.push(`($${idx * 3 + 1}, $${idx * 3 + 2}, $${idx * 3 + 3})`);
         insertValues.push(sessionId, position, qvId);
       });
 
