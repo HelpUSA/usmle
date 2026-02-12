@@ -11,7 +11,7 @@
  * Contrato:
  * - GET  /api/sessions/:sessionId/items
  * - POST /api/sessions/:sessionId/items
- *   Body: { count?: number } (default 10, min 1, max 200)
+ *   Body: { count?: number, include_seed?: boolean } (default count=10, include_seed=false)
  *
  * Regras importantes:
  * - Requer autenticação (NextAuth) ou header dev x-user-id
@@ -22,9 +22,10 @@
  * - Em alguns typings do driver `pg`, `rowCount` pode ser `number | null`.
  *   Para evitar falha no build (Vercel), usamos `rows.length` em vez de `rowCount`.
  *
- * Patch (DEV seed isolation):
- * - Evita misturar conteúdo de seed DEV com produção:
- *   filtra questions.status = 'published' e questions.source <> 'seed_dev'
+ * Patch (DEV seed isolation - Opção B):
+ * - Evita misturar seed DEV com produção real por padrão.
+ * - Por padrão: exclui questions.source = 'seed_dev'
+ * - Se body.include_seed = true: permite seed_dev.
  */
 
 export const runtime = "nodejs";
@@ -36,6 +37,9 @@ import { getUserIdFromRequest } from "@/lib/auth";
 
 const BodySchema = z.object({
   count: z.number().int().min(1).max(200).default(10),
+
+  // ✅ Opção B: seed só entra se explicitamente pedido
+  include_seed: z.boolean().optional().default(false),
 });
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -108,6 +112,8 @@ export async function POST(
     const bodyJson = await req.json().catch(() => ({}));
     const body = BodySchema.parse(bodyJson);
 
+    const includeSeed = body.include_seed ?? false;
+
     const result = await withTx(async (client) => {
       // 1) trava a sessão (evita duas requisições concorrentes criarem itens)
       const sessionRes = await client.query(
@@ -159,7 +165,11 @@ export async function POST(
       }
 
       // 3) Seleção "melhor para o usuário"
-      // Patch: filtra questions.status='published' e questions.source<>'seed_dev'
+      // - prioriza questões não vistas (user_question_state ausente -> aparece primeiro)
+      // - depois as menos vistas (times_seen ASC)
+      // - balanceia por dificuldade
+      //
+      // Opção B: includeSeed controla se 'seed_dev' entra ou não.
       const target = splitByDifficulty(body.count);
 
       async function pickByDifficulty(diff: Difficulty, limit: number) {
@@ -177,7 +187,10 @@ export async function POST(
             AND qv.is_active = true
             AND qv.difficulty = $6
             AND q.status = 'published'
-            AND q.source <> 'seed_dev'
+            AND (
+              $7::boolean = true
+              OR q.source <> 'seed_dev'
+            )
             AND NOT EXISTS (
               SELECT 1
               FROM session_items si
@@ -190,7 +203,7 @@ export async function POST(
             random()
           LIMIT $4
           `,
-          [session.exam, session.language, sessionId, limit, userId, diff]
+          [session.exam, session.language, sessionId, limit, userId, diff, includeSeed]
         );
 
         return res.rows.map((r: any) => r.question_version_id as string);
@@ -216,7 +229,10 @@ export async function POST(
             AND qv.language = $2
             AND qv.is_active = true
             AND q.status = 'published'
-            AND q.source <> 'seed_dev'
+            AND (
+              $7::boolean = true
+              OR q.source <> 'seed_dev'
+            )
             AND NOT EXISTS (
               SELECT 1
               FROM session_items si
@@ -230,7 +246,7 @@ export async function POST(
             random()
           LIMIT $4
           `,
-          [session.exam, session.language, sessionId, remaining, userId, picked]
+          [session.exam, session.language, sessionId, remaining, userId, picked, includeSeed]
         );
 
         picked.push(...fillRes.rows.map((r: any) => r.question_version_id as string));
