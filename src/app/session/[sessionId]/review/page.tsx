@@ -80,7 +80,11 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-export default function ReviewPage({ params }: { params: { sessionId: string } }) {
+export default function ReviewPage({
+  params,
+}: {
+  params: { sessionId: string };
+}) {
   const router = useRouter();
   const sessionId = params.sessionId;
 
@@ -127,7 +131,15 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
     const answered = correct + wrong + skipped;
     const accuracy = answered > 0 ? correct / answered : 0;
 
-    return { correct, wrong, skipped, unanswered, answered, total: data.items.length, accuracy };
+    return {
+      correct,
+      wrong,
+      skipped,
+      unanswered,
+      answered,
+      total: data.items.length,
+      accuracy,
+    };
   }, [data]);
 
   function statusFor(item: ReviewResponse["items"][number]): Status {
@@ -140,7 +152,9 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
     setLoading(true);
     setErr(null);
     try {
-      const res = await apiFetch<ReviewResponse>(`/api/sessions/${sessionId}/review`);
+      const res = await apiFetch<ReviewResponse>(
+        `/api/sessions/${sessionId}/review`
+      );
       setData(res);
 
       // Garantir activePos válido
@@ -159,7 +173,8 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
   }, [sessionId]);
 
   const canPrev = activePos > 1;
-  const canNext = activePos < (itemsSorted[itemsSorted.length - 1]?.position ?? 1);
+  const canNext =
+    activePos < (itemsSorted[itemsSorted.length - 1]?.position ?? 1);
 
   function goPrev() {
     setActivePos((p) => clamp(p - 1, 1, itemsSorted.length || 1));
@@ -169,7 +184,14 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0b0b0d", color: "#f4f4f5", fontFamily: "system-ui" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#0b0b0d",
+        color: "#f4f4f5",
+        fontFamily: "system-ui",
+      }}
+    >
       {/* Sticky Header */}
       <div
         style={{
@@ -181,37 +203,94 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
           borderBottom: "1px solid rgba(255,255,255,0.08)",
         }}
       >
-        <div style={{ maxWidth: 980, margin: "0 auto", padding: "12px 14px", display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
+        <div
+          style={{
+            maxWidth: 980,
+            margin: "0 auto",
+            padding: "12px 14px",
+            display: "flex",
+            gap: 12,
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 750, fontSize: 16, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div
+              style={{
+                fontWeight: 750,
+                fontSize: 16,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
               Session Review
             </div>
-            <div style={{ color: "rgba(244,244,245,0.65)", fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div
+              style={{
+                color: "rgba(244,244,245,0.65)",
+                fontSize: 12,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
               Session {sessionId}
-              {data?.session?.submitted_at ? ` • Submitted ${new Date(data.session.submitted_at).toLocaleString()}` : ""}
+              {data?.session?.submitted_at
+                ? ` • Submitted ${new Date(
+                    data.session.submitted_at
+                  ).toLocaleString()}`
+                : ""}
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexShrink: 0,
+            }}
+          >
             <button
-              onClick={() => setFontScale((s) => Math.max(0.85, Math.round((s - 0.05) * 100) / 100))}
+              onClick={() =>
+                setFontScale((s) =>
+                  Math.max(0.85, Math.round((s - 0.05) * 100) / 100)
+                )
+              }
               style={btnSmall()}
               title="Decrease font"
             >
               A-
             </button>
             <button
-              onClick={() => setFontScale((s) => Math.min(1.25, Math.round((s + 0.05) * 100) / 100))}
+              onClick={() =>
+                setFontScale((s) =>
+                  Math.min(1.25, Math.round((s + 0.05) * 100) / 100)
+                )
+              }
               style={btnSmall()}
               title="Increase font"
             >
               A+
             </button>
 
-            <button onClick={load} disabled={loading} style={btnSmall()} title="Refresh">
+            <button
+              onClick={load}
+              disabled={loading}
+              style={btnSmall()}
+              title="Refresh"
+            >
               {loading ? "…" : "⟳"}
             </button>
-            <button onClick={() => router.push(`/session/${sessionId}`)} disabled={loading} style={btnSmall()} title="Back to session">
+
+            {/* ✅ Patch: Back padronizado com /sessions */}
+            <button
+              onClick={() => router.push(`/sessions/${sessionId}`)}
+              disabled={loading}
+              style={btnSmall()}
+              title="Back to session"
+            >
               Back
             </button>
           </div>
@@ -220,14 +299,26 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
 
       <main style={{ maxWidth: 980, margin: "0 auto", padding: "14px 14px 110px" }}>
         {err && (
-          <div style={{ marginTop: 12, padding: 12, borderRadius: 14, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(220,38,38,0.10)" }}>
+          <div
+            style={{
+              marginTop: 12,
+              padding: 12,
+              borderRadius: 14,
+              border: "1px solid rgba(255,255,255,0.10)",
+              background: "rgba(220,38,38,0.10)",
+            }}
+          >
             <div style={{ fontWeight: 700, color: "#fecaca" }}>Error</div>
-            <div style={{ marginTop: 6, color: "rgba(244,244,245,0.85)" }}>{err}</div>
+            <div style={{ marginTop: 6, color: "rgba(244,244,245,0.85)" }}>
+              {err}
+            </div>
           </div>
         )}
 
         {!data ? (
-          <div style={{ marginTop: 16, color: "rgba(244,244,245,0.8)" }}>Loading…</div>
+          <div style={{ marginTop: 16, color: "rgba(244,244,245,0.8)" }}>
+            Loading…
+          </div>
         ) : (
           <>
             {data.session.status !== "submitted" && (
@@ -241,8 +332,15 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                 }}
               >
                 <div style={{ fontWeight: 700 }}>Note</div>
-                <div style={{ marginTop: 6, color: "rgba(244,244,245,0.75)", fontSize: 13 }}>
-                  This session is currently <strong>{data.session.status}</strong>. Review may be incomplete unless the session is submitted.
+                <div
+                  style={{
+                    marginTop: 6,
+                    color: "rgba(244,244,245,0.75)",
+                    fontSize: 13,
+                  }}
+                >
+                  This session is currently <strong>{data.session.status}</strong>
+                  . Review may be incomplete unless the session is submitted.
                 </div>
               </div>
             )}
@@ -257,7 +355,14 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                   background: "rgba(255,255,255,0.04)",
                 }}
               >
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 10,
+                    alignItems: "center",
+                  }}
+                >
                   <div style={{ fontWeight: 800 }}>Summary</div>
                   <div style={{ color: "rgba(244,244,245,0.75)" }}>
                     Answered {summary.answered}/{summary.total}
@@ -318,7 +423,16 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                   overflow: "hidden",
                 }}
               >
-                <div style={{ padding: 14, borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                <div
+                  style={{
+                    padding: 14,
+                    borderBottom: "1px solid rgba(255,255,255,0.08)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    alignItems: "center",
+                  }}
+                >
                   <div style={{ fontWeight: 800 }}>
                     Question {activeItem.position} of {itemsSorted.length}
                   </div>
@@ -347,7 +461,6 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                         const tone: "neutral" | "correct" | "wrong" =
                           isCorrect ? "correct" : isSelected ? "wrong" : "neutral";
 
-                        // Title aligns with user expectation
                         const title =
                           isCorrect && isSelected
                             ? "✅ Your answer (correct)"
@@ -356,10 +469,6 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                             : isSelected
                             ? "❌ Your answer"
                             : "Choice";
-
-                        // ✅ Agora mostramos explicação para TODAS as alternativas
-                        // (resolve seu problema: incorretas também precisam ter review)
-                        const showExplain = true;
 
                         return (
                           <ChoiceCardV2
@@ -370,7 +479,7 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                             tone={tone}
                             fontScale={fontScale}
                             explanation={c.explanation}
-                            showExplanation={showExplain}
+                            showExplanation={true}
                           />
                         );
                       })
@@ -381,7 +490,13 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                           title="Your answer"
                           label={activeItem.selected_label}
                           text={activeItem.selected_choice_text}
-                          tone={activeItem.result === "wrong" ? "wrong" : activeItem.result === "correct" ? "correct" : "neutral"}
+                          tone={
+                            activeItem.result === "wrong"
+                              ? "wrong"
+                              : activeItem.result === "correct"
+                              ? "correct"
+                              : "neutral"
+                          }
                           fontScale={fontScale}
                         />
                         <ChoiceCard
@@ -399,13 +514,21 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                   <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
                     <InfoBlock
                       title="Educational Objective"
-                      body={activeItem.explanation_short ? activeItem.explanation_short : "(Coming soon) Structured educational blocks will appear here."}
+                      body={
+                        activeItem.explanation_short
+                          ? activeItem.explanation_short
+                          : "(Coming soon) Structured educational blocks will appear here."
+                      }
                       kind="amber"
                       fontScale={fontScale}
                     />
                     <InfoBlock
                       title="Key Concept / Bottom Line"
-                      body={activeItem.explanation_long ? activeItem.explanation_long : "(Coming soon) Distilled takeaways will appear here."}
+                      body={
+                        activeItem.explanation_long
+                          ? activeItem.explanation_long
+                          : "(Coming soon) Distilled takeaways will appear here."
+                      }
                       kind="green"
                       fontScale={fontScale}
                     />
@@ -413,10 +536,8 @@ export default function ReviewPage({ params }: { params: { sessionId: string } }
                       title="References & Resources"
                       body={
                         activeItem.bibliography || activeItem.prompt
-                          ? [
-                              activeItem.prompt ? `Prompt: ${activeItem.prompt}` : null,
-                              activeItem.bibliography ? `Bibliography: ${JSON.stringify(activeItem.bibliography)}` : null,
-                            ]
+                          ? [activeItem.prompt ? `Prompt: ${activeItem.prompt}` : null,
+                             activeItem.bibliography ? `Bibliography: ${JSON.stringify(activeItem.bibliography)}` : null]
                               .filter(Boolean)
                               .join("\n\n")
                           : "(Coming soon) Clickable references and external learning resources will appear here."

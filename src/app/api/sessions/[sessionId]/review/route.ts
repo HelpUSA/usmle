@@ -130,9 +130,7 @@ export async function GET(
       }
 
       // 3) Buscar todas as alternatives (choices) com explanation por alternativa
-      const qvIds = Array.from(
-        new Set(rows.map((r) => r.question_version_id))
-      ) as string[];
+      const qvIds = Array.from(new Set(rows.map((r) => r.question_version_id))) as string[];
 
       const choicesByQvId: Record<
         string,
@@ -204,6 +202,7 @@ export async function GET(
         selected_label: r.selected_label ?? null,
         selected_choice_text: r.selected_choice_text ?? null,
 
+        // ✅ review completo: alternativas + explicação por alternativa
         choices: choicesByQvId[r.question_version_id] ?? [],
       }));
 
