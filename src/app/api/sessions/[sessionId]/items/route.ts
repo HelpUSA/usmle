@@ -26,6 +26,11 @@
  * - Evita misturar seed DEV com produção real por padrão.
  * - Por padrão: exclui questions.source = 'seed_dev'
  * - Se body.include_seed = true: permite seed_dev.
+ *
+ * 🔧 Hardening (Fallback automático):
+ * - Se include_seed=false e NÃO encontrar nenhuma questão elegível,
+ *   tenta automaticamente include_seed=true (somente 1x) para manter o site funcional
+ *   enquanto o banco tiver apenas seed_dev.
  */
 
 export const runtime = "nodejs";
@@ -112,7 +117,8 @@ export async function POST(
     const bodyJson = await req.json().catch(() => ({}));
     const body = BodySchema.parse(bodyJson);
 
-    const includeSeed = body.include_seed ?? false;
+    // default: false (Opção B)
+    const requestedIncludeSeed = body.include_seed ?? false;
 
     const result = await withTx(async (client) => {
       // 1) trava a sessão (evita duas requisições concorrentes criarem itens)
@@ -133,9 +139,9 @@ export async function POST(
       const session = sessionRes.rows[0] as {
         session_id: string;
         user_id: string;
-        exam: string; // exam_type enum vindo como string
-        language: string; // text
-        status: string; // session_status enum vindo como string
+        exam: string;
+        language: string;
+        status: string;
       };
 
       if (session.user_id !== userId) {
@@ -164,156 +170,122 @@ export async function POST(
         return { status: 200 as const, payload: { items: existing.rows } };
       }
 
-      // 3) Seleção "melhor para o usuário"
-      // - prioriza questões não vistas (user_question_state ausente -> aparece primeiro)
-      // - depois as menos vistas (times_seen ASC)
-      // - balanceia por dificuldade
-      //
-      // Opção B: includeSeed controla se 'seed_dev' entra ou não.
       const target = splitByDifficulty(body.count);
 
-      async function pickByDifficulty(diff: Difficulty, limit: number) {
-        if (limit <= 0) return [] as string[];
+      // helper: executa seleção com includeSeed ligado/desligado
+      async function selectQuestions(includeSeed: boolean) {
+        const picked: string[] = [];
 
-        const res = await client.query(
-          `
-          SELECT qv.question_version_id
-          FROM question_versions qv
-          JOIN questions q ON q.question_id = qv.question_id
-          LEFT JOIN user_question_state uqs
-            ON uqs.user_id = $5::uuid AND uqs.question_id = q.question_id
-          WHERE qv.exam = $1::exam_type
-            AND qv.language = $2
-            AND qv.is_active = true
-            AND qv.difficulty = $6::difficulty_level
-            AND q.status = 'published'::question_status
-            AND (
-              $7::boolean = true
-              OR q.source <> 'seed_dev'
-            )
-            AND NOT EXISTS (
-              SELECT 1
-              FROM session_items si
-              WHERE si.session_id = $3
-                AND si.question_version_id = qv.question_version_id
-            )
-          ORDER BY
-            (uqs.question_id IS NULL) DESC,
-            COALESCE(uqs.times_seen, 0) ASC,
-            random()
-          LIMIT $4
-          `,
-          [
-            session.exam,
-            session.language,
-            sessionId,
-            limit,
-            userId,
-            diff,
-            includeSeed,
-          ]
-        );
+        async function pickByDifficulty(diff: Difficulty, limit: number) {
+          if (limit <= 0) return [] as string[];
 
-        return res.rows.map((r: any) => r.question_version_id as string);
+          const res = await client.query(
+            `
+            SELECT qv.question_version_id
+            FROM question_versions qv
+            JOIN questions q ON q.question_id = qv.question_id
+            LEFT JOIN user_question_state uqs
+              ON uqs.user_id = $5 AND uqs.question_id = q.question_id
+            WHERE qv.exam = $1
+              AND qv.language = $2
+              AND qv.is_active = true
+              AND qv.difficulty = $6
+              AND q.status = 'published'
+              AND (
+                $7::boolean = true
+                OR q.source <> 'seed_dev'
+              )
+              AND NOT EXISTS (
+                SELECT 1
+                FROM session_items si
+                WHERE si.session_id = $3
+                  AND si.question_version_id = qv.question_version_id
+              )
+            ORDER BY
+              (uqs.question_id IS NULL) DESC,
+              COALESCE(uqs.times_seen, 0) ASC,
+              random()
+            LIMIT $4
+            `,
+            [session.exam, session.language, sessionId, limit, userId, diff, includeSeed]
+          );
+
+          return res.rows.map((r: any) => r.question_version_id as string);
+        }
+
+        picked.push(...(await pickByDifficulty("easy", target.easy)));
+        picked.push(...(await pickByDifficulty("medium", target.medium)));
+        picked.push(...(await pickByDifficulty("hard", target.hard)));
+
+        // Completar se faltar
+        if (picked.length < body.count) {
+          const remaining = body.count - picked.length;
+
+          const fillRes = await client.query(
+            `
+            SELECT qv.question_version_id
+            FROM question_versions qv
+            JOIN questions q ON q.question_id = qv.question_id
+            LEFT JOIN user_question_state uqs
+              ON uqs.user_id = $5 AND uqs.question_id = q.question_id
+            WHERE qv.exam = $1
+              AND qv.language = $2
+              AND qv.is_active = true
+              AND q.status = 'published'
+              AND (
+                $7::boolean = true
+                OR q.source <> 'seed_dev'
+              )
+              AND NOT EXISTS (
+                SELECT 1
+                FROM session_items si
+                WHERE si.session_id = $3
+                  AND si.question_version_id = qv.question_version_id
+              )
+              AND qv.question_version_id <> ALL($6::uuid[])
+            ORDER BY
+              (uqs.question_id IS NULL) DESC,
+              COALESCE(uqs.times_seen, 0) ASC,
+              random()
+            LIMIT $4
+            `,
+            [session.exam, session.language, sessionId, remaining, userId, picked, includeSeed]
+          );
+
+          picked.push(...fillRes.rows.map((r: any) => r.question_version_id as string));
+        }
+
+        return picked;
       }
 
-      const picked: string[] = [];
-      picked.push(...(await pickByDifficulty("easy", target.easy)));
-      picked.push(...(await pickByDifficulty("medium", target.medium)));
-      picked.push(...(await pickByDifficulty("hard", target.hard)));
+      // 3) tenta com o includeSeed pedido
+      let includeSeedEffective = requestedIncludeSeed;
+      let picked = await selectQuestions(includeSeedEffective);
 
-      // Completar se faltar (sem filtro de dificuldade)
-      if (picked.length < body.count) {
-        const remaining = body.count - picked.length;
-
-        // ⚠️ Se picked está vazio, o <> ALL($6::uuid[]) vira armadilha.
-        // Então só aplicamos esse filtro quando tem conteúdo.
-        const pickedFilter =
-          picked.length > 0
-            ? `AND qv.question_version_id <> ALL($6::uuid[])`
-            : ``;
-
-        const fillParams =
-          picked.length > 0
-            ? [session.exam, session.language, sessionId, remaining, userId, picked, includeSeed]
-            : [session.exam, session.language, sessionId, remaining, userId, includeSeed];
-
-        const fillRes = await client.query(
-          `
-          SELECT qv.question_version_id
-          FROM question_versions qv
-          JOIN questions q ON q.question_id = qv.question_id
-          LEFT JOIN user_question_state uqs
-            ON uqs.user_id = $5::uuid AND uqs.question_id = q.question_id
-          WHERE qv.exam = $1::exam_type
-            AND qv.language = $2
-            AND qv.is_active = true
-            AND q.status = 'published'::question_status
-            AND (
-              ${picked.length > 0 ? "$7::boolean" : "$6::boolean"} = true
-              OR q.source <> 'seed_dev'
-            )
-            AND NOT EXISTS (
-              SELECT 1
-              FROM session_items si
-              WHERE si.session_id = $3
-                AND si.question_version_id = qv.question_version_id
-            )
-            ${pickedFilter}
-          ORDER BY
-            (uqs.question_id IS NULL) DESC,
-            COALESCE(uqs.times_seen, 0) ASC,
-            random()
-          LIMIT $4
-          `,
-          fillParams
-        );
-
-        picked.push(...fillRes.rows.map((r: any) => r.question_version_id as string));
+      // 3b) fallback: se não pediu seed e não achou nada, tenta incluir seed automaticamente
+      if (picked.length === 0 && requestedIncludeSeed === false) {
+        includeSeedEffective = true;
+        picked = await selectQuestions(includeSeedEffective);
       }
 
-      // 3.1) DEBUG SE ZERO
       if (picked.length === 0) {
-        // contagens para bater com o Railway e achar o filtro que está matando
-        const counts = await client.query(
-          `
-          SELECT
-            count(*) FILTER (WHERE qv.difficulty = 'easy'::difficulty_level)   AS easy,
-            count(*) FILTER (WHERE qv.difficulty = 'medium'::difficulty_level) AS medium,
-            count(*) FILTER (WHERE qv.difficulty = 'hard'::difficulty_level)   AS hard,
-            count(*) AS total
-          FROM question_versions qv
-          JOIN questions q ON q.question_id = qv.question_id
-          WHERE qv.exam = $1::exam_type
-            AND qv.language = $2
-            AND qv.is_active = true
-            AND q.status = 'published'::question_status
-            AND (
-              $3::boolean = true
-              OR q.source <> 'seed_dev'
-            )
-          `,
-          [session.exam, session.language, includeSeed]
-        );
-
+        // debug mínimo pra nunca ficar no escuro
         return {
           status: 400 as const,
           payload: {
             error: "No active question_versions available for this exam/language",
             debug: {
               session: {
-                session_id: session.session_id,
                 exam: session.exam,
                 language: session.language,
                 status: session.status,
               },
-              includeSeed,
-              target,
-              eligible_counts: counts.rows?.[0] ?? null,
-              hint: [
-                "Se eligible_counts.total > 0 mas picked=0, então o problema é em user_id/uuid ou em filtros NOT EXISTS/ALL.",
-                "Se eligible_counts.total = 0, então o problema é exam/language/status/is_active/seed_dev."
-              ],
+              include_seed: {
+                requested: requestedIncludeSeed,
+                effective: includeSeedEffective,
+              },
+              hint:
+                "Likely filtered by q.source <> 'seed_dev'. If DB has only seed_dev, either pass include_seed=true or insert real production questions.",
             },
           },
         };
@@ -338,7 +310,16 @@ export async function POST(
         insertValues
       );
 
-      return { status: 201 as const, payload: { items: inserted.rows } };
+      return {
+        status: 201 as const,
+        payload: {
+          items: inserted.rows,
+          meta: {
+            include_seed_requested: requestedIncludeSeed,
+            include_seed_effective: includeSeedEffective,
+          },
+        },
+      };
     });
 
     return NextResponse.json(result.payload, { status: result.status });
