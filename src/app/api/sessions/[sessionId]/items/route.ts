@@ -133,9 +133,9 @@ export async function POST(
       const session = sessionRes.rows[0] as {
         session_id: string;
         user_id: string;
-        exam: string;
-        language: string;
-        status: string;
+        exam: string; // exam_type enum vindo como string
+        language: string; // text
+        status: string; // session_status enum vindo como string
       };
 
       if (session.user_id !== userId) {
@@ -181,12 +181,12 @@ export async function POST(
           FROM question_versions qv
           JOIN questions q ON q.question_id = qv.question_id
           LEFT JOIN user_question_state uqs
-            ON uqs.user_id = $5 AND uqs.question_id = q.question_id
-          WHERE qv.exam = $1
+            ON uqs.user_id = $5::uuid AND uqs.question_id = q.question_id
+          WHERE qv.exam = $1::exam_type
             AND qv.language = $2
             AND qv.is_active = true
-            AND qv.difficulty = $6
-            AND q.status = 'published'
+            AND qv.difficulty = $6::difficulty_level
+            AND q.status = 'published'::question_status
             AND (
               $7::boolean = true
               OR q.source <> 'seed_dev'
@@ -203,7 +203,15 @@ export async function POST(
             random()
           LIMIT $4
           `,
-          [session.exam, session.language, sessionId, limit, userId, diff, includeSeed]
+          [
+            session.exam,
+            session.language,
+            sessionId,
+            limit,
+            userId,
+            diff,
+            includeSeed,
+          ]
         );
 
         return res.rows.map((r: any) => r.question_version_id as string);
@@ -214,9 +222,21 @@ export async function POST(
       picked.push(...(await pickByDifficulty("medium", target.medium)));
       picked.push(...(await pickByDifficulty("hard", target.hard)));
 
-      // Completar se faltar
+      // Completar se faltar (sem filtro de dificuldade)
       if (picked.length < body.count) {
         const remaining = body.count - picked.length;
+
+        // ⚠️ Se picked está vazio, o <> ALL($6::uuid[]) vira armadilha.
+        // Então só aplicamos esse filtro quando tem conteúdo.
+        const pickedFilter =
+          picked.length > 0
+            ? `AND qv.question_version_id <> ALL($6::uuid[])`
+            : ``;
+
+        const fillParams =
+          picked.length > 0
+            ? [session.exam, session.language, sessionId, remaining, userId, picked, includeSeed]
+            : [session.exam, session.language, sessionId, remaining, userId, includeSeed];
 
         const fillRes = await client.query(
           `
@@ -224,13 +244,13 @@ export async function POST(
           FROM question_versions qv
           JOIN questions q ON q.question_id = qv.question_id
           LEFT JOIN user_question_state uqs
-            ON uqs.user_id = $5 AND uqs.question_id = q.question_id
-          WHERE qv.exam = $1
+            ON uqs.user_id = $5::uuid AND uqs.question_id = q.question_id
+          WHERE qv.exam = $1::exam_type
             AND qv.language = $2
             AND qv.is_active = true
-            AND q.status = 'published'
+            AND q.status = 'published'::question_status
             AND (
-              $7::boolean = true
+              ${picked.length > 0 ? "$7::boolean" : "$6::boolean"} = true
               OR q.source <> 'seed_dev'
             )
             AND NOT EXISTS (
@@ -239,24 +259,62 @@ export async function POST(
               WHERE si.session_id = $3
                 AND si.question_version_id = qv.question_version_id
             )
-            AND qv.question_version_id <> ALL($6::uuid[])
+            ${pickedFilter}
           ORDER BY
             (uqs.question_id IS NULL) DESC,
             COALESCE(uqs.times_seen, 0) ASC,
             random()
           LIMIT $4
           `,
-          [session.exam, session.language, sessionId, remaining, userId, picked, includeSeed]
+          fillParams
         );
 
         picked.push(...fillRes.rows.map((r: any) => r.question_version_id as string));
       }
 
+      // 3.1) DEBUG SE ZERO
       if (picked.length === 0) {
+        // contagens para bater com o Railway e achar o filtro que está matando
+        const counts = await client.query(
+          `
+          SELECT
+            count(*) FILTER (WHERE qv.difficulty = 'easy'::difficulty_level)   AS easy,
+            count(*) FILTER (WHERE qv.difficulty = 'medium'::difficulty_level) AS medium,
+            count(*) FILTER (WHERE qv.difficulty = 'hard'::difficulty_level)   AS hard,
+            count(*) AS total
+          FROM question_versions qv
+          JOIN questions q ON q.question_id = qv.question_id
+          WHERE qv.exam = $1::exam_type
+            AND qv.language = $2
+            AND qv.is_active = true
+            AND q.status = 'published'::question_status
+            AND (
+              $3::boolean = true
+              OR q.source <> 'seed_dev'
+            )
+          `,
+          [session.exam, session.language, includeSeed]
+        );
+
         return {
           status: 400 as const,
           payload: {
             error: "No active question_versions available for this exam/language",
+            debug: {
+              session: {
+                session_id: session.session_id,
+                exam: session.exam,
+                language: session.language,
+                status: session.status,
+              },
+              includeSeed,
+              target,
+              eligible_counts: counts.rows?.[0] ?? null,
+              hint: [
+                "Se eligible_counts.total > 0 mas picked=0, então o problema é em user_id/uuid ou em filtros NOT EXISTS/ALL.",
+                "Se eligible_counts.total = 0, então o problema é exam/language/status/is_active/seed_dev."
+              ],
+            },
           },
         };
       }
