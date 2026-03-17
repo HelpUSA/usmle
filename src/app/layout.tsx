@@ -27,9 +27,11 @@
  *   - será separado depois em rota própria
  * - Progress:
  *   - rota real: /progress
- * - Results / Settings:
- *   - ainda não possuem página
- *   - aparecem como itens planejados ("Soon")
+ * - Results:
+ *   - rota real: /results
+ * - Settings:
+ *   - ainda não possui página
+ *   - aparece como item planejado ("Soon")
  *
  * Observações importantes:
  * - Todo hook do NextAuth (useSession, signIn, signOut) exige que
@@ -38,7 +40,8 @@
  *
  * ✅ Atualização (2026-03-17):
  * - Progress ligado à rota real /progress
- * - Itens ainda não implementados passam a ser visualmente identificados como futuros
+ * - Results ligado à rota real /results
+ * - Itens ainda não implementados seguem visualmente identificados como futuros
  * - Menu desktop e mobile alinhados entre si
  * - Responsividade preservada
  */
@@ -237,14 +240,12 @@ export default function RootLayout({
                   <a href="/" style={navLinkStyle}>
                     Study
                   </a>
+                  <a href="/results" style={navLinkStyle}>
+                    Results
+                  </a>
                   <a href="/progress" style={navLinkStyle}>
                     Progress
                   </a>
-
-                  <span style={navSoonStyle}>
-                    Results
-                    <span style={soonBadgeStyle}>Soon</span>
-                  </span>
 
                   <span style={navSoonStyle}>
                     Settings
@@ -321,14 +322,12 @@ export default function RootLayout({
                   <a href="/" style={mobileMenuLinkStyle}>
                     Study
                   </a>
+                  <a href="/results" style={mobileMenuLinkStyle}>
+                    Results
+                  </a>
                   <a href="/progress" style={mobileMenuLinkStyle}>
                     Progress
                   </a>
-
-                  <div style={mobileSoonStyle}>
-                    <span>Results</span>
-                    <span style={soonBadgeStyle}>Soon</span>
-                  </div>
 
                   <div style={mobileSoonStyle}>
                     <span>Settings</span>
