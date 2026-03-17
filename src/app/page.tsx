@@ -50,6 +50,7 @@
  * - Inclusão de gráficos na home autenticada
  * - Redução de texto e remoção de áreas duplicadas
  * - Uso da logo HelpUS em /img/helpus-logo.png
+ * - Gráfico Activity ajustado para priorizar os dias mais recentes
  */
 
 "use client";
@@ -150,7 +151,8 @@ function buildDailySeries(sessions: SessionSummary[], lastDays = 14): DailyPoint
 
   const series: DailyPoint[] = [];
 
-  for (let i = lastDays - 1; i >= 0; i--) {
+  // mais recente primeiro
+  for (let i = 0; i < lastDays; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
 
@@ -730,9 +732,15 @@ export default function HomePage() {
                 style={{
                   overflowX: "auto",
                   WebkitOverflowScrolling: "touch",
+                  direction: "rtl",
                 }}
               >
-                <div style={{ minWidth: chartWidth }}>
+                <div
+                  style={{
+                    minWidth: chartWidth,
+                    direction: "ltr",
+                  }}
+                >
                   <svg
                     width={chartWidth}
                     height={chartHeight}

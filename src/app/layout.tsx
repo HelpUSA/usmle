@@ -33,17 +33,20 @@
  *   - ainda não possui página
  *   - aparece como item planejado ("Soon")
  *
+ * Branding:
+ * - A barra superior agora usa a logo real em /img/helpus-logo.png
+ * - Toda referência visual principal à HelpUS aponta para o site institucional
+ *
  * Observações importantes:
  * - Todo hook do NextAuth (useSession, signIn, signOut) exige que
  *   a aplicação esteja envolvida em <SessionProvider />
  * - O wrapper <Providers /> centraliza dependências globais client-side
  *
  * ✅ Atualização (2026-03-17):
- * - Progress ligado à rota real /progress
- * - Results ligado à rota real /results
- * - Itens ainda não implementados seguem visualmente identificados como futuros
- * - Menu desktop e mobile alinhados entre si
- * - Responsividade preservada
+ * - Logo real da HelpUS adicionada ao topo
+ * - Logo e nome da HelpUS ligados ao site externo da HelpUS
+ * - Menu desktop e mobile preservados
+ * - Estrutura pronta para evolução futura
  */
 
 import type { Metadata } from "next";
@@ -53,6 +56,8 @@ export const metadata: Metadata = {
   title: "HelpUS · USMLE Platform",
   description: "USMLE-style practice platform",
 };
+
+const HELPUS_SITE_URL = "https://helpusbr.com";
 
 const navLinkStyle: React.CSSProperties = {
   textDecoration: "none",
@@ -184,9 +189,11 @@ export default function RootLayout({
                   gap: 12,
                 }}
               >
-                {/* LEFT: BRAND */}
+                {/* LEFT: BRAND / EXTERNAL HELPUS LINK */}
                 <a
-                  href="/"
+                  href={HELPUS_SITE_URL}
+                  target="_blank"
+                  rel="noreferrer"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -195,24 +202,22 @@ export default function RootLayout({
                     color: "inherit",
                     minWidth: 0,
                   }}
+                  title="Open HelpUS site"
                 >
-                  <div
-                    aria-hidden
+                  <img
+                    src="/img/helpus-logo.png"
+                    alt="HelpUS logo"
                     style={{
-                      width: 38,
-                      height: 38,
+                      width: 40,
+                      height: 40,
+                      objectFit: "contain",
                       borderRadius: 12,
-                      background: "linear-gradient(135deg, #111827 0%, #1d4ed8 100%)",
-                      color: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 900,
+                      background: "#ffffff",
+                      border: "1px solid #e5e7eb",
+                      padding: 4,
                       flexShrink: 0,
                     }}
-                  >
-                    H
-                  </div>
+                  />
 
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 900, fontSize: 16, lineHeight: 1.1 }}>
@@ -335,6 +340,15 @@ export default function RootLayout({
                   </div>
 
                   <a
+                    href={HELPUS_SITE_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={mobileMenuLinkStyle}
+                  >
+                    Visit HelpUS site
+                  </a>
+
+                  <a
                     href="mailto:helpus.ecommerce@gmail.com"
                     style={{
                       ...mobileMenuLinkStyle,
@@ -368,7 +382,19 @@ export default function RootLayout({
               color: "#6b7280",
             }}
           >
-            © {new Date().getFullYear()} HelpUS · Built for medical learning
+            <a
+              href={HELPUS_SITE_URL}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                color: "inherit",
+                textDecoration: "none",
+                fontWeight: 700,
+              }}
+            >
+              © {new Date().getFullYear()} HelpUS
+            </a>{" "}
+            · Built for medical learning
           </footer>
         </Providers>
       </body>
