@@ -86,7 +86,10 @@ function loadSettings(): UserSettings {
     const parsed = JSON.parse(raw) as Partial<UserSettings>;
 
     return {
-      defaultExam: parsed.defaultExam === "step1" ? "step1" : defaultSettings.defaultExam,
+      defaultExam:
+        parsed.defaultExam === "step1"
+          ? "step1"
+          : defaultSettings.defaultExam,
       defaultMode:
         parsed.defaultMode === "practice" ||
         parsed.defaultMode === "timed_block" ||
@@ -269,14 +272,15 @@ export default function SettingsPage() {
             background: "white",
           }}
         >
-          <div style={{ fontWeight: 900, fontSize: 20 }}>Sign in to use settings</div>
+          <div style={{ fontWeight: 900, fontSize: 20 }}>
+            Sign in to use settings
+          </div>
           <div style={{ marginTop: 8, color: "#555", lineHeight: 1.6 }}>
             Settings are more useful when tied to your study account.
           </div>
         </section>
       ) : (
         <>
-          {/* Account */}
           <section
             style={{
               padding: 18,
@@ -348,7 +352,6 @@ export default function SettingsPage() {
             </button>
           </section>
 
-          {/* Study defaults */}
           <section
             style={{
               padding: 18,
@@ -438,7 +441,6 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* Session behavior */}
           <section
             style={{
               padding: 18,
@@ -492,7 +494,6 @@ export default function SettingsPage() {
             ))}
           </section>
 
-          {/* Support */}
           <section
             style={{
               padding: 18,

@@ -126,7 +126,10 @@ function loadSettings(): UserSettings {
     const parsed = JSON.parse(raw) as Partial<UserSettings>;
 
     return {
-      defaultExam: parsed.defaultExam === "step1" ? "step1" : defaultSettings.defaultExam,
+      defaultExam:
+        parsed.defaultExam === "step1"
+          ? "step1"
+          : defaultSettings.defaultExam,
       defaultMode:
         parsed.defaultMode === "practice" ||
         parsed.defaultMode === "timed_block" ||
@@ -267,10 +270,13 @@ export default function StudyPage() {
         body: JSON.stringify({ mode, exam: effectiveExam }),
       });
 
-      await apiFetch<{ items?: unknown[] }>(`/api/sessions/${sessionRes.session_id}/items`, {
-        method: "POST",
-        body: JSON.stringify({ count: effectiveCount }),
-      });
+      await apiFetch<{ items?: unknown[] }>(
+        `/api/sessions/${sessionRes.session_id}/items`,
+        {
+          method: "POST",
+          body: JSON.stringify({ count: effectiveCount }),
+        }
+      );
 
       router.push(`/session/${sessionRes.session_id}`);
     } catch (e: any) {
@@ -280,7 +286,10 @@ export default function StudyPage() {
     }
   }
 
-  const defaultModeCount = getRecommendedCount(userSettings.defaultMode, userSettings);
+  const defaultModeCount = getRecommendedCount(
+    userSettings.defaultMode,
+    userSettings
+  );
 
   return (
     <main
@@ -418,7 +427,9 @@ export default function StudyPage() {
               >
                 <div style={{ fontSize: 12, color: "#6b7280" }}>Default exam</div>
                 <div style={{ marginTop: 6, fontWeight: 900, fontSize: 18 }}>
-                  {userSettings.defaultExam === "step1" ? "Step 1" : userSettings.defaultExam}
+                  {userSettings.defaultExam === "step1"
+                    ? "Step 1"
+                    : userSettings.defaultExam}
                 </div>
               </div>
 
@@ -452,7 +463,9 @@ export default function StudyPage() {
             </div>
 
             <button
-              onClick={() => createAndStartSession(userSettings.defaultMode, defaultModeCount)}
+              onClick={() =>
+                createAndStartSession(userSettings.defaultMode, defaultModeCount)
+              }
               disabled={loading}
               style={{
                 width: "100%",
@@ -525,7 +538,9 @@ export default function StudyPage() {
                   </button>
 
                   <button
-                    onClick={() => router.push(`/session/${activeSession.session_id}/review`)}
+                    onClick={() =>
+                      router.push(`/session/${activeSession.session_id}/review`)
+                    }
                     style={{
                       width: "100%",
                       padding: "12px 14px",

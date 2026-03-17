@@ -58,6 +58,7 @@
  * - Timed modes com review diferido (sem feedback imediato por questão)
  * - Expiração automática do tempo com submit + redirecionamento
  * - Integração com Settings via localStorage
+ * - Confirmação opcional antes de encerrar sessão manualmente
  */
 
 "use client";
@@ -142,6 +143,14 @@ type UserSettings = {
   autoOpenReviewAfterSubmit: boolean;
   confirmBeforeLeavingSession: boolean;
   emphasizeTimer: boolean;
+};
+
+type VisibleChoice = {
+  choice_id: string;
+  label: string;
+  choice_text: string;
+  is_correct?: boolean;
+  explanation?: string | null;
 };
 
 const SETTINGS_STORAGE_KEY = "usmle_user_settings_v1";
@@ -414,6 +423,17 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
   }
 
   async function finish() {
+    if (
+      userSettings.confirmBeforeLeavingSession &&
+      sessionMeta?.status === "in_progress" &&
+      !autoSubmitting
+    ) {
+      const confirmed = window.confirm(
+        "Do you want to finish this session now and leave the player?"
+      );
+      if (!confirmed) return;
+    }
+
     await submitSessionAndRedirect(false);
   }
 
@@ -479,7 +499,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
 
   const isCorrect = normalizeIsCorrect(feedback);
 
-  const visibleChoices = useMemo(() => {
+  const visibleChoices = useMemo<VisibleChoice[]>(() => {
     if (!q) return [];
     if (!showImmediateFeedback) return q.choices;
     if (!submitted) return q.choices;
@@ -494,7 +514,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     return correct?.choice_id ?? null;
   }, [showImmediateFeedback, submitted, feedback?.choices]);
 
-  const modeLabel = useMemo(() => {
+  const sessionModeLabel = useMemo(() => {
     switch (sessionMeta?.mode) {
       case "practice":
         return "Practice";
@@ -574,7 +594,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                 background: "#fafafa",
               }}
             >
-              Mode: {loadingSessionMeta ? "Loading…" : modeLabel}
+              Mode: {loadingSessionMeta ? "Loading…" : sessionModeLabel}
             </span>
 
             <span
@@ -613,9 +633,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           }}
         >
           {isTimedMode && remainingSeconds !== null ? (
-            <div style={timerStyle}>
-              Time left: {formatRemainingTime(remainingSeconds)}
-            </div>
+            <div style={timerStyle}>Time left: {formatRemainingTime(remainingSeconds)}</div>
           ) : null}
 
           <button
@@ -634,7 +652,11 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
               flex: "0 1 240px",
             }}
           >
-            {autoSubmitting ? "Submitting…" : isTimedMode ? "End Session & Review" : "Finish & Review"}
+            {autoSubmitting
+              ? "Submitting…"
+              : isTimedMode
+              ? "End Session & Review"
+              : "Finish & Review"}
           </button>
         </div>
       </div>
@@ -676,7 +698,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           ) : null}
 
           <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-            {visibleChoices.map((c: any) => {
+            {visibleChoices.map((c) => {
               const isSelected = selected === c.choice_id;
 
               const showAfter = showImmediateFeedback && submitted;
@@ -763,7 +785,11 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
               }}
             >
               <div style={{ fontWeight: 900, marginBottom: 8 }}>
-                {isCorrect === true ? "✅ Correct" : isCorrect === false ? "❌ Incorrect" : "Submitted"}
+                {isCorrect === true
+                  ? "✅ Correct"
+                  : isCorrect === false
+                  ? "❌ Incorrect"
+                  : "Submitted"}
               </div>
 
               {feedback?.explanation_short ? (
