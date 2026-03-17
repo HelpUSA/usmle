@@ -4,44 +4,50 @@
  * 📍 Localização:
  * src/app/session/[sessionId]/page.tsx
  *
- * Tela principal do player de sessão (MVP).
+ * Tela principal do player de sessão.
  *
  * Responsabilidades:
  * - Garantir que os itens da sessão existam (gera de forma idempotente)
  * - Exibir uma questão por vez
- * - Registrar exatamente 1 tentativa por session_item
+ * - Registrar tentativa por session_item
  * - Controlar navegação entre questões
+ * - Respeitar o modo da sessão (practice vs timed modes)
  * - Submeter a sessão ao final e redirecionar para o review
  *
  * Contrato de API utilizado:
- * - POST   /api/sessions/:sessionId/items          (gera itens – idempotente)
+ * - GET    /api/sessions
+ *   Usado para obter os metadados da sessão atual (mode, timed, time_limit_seconds, started_at)
+ * - POST   /api/sessions/:sessionId/items
+ *   Gera itens da sessão (idempotente)
  * - GET    /api/session-items/:sessionItemId/question
+ *   Carrega a questão atual sem revelar o gabarito
  * - POST   /api/sessions/:sessionId/items/:sessionItemId/attempt
+ *   Registra a tentativa e, no modo practice, devolve payload didático para feedback imediato
  * - POST   /api/sessions/:sessionId/submit
+ *   Finaliza a sessão antes do review
  *
  * Regras importantes:
- * - Nunca revela a resposta correta (antes do submit)
- * - Máximo 1 attempt por session_item (garantido pela API)
+ * - Nunca revela a resposta correta antes do submit da questão
+ * - O modo da sessão é autoritativo:
+ *   - practice: feedback imediato após submit
+ *   - timed_block / exam_sim: sem feedback imediato; revisão apenas ao final
  * - O submit da sessão deve ocorrer antes do review
  *
- * Observação:
+ * Observações:
  * - Este componente é client-side por depender de interação contínua do usuário
  * - Estilo propositalmente simples (sem UI lib) para focar no fluxo funcional
  *
  * ✅ Atualização (2026-01-30):
- * - Após o usuário clicar "Submit", mostramos feedback didático:
- *   - Correct/Incorrect
- *   - explanation_short + explanation_long
- *   - explicação por alternativa (choice.explanation)
- *   - bibliografia (references)
- * - Só avançamos com "Next" depois do submit (2-step flow)
+ * - Fluxo de 2 passos para practice:
+ *   - Submit → mostra feedback
+ *   - Next → avança
  *
- * ✅ Atualização (2026-01-30):
- * - Ajustes de responsividade (mobile-first) SEM UI lib:
- *   - Header com wrap (quebra no mobile)
- *   - Botões e cards com touch targets maiores
- *   - Melhor legibilidade (fontSize/lineHeight/whiteSpace)
- *   - Links e textos longos com wordBreak para não estourar layout
+ * ✅ Atualização (2026-03-17):
+ * - Leitura dos metadados reais da sessão
+ * - Diferenciação visível entre practice, timed_block e exam_sim
+ * - Timer regressivo para modos cronometrados
+ * - Timed modes com review diferido (sem feedback imediato por questão)
+ * - Expiração automática do tempo com submit + redirecionamento ao review
  */
 
 "use client";
@@ -58,6 +64,24 @@ type SessionItem = {
   presented_at: string;
 };
 
+type SessionSummary = {
+  session_id: string;
+  user_id: string;
+  mode: "practice" | "timed_block" | "exam_sim";
+  exam: string;
+  language?: string;
+  timed?: boolean;
+  time_limit_seconds?: number | null;
+  status?: string;
+  settings_json?: {
+    review_strategy?: "immediate" | "deferred";
+    timer_visible?: boolean;
+    mode_semantics?: string;
+  } | null;
+  started_at?: string;
+  submitted_at?: string | null;
+};
+
 type QuestionResponse = {
   session_item: {
     session_item_id: string;
@@ -69,7 +93,7 @@ type QuestionResponse = {
     stem: string;
     /**
      * prompt é opcional no GET do player:
-     * - Pode vir vazio se seu endpoint atual retornar só `stem`.
+     * - Pode vir vazio se o endpoint atual retornar só `stem`.
      * - Se vier preenchido, exibimos abaixo do stem como "question line".
      */
     prompt?: string | null;
@@ -81,11 +105,6 @@ type QuestionResponse = {
   }>;
 };
 
-/**
- * O endpoint de attempt (POST) deve retornar um payload com explicações.
- * - Antes do submit, nunca mostramos explicação para evitar "gabarito".
- * - Após submit, usamos este payload para montar a experiência didática.
- */
 type BibliographyItem = {
   title?: string;
   source?: string;
@@ -103,24 +122,32 @@ type AttemptChoice = {
 };
 
 type AttemptResponse = {
-  // Alguns backends retornam `is_correct`, outros retornam `result`.
   is_correct?: boolean;
   result?: "correct" | "wrong" | "skipped";
-
-  // Explicações por questão (curta e longa)
   explanation_short?: string | null;
   explanation_long?: string | null;
-
-  // Referências (JSONB -> array)
   bibliography?: BibliographyItem[] | null;
-
-  // Alternativas com gabarito + explicação por alternativa
   choices?: AttemptChoice[] | null;
 };
+
+function formatRemainingTime(totalSeconds: number) {
+  const safe = Math.max(0, totalSeconds);
+  const hours = Math.floor(safe / 3600);
+  const minutes = Math.floor((safe % 3600) / 60);
+  const seconds = safe % 60;
+
+  const hh = String(hours).padStart(2, "0");
+  const mm = String(minutes).padStart(2, "0");
+  const ss = String(seconds).padStart(2, "0");
+
+  return `${hh}:${mm}:${ss}`;
+}
 
 export default function SessionPage({ params }: { params: { sessionId: string } }) {
   const router = useRouter();
   const sessionId = params.sessionId;
+
+  const [sessionMeta, setSessionMeta] = useState<SessionSummary | null>(null);
 
   const [items, setItems] = useState<SessionItem[]>([]);
   const [idx, setIdx] = useState(0);
@@ -130,20 +157,104 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
 
   const [saving, setSaving] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
+  const [loadingSessionMeta, setLoadingSessionMeta] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   /**
-   * ✅ Novo estado para o fluxo de 2 passos:
+   * Estados do fluxo didático:
    * - submitted: usuário já clicou submit nessa questão?
    * - feedback: payload retornado pelo POST attempt com explicações
+   *
+   * Importante:
+   * - Em practice, submitted=true mostra feedback e exige um segundo clique para avançar.
+   * - Em timed modes, submitted praticamente não entra em cena porque o avanço é imediato.
    */
   const [submitted, setSubmitted] = useState(false);
   const [feedback, setFeedback] = useState<AttemptResponse | null>(null);
+
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+  const [autoSubmitting, setAutoSubmitting] = useState(false);
+
+  const autoSubmitTriggeredRef = useRef(false);
 
   // Timestamp de início da questão atual (para cálculo de time_spent_seconds)
   const questionStartedAtRef = useRef<number | null>(null);
 
   const current = useMemo(() => items[idx], [items, idx]);
+
+  const isTimedMode = Boolean(sessionMeta?.timed);
+  const reviewStrategy =
+    sessionMeta?.settings_json?.review_strategy ??
+    (isTimedMode ? "deferred" : "immediate");
+  const showImmediateFeedback = reviewStrategy === "immediate";
+
+  /**
+   * Busca os metadados da sessão atual.
+   *
+   * Hoje usamos GET /api/sessions e filtramos localmente por session_id,
+   * porque o projeto ainda não expõe uma rota dedicada GET /api/sessions/:sessionId.
+   */
+  useEffect(() => {
+    (async () => {
+      setLoadingSessionMeta(true);
+      try {
+        const res = await apiFetch<{ sessions: SessionSummary[] }>("/api/sessions");
+        const found = (res.sessions ?? []).find((s) => s.session_id === sessionId) ?? null;
+
+        if (!found) {
+          setErr("Session metadata not found");
+          return;
+        }
+
+        setSessionMeta(found);
+      } catch (e: any) {
+        setErr(e?.message ?? "Failed to load session metadata");
+      } finally {
+        setLoadingSessionMeta(false);
+      }
+    })();
+  }, [sessionId]);
+
+  /**
+   * Timer regressivo para timed modes.
+   *
+   * Estratégia:
+   * - calcula o prazo final com base em started_at + time_limit_seconds
+   * - atualiza remainingSeconds a cada 1s
+   * - ao chegar em 0, dispara submit automático uma única vez
+   */
+  useEffect(() => {
+    if (!sessionMeta?.timed) {
+      setRemainingSeconds(null);
+      return;
+    }
+
+    if (!sessionMeta.started_at || !sessionMeta.time_limit_seconds) {
+      setRemainingSeconds(null);
+      return;
+    }
+
+    const startedAtMs = new Date(sessionMeta.started_at).getTime();
+    const deadlineMs = startedAtMs + sessionMeta.time_limit_seconds * 1000;
+
+    function tick() {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.floor((deadlineMs - now) / 1000));
+      setRemainingSeconds(remaining);
+
+      if (remaining <= 0 && !autoSubmitTriggeredRef.current) {
+        autoSubmitTriggeredRef.current = true;
+        void submitSessionAndGoToReview(true);
+      }
+    }
+
+    tick();
+    const timer = window.setInterval(tick, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [sessionMeta]);
 
   /**
    * Garante que os itens da sessão existam.
@@ -182,7 +293,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
    *
    * Importante:
    * - Resetamos seleção e feedback ao trocar de questão
-   * - Reiniciamos o timer de tempo gasto
+   * - Reiniciamos o timer de tempo gasto por questão
    */
   useEffect(() => {
     (async () => {
@@ -192,7 +303,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
       setSelected(null);
       setQ(null);
 
-      // ✅ Reset do fluxo didático ao trocar de questão
       setSubmitted(false);
       setFeedback(null);
 
@@ -208,19 +318,43 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
   }, [current?.session_item_id]);
 
   /**
-   * Submete a sessão manualmente (botão Finish & Review)
+   * Submete a sessão e vai para o review.
+   * Pode ser chamado:
+   * - manualmente pelo botão Finish & Review
+   * - ao terminar a última questão
+   * - automaticamente quando o tempo expira
    */
-  async function finish() {
-    setSaving(true);
+  async function submitSessionAndGoToReview(fromTimer = false) {
+    if (saving || autoSubmitting) return;
+
+    if (fromTimer) {
+      setAutoSubmitting(true);
+    } else {
+      setSaving(true);
+    }
+
     setErr(null);
+
     try {
       await apiFetch(`/api/sessions/${sessionId}/submit`, { method: "POST" });
       router.push(`/session/${sessionId}/review`);
     } catch (e: any) {
       setErr(e?.message ?? "Failed to submit session");
+      autoSubmitTriggeredRef.current = false;
     } finally {
-      setSaving(false);
+      if (fromTimer) {
+        setAutoSubmitting(false);
+      } else {
+        setSaving(false);
+      }
     }
+  }
+
+  /**
+   * Submete a sessão manualmente (botão Finish & Review)
+   */
+  async function finish() {
+    await submitSessionAndGoToReview(false);
   }
 
   /**
@@ -237,36 +371,29 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
   }
 
   /**
-   * Envia a tentativa OU avança, dependendo do estado:
+   * Envia a tentativa OU avança, dependendo do modo e do estado.
    *
-   * Fluxo de 2 passos:
+   * Practice:
    * 1) Submit: envia attempt, recebe feedback, NÃO avança
-   * 2) Next: avança para próxima questão (ou Review se for a última)
+   * 2) Next: avança para próxima questão (ou Review na última)
+   *
+   * Timed modes:
+   * 1) Submit: envia attempt e avança imediatamente, sem revelar feedback
    */
   async function submitOrNext() {
     if (!current) return;
 
-    // Passo 2: se já submeteu, agora é "Next/Review"
-    if (submitted) {
+    // Practice: segundo passo do fluxo (Next / Go to Review)
+    if (showImmediateFeedback && submitted) {
       if (idx < items.length - 1) {
         setIdx(idx + 1);
       } else {
-        // última questão → garante submit antes do review
-        setSaving(true);
-        setErr(null);
-        try {
-          await apiFetch(`/api/sessions/${sessionId}/submit`, { method: "POST" });
-          router.push(`/session/${sessionId}/review`);
-        } catch (e: any) {
-          setErr(e?.message ?? "Failed to submit session");
-        } finally {
-          setSaving(false);
-        }
+        await submitSessionAndGoToReview(false);
       }
       return;
     }
 
-    // Passo 1: se ainda não submeteu, precisamos de uma alternativa selecionada
+    // Primeiro submit sempre exige uma opção selecionada
     if (!selected) return;
 
     setSaving(true);
@@ -276,13 +403,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     const timeSpentSeconds = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 1000)) : 10;
 
     try {
-      /**
-       * Esperamos que o backend retorne:
-       * - is_correct/result
-       * - explanation_short / explanation_long
-       * - bibliography
-       * - choices[] com is_correct + explanation
-       */
       const fb = await apiFetch<AttemptResponse>(
         `/api/sessions/${sessionId}/items/${current.session_item_id}/attempt`,
         {
@@ -295,8 +415,17 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
         }
       );
 
-      setFeedback(fb ?? null);
-      setSubmitted(true);
+      if (showImmediateFeedback) {
+        setFeedback(fb ?? null);
+        setSubmitted(true);
+      } else {
+        // Timed modes: não revela feedback, apenas avança
+        if (idx < items.length - 1) {
+          setIdx(idx + 1);
+        } else {
+          await submitSessionAndGoToReview(false);
+        }
+      }
     } catch (e: any) {
       setErr(e?.message ?? "Failed to submit answer");
     } finally {
@@ -304,44 +433,47 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     }
   }
 
-  // ✅ isCorrect serve para pintar o painel de feedback (verde/vermelho)
   const isCorrect = normalizeIsCorrect(feedback);
 
   /**
-   * ✅ Depois do submit, preferimos renderizar choices do FEEDBACK,
+   * Depois do submit em practice, preferimos renderizar choices do FEEDBACK,
    * porque elas incluem:
    * - is_correct
    * - explanation
    *
-   * Antes do submit, usamos as choices do GET (sem gabarito).
+   * Antes do submit, ou em timed modes, usamos apenas as choices do GET.
    */
   const visibleChoices = useMemo(() => {
     if (!q) return [];
+    if (!showImmediateFeedback) return q.choices;
     if (!submitted) return q.choices;
-
-    // Se o backend retornou choices no feedback, usamos elas (mais ricas)
     if (feedback?.choices && feedback.choices.length > 0) return feedback.choices;
-
-    // Fallback: se por algum motivo não veio, voltamos ao GET (sem explicações)
     return q.choices;
-  }, [q, submitted, feedback?.choices]);
+  }, [q, showImmediateFeedback, submitted, feedback?.choices]);
 
-  // Identifica a alternativa correta após submit (se veio no feedback)
   const correctChoiceId = useMemo(() => {
-    if (!submitted) return null;
+    if (!showImmediateFeedback || !submitted) return null;
     const fbChoices = feedback?.choices ?? [];
     const correct = fbChoices.find((c) => c.is_correct);
     return correct?.choice_id ?? null;
-  }, [submitted, feedback?.choices]);
+  }, [showImmediateFeedback, submitted, feedback?.choices]);
+
+  const modeLabel = useMemo(() => {
+    switch (sessionMeta?.mode) {
+      case "practice":
+        return "Practice";
+      case "timed_block":
+        return "Timed block";
+      case "exam_sim":
+        return "Exam simulation";
+      default:
+        return "Session";
+    }
+  }, [sessionMeta?.mode]);
 
   return (
     <main
       style={{
-        /**
-         * ✅ Responsivo:
-         * - padding menor no mobile
-         * - centraliza no desktop
-         */
         padding: "16px 14px",
         fontFamily: "system-ui",
         maxWidth: 980,
@@ -350,10 +482,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     >
       <div
         style={{
-          /**
-           * ✅ Responsivo:
-           * - flexWrap: wrap permite quebrar header no mobile
-           */
           display: "flex",
           justifyContent: "space-between",
           gap: 12,
@@ -361,51 +489,108 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           flexWrap: "wrap",
         }}
       >
-        <h1
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            margin: 0,
-            lineHeight: 1.2,
-            flex: "1 1 260px",
-          }}
-        >
-          Session {sessionId.slice(0, 8)}… — Q {items.length ? idx + 1 : "?"}/{items.length || "?"}
-        </h1>
+        <div style={{ flex: "1 1 320px" }}>
+          <h1
+            style={{
+              fontSize: 18,
+              fontWeight: 700,
+              margin: 0,
+              lineHeight: 1.2,
+            }}
+          >
+            Session {sessionId.slice(0, 8)}… — Q {items.length ? idx + 1 : "?"}/{items.length || "?"}
+          </h1>
 
-        <button
-          onClick={finish}
-          disabled={saving || loadingItems || items.length === 0}
-          style={{
-            /**
-             * ✅ Mobile-friendly:
-             * - botão maior
-             * - width 100% no mobile (até maxWidth)
-             */
-            padding: "10px 12px",
-            borderRadius: 12,
-            border: "1px solid #ccc",
-            cursor: saving || loadingItems || items.length === 0 ? "not-allowed" : "pointer",
-            width: "100%",
-            maxWidth: 210,
-            flex: "0 1 210px",
-          }}
-        >
-          Finish & Review
-        </button>
+          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <span
+              style={{
+                fontSize: 12,
+                padding: "4px 8px",
+                borderRadius: 999,
+                border: "1px solid #ddd",
+                background: "#fafafa",
+              }}
+            >
+              Mode: {loadingSessionMeta ? "Loading…" : modeLabel}
+            </span>
+
+            <span
+              style={{
+                fontSize: 12,
+                padding: "4px 8px",
+                borderRadius: 999,
+                border: "1px solid #ddd",
+                background: isTimedMode ? "#fff7e6" : "#eef7ff",
+              }}
+            >
+              {isTimedMode ? "Timed" : "Untimed"}
+            </span>
+
+            <span
+              style={{
+                fontSize: 12,
+                padding: "4px 8px",
+                borderRadius: 999,
+                border: "1px solid #ddd",
+                background: showImmediateFeedback ? "#eefaf0" : "#fff4f4",
+              }}
+            >
+              Review: {showImmediateFeedback ? "Immediate" : "Deferred"}
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gap: 8, justifyItems: "end", flex: "0 1 240px", width: "100%" }}>
+          {isTimedMode && remainingSeconds !== null ? (
+            <div
+              style={{
+                width: "100%",
+                maxWidth: 240,
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "1px solid #e7c77a",
+                background: remainingSeconds <= 300 ? "#fdecea" : "#fff8e1",
+                fontWeight: 800,
+                textAlign: "center",
+              }}
+            >
+              Time left: {formatRemainingTime(remainingSeconds)}
+            </div>
+          ) : null}
+
+          <button
+            onClick={finish}
+            disabled={saving || autoSubmitting || loadingItems || items.length === 0}
+            style={{
+              padding: "10px 12px",
+              borderRadius: 12,
+              border: "1px solid #ccc",
+              cursor:
+                saving || autoSubmitting || loadingItems || items.length === 0
+                  ? "not-allowed"
+                  : "pointer",
+              width: "100%",
+              maxWidth: 240,
+              flex: "0 1 240px",
+            }}
+          >
+            {autoSubmitting ? "Submitting…" : isTimedMode ? "End Session & Review" : "Finish & Review"}
+          </button>
+        </div>
       </div>
 
       {err && <p style={{ color: "crimson", marginTop: 12 }}>Error: {err}</p>}
 
-      {loadingItems ? (
-        <p style={{ marginTop: 16 }}>Loading session items…</p>
+      {loadingItems || loadingSessionMeta ? (
+        <p style={{ marginTop: 16 }}>
+          {loadingSessionMeta ? "Loading session…" : "Loading session items…"}
+        </p>
       ) : !current ? (
         <p style={{ marginTop: 16 }}>No session items found.</p>
       ) : !q ? (
         <p style={{ marginTop: 16 }}>Loading question…</p>
       ) : (
         <div style={{ marginTop: 16 }}>
-          {/* ✅ Preserva quebras de linha do stem */}
           <p
             style={{
               fontSize: 16,
@@ -417,7 +602,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
             {q.question.stem}
           </p>
 
-          {/* ✅ Prompt (se existir no GET; senão fica invisível) */}
           {q.question.prompt ? (
             <p
               style={{
@@ -435,9 +619,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
             {visibleChoices.map((c: any) => {
               const isSelected = selected === c.choice_id;
 
-              // ✅ Só colorimos e mostramos explicações após submit
-              const showAfter = submitted;
-
+              const showAfter = showImmediateFeedback && submitted;
               const isCorrectChoice = showAfter && (c.is_correct === true || c.choice_id === correctChoiceId);
               const isWrongSelected = showAfter && isSelected && !isCorrectChoice;
 
@@ -445,12 +627,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                 <label
                   key={c.choice_id}
                   style={{
-                    /**
-                     * ✅ Mobile-friendly:
-                     * - padding maior
-                     * - bordas maiores
-                     * - cursor desabilitado após submit
-                     */
                     display: "flex",
                     gap: 10,
                     padding: 14,
@@ -470,11 +646,11 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                     type="radio"
                     name="choice"
                     checked={isSelected}
-                    disabled={submitted} // ✅ trava mudança após submit (evita confusão)
+                    disabled={submitted}
                     onChange={() => setSelected(c.choice_id)}
                     style={{
                       marginTop: 2,
-                      transform: "scale(1.1)", // ✅ um pouco maior para toque
+                      transform: "scale(1.1)",
                     }}
                   />
 
@@ -495,7 +671,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
 
                     <div style={{ marginTop: 4, lineHeight: 1.45 }}>{c.choice_text}</div>
 
-                    {/* ✅ Explicação por alternativa (o que você pediu) */}
                     {showAfter && c.explanation ? (
                       <div
                         style={{
@@ -515,8 +690,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
             })}
           </div>
 
-          {/* ✅ Painel de feedback didático após submit */}
-          {submitted ? (
+          {showImmediateFeedback && submitted ? (
             <div
               style={{
                 marginTop: 14,
@@ -530,26 +704,23 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                 {isCorrect === true ? "✅ Correct" : isCorrect === false ? "❌ Incorrect" : "Submitted"}
               </div>
 
-              {/* ✅ Explicação curta: ideal para “alerta” rápido no submit */}
               {feedback?.explanation_short ? (
                 <div style={{ marginTop: 6, fontSize: 14, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
                   {feedback.explanation_short}
                 </div>
               ) : null}
 
-              {/* ✅ Explicação longa: inclui “why correct / why wrong” em alto nível */}
               {feedback?.explanation_long ? (
                 <div style={{ marginTop: 10, fontSize: 14, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
                   {feedback.explanation_long}
                 </div>
               ) : null}
 
-              {/* ✅ Referências bibliográficas abertas */}
-              {Array.isArray(feedback?.bibliography) && feedback!.bibliography!.length > 0 ? (
+              {Array.isArray(feedback?.bibliography) && feedback.bibliography.length > 0 ? (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ fontWeight: 800, marginBottom: 6 }}>References</div>
                   <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    {feedback!.bibliography!.map((b, i) => (
+                    {feedback.bibliography.map((b, i) => (
                       <li key={i} style={{ marginBottom: 10 }}>
                         <div style={{ fontSize: 13, lineHeight: 1.4 }}>
                           <span style={{ fontWeight: 800 }}>{b.title ?? "Reference"}</span>
@@ -578,31 +749,32 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
             </div>
           ) : null}
 
-          {/* ✅ Botão principal com 2-step flow */}
           <button
             onClick={submitOrNext}
-            disabled={(!selected && !submitted) || saving}
+            disabled={(!selected && !(showImmediateFeedback && submitted)) || saving || autoSubmitting}
             style={{
-              /**
-               * ✅ Mobile-friendly:
-               * - full width no mobile
-               * - mais alto para toque
-               */
               marginTop: 14,
               padding: "12px 14px",
               borderRadius: 12,
               border: "1px solid #ccc",
-              cursor: (!selected && !submitted) || saving ? "not-allowed" : "pointer",
+              cursor:
+                (!selected && !(showImmediateFeedback && submitted)) || saving || autoSubmitting
+                  ? "not-allowed"
+                  : "pointer",
               width: "100%",
               maxWidth: 340,
             }}
           >
-            {saving
+            {saving || autoSubmitting
               ? "Saving…"
-              : submitted
+              : showImmediateFeedback && submitted
               ? idx < items.length - 1
                 ? "Next"
                 : "Go to Review"
+              : idx < items.length - 1
+              ? "Submit"
+              : isTimedMode
+              ? "Submit & Finish"
               : "Submit"}
           </button>
         </div>
