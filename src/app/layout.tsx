@@ -14,28 +14,28 @@
  * Estratégia de navegação:
  * - Desktop:
  *   - exibe links principais no header
+ *   - oculta o menu hambúrguer
  * - Mobile:
- *   - usa menu expansível com <details>/<summary>
- *   - evita depender de estado client-side extra nesta etapa
+ *   - exibe menu expansível com <details>/<summary>
+ *   - oculta a navegação horizontal do desktop
  *
  * Observações importantes:
  * - Todo hook do NextAuth (useSession, signIn, signOut) exige que
  *   a aplicação esteja envolvida em <SessionProvider />
  * - O wrapper <Providers /> centraliza dependências globais client-side
- * - Nesta fase, alguns links funcionam como destino planejado de arquitetura:
+ * - Nesta fase, alguns links ainda apontam para áreas futuras do sistema:
  *   - Dashboard (/)
  *   - Study (/)
  *   - Results (#)
  *   - Progress (#)
  *   - Settings (#)
- * - Onde a rota ainda não existe, usamos placeholder visual sem quebrar a aplicação
  *
  * ✅ Atualização (2026-03-17):
  * - Header global refinado
- * - Navegação desktop visível
- * - Menu mobile funcional com hambúrguer
+ * - Navegação desktop visível apenas em telas maiores
+ * - Menu mobile funcional apenas em telas menores
+ * - Responsividade corrigida para evitar menu duplicado
  * - Branding HelpUS integrado ao topo da aplicação
- * - Base preparada para expansão futura do sistema
  */
 
 import type { Metadata } from "next";
@@ -84,6 +84,31 @@ export default function RootLayout({
         }}
       >
         <Providers>
+          <style>{`
+            .desktop-nav {
+              display: none;
+            }
+
+            .mobile-menu {
+              display: block;
+            }
+
+            @media (min-width: 900px) {
+              .desktop-nav {
+                display: flex;
+              }
+
+              .mobile-menu {
+                display: none;
+              }
+            }
+
+            .layout-shell {
+              max-width: 1200px;
+              margin: 0 auto;
+            }
+          `}</style>
+
           {/* HEADER */}
           <header
             style={{
@@ -96,9 +121,8 @@ export default function RootLayout({
             }}
           >
             <div
+              className="layout-shell"
               style={{
-                maxWidth: 1200,
-                margin: "0 auto",
                 padding: "12px 16px",
                 display: "grid",
                 gap: 12,
@@ -155,9 +179,9 @@ export default function RootLayout({
 
                 {/* DESKTOP NAV */}
                 <nav
+                  className="desktop-nav"
                   aria-label="Primary desktop navigation"
                   style={{
-                    display: "flex",
                     alignItems: "center",
                     gap: 6,
                     flexWrap: "wrap",
@@ -188,10 +212,27 @@ export default function RootLayout({
                     Contact
                   </a>
                 </nav>
+
+                {/* MOBILE ICON ONLY */}
+                <div
+                  className="mobile-menu"
+                  aria-hidden
+                  style={{
+                    fontSize: 20,
+                    lineHeight: 1,
+                    padding: "8px 10px",
+                    borderRadius: 10,
+                    border: "1px solid #e5e7eb",
+                    background: "white",
+                  }}
+                >
+                  ☰
+                </div>
               </div>
 
-              {/* MOBILE MENU */}
+              {/* MOBILE MENU PANEL */}
               <details
+                className="mobile-menu"
                 style={{
                   borderRadius: 16,
                   background: "white",
@@ -256,9 +297,8 @@ export default function RootLayout({
 
           {/* MAIN CONTENT */}
           <main
+            className="layout-shell"
             style={{
-              maxWidth: 1200,
-              margin: "0 auto",
               padding: "16px",
             }}
           >
