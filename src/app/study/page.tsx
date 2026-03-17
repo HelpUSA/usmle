@@ -13,6 +13,7 @@
  *   - iniciar Exam simulation
  * - Explicar de forma curta as diferenças entre os modos
  * - Reduzir a duplicação entre Dashboard e Study
+ * - Integrar os defaults definidos em Settings
  *
  * Contrato de API utilizado:
  * - GET  /api/sessions
@@ -30,7 +31,7 @@
  *
  * Regras de produto nesta fase:
  * - Practice:
- *   - 10 questões por padrão
+ *   - usa practiceQuestionCount do Settings
  *   - untimed
  *   - review imediato
  *
@@ -44,14 +45,18 @@
  *   - timed
  *   - review diferido
  *
+ * Persistência:
+ * - Lê preferências locais salvas em localStorage pela página Settings
+ *
  * Observações:
  * - Esta página não substitui Results nem Progress
  * - Ela é a porta de entrada operacional para estudar
  *
  * ✅ Atualização (2026-03-17):
- * - Nova página /study criada
- * - Separação clara entre Dashboard e fluxo de estudo
- * - Retomada de sessão + quick start por modo
+ * - Integração com Settings via localStorage
+ * - Default exam, default mode e practiceQuestionCount aplicados
+ * - Bloco "Use my defaults" adicionado
+ * - Destaque visual para o modo padrão do usuário
  */
 
 "use client";
@@ -91,6 +96,67 @@ type SessionSummary = {
   submitted_at?: string | null;
 };
 
+type UserSettings = {
+  defaultExam: ExamType;
+  defaultMode: SessionMode;
+  practiceQuestionCount: number;
+  autoOpenReviewAfterSubmit: boolean;
+  confirmBeforeLeavingSession: boolean;
+  emphasizeTimer: boolean;
+};
+
+const SETTINGS_STORAGE_KEY = "usmle_user_settings_v1";
+
+const defaultSettings: UserSettings = {
+  defaultExam: "step1",
+  defaultMode: "practice",
+  practiceQuestionCount: 10,
+  autoOpenReviewAfterSubmit: true,
+  confirmBeforeLeavingSession: true,
+  emphasizeTimer: true,
+};
+
+function loadSettings(): UserSettings {
+  if (typeof window === "undefined") return defaultSettings;
+
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return defaultSettings;
+
+    const parsed = JSON.parse(raw) as Partial<UserSettings>;
+
+    return {
+      defaultExam: parsed.defaultExam === "step1" ? "step1" : defaultSettings.defaultExam,
+      defaultMode:
+        parsed.defaultMode === "practice" ||
+        parsed.defaultMode === "timed_block" ||
+        parsed.defaultMode === "exam_sim"
+          ? parsed.defaultMode
+          : defaultSettings.defaultMode,
+      practiceQuestionCount:
+        typeof parsed.practiceQuestionCount === "number" &&
+        parsed.practiceQuestionCount >= 1 &&
+        parsed.practiceQuestionCount <= 200
+          ? parsed.practiceQuestionCount
+          : defaultSettings.practiceQuestionCount,
+      autoOpenReviewAfterSubmit:
+        typeof parsed.autoOpenReviewAfterSubmit === "boolean"
+          ? parsed.autoOpenReviewAfterSubmit
+          : defaultSettings.autoOpenReviewAfterSubmit,
+      confirmBeforeLeavingSession:
+        typeof parsed.confirmBeforeLeavingSession === "boolean"
+          ? parsed.confirmBeforeLeavingSession
+          : defaultSettings.confirmBeforeLeavingSession,
+      emphasizeTimer:
+        typeof parsed.emphasizeTimer === "boolean"
+          ? parsed.emphasizeTimer
+          : defaultSettings.emphasizeTimer,
+    };
+  } catch {
+    return defaultSettings;
+  }
+}
+
 function modeLabel(mode: SessionMode) {
   switch (mode) {
     case "practice":
@@ -111,10 +177,10 @@ function formatDate(value?: string | null) {
   return d.toLocaleString();
 }
 
-function getRecommendedCount(mode: SessionMode): number {
+function getRecommendedCount(mode: SessionMode, settings: UserSettings): number {
   switch (mode) {
     case "practice":
-      return 10;
+      return settings.practiceQuestionCount;
     case "timed_block":
       return 40;
     case "exam_sim":
@@ -128,13 +194,31 @@ export default function StudyPage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
 
-  const [exam] = useState<ExamType>("step1");
   const [loading, setLoading] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [userSettings, setUserSettings] = useState<UserSettings>(defaultSettings);
 
   const isSignedIn = !!session?.user?.email;
+
+  useEffect(() => {
+    setUserSettings(loadSettings());
+  }, []);
+
+  useEffect(() => {
+    function syncSettings() {
+      setUserSettings(loadSettings());
+    }
+
+    window.addEventListener("focus", syncSettings);
+    window.addEventListener("storage", syncSettings);
+
+    return () => {
+      window.removeEventListener("focus", syncSettings);
+      window.removeEventListener("storage", syncSettings);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -167,19 +251,25 @@ export default function StudyPage() {
     [sessions]
   );
 
-  async function createAndStartSession(mode: SessionMode) {
+  async function createAndStartSession(mode: SessionMode, customCount?: number) {
     setLoading(true);
     setErr(null);
 
     try {
+      const effectiveExam = userSettings.defaultExam;
+      const effectiveCount =
+        typeof customCount === "number"
+          ? customCount
+          : getRecommendedCount(mode, userSettings);
+
       const sessionRes = await apiFetch<CreateSessionResponse>("/api/sessions", {
         method: "POST",
-        body: JSON.stringify({ mode, exam }),
+        body: JSON.stringify({ mode, exam: effectiveExam }),
       });
 
       await apiFetch<{ items?: unknown[] }>(`/api/sessions/${sessionRes.session_id}/items`, {
         method: "POST",
-        body: JSON.stringify({ count: getRecommendedCount(mode) }),
+        body: JSON.stringify({ count: effectiveCount }),
       });
 
       router.push(`/session/${sessionRes.session_id}`);
@@ -189,6 +279,8 @@ export default function StudyPage() {
       setLoading(false);
     }
   }
+
+  const defaultModeCount = getRecommendedCount(userSettings.defaultMode, userSettings);
 
   return (
     <main
@@ -266,6 +358,116 @@ export default function StudyPage() {
               Error: {err}
             </section>
           ) : null}
+
+          {/* User defaults */}
+          <section
+            style={{
+              padding: 18,
+              borderRadius: 20,
+              border: "1px solid #e5e7eb",
+              background: "white",
+              display: "grid",
+              gap: 14,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 12,
+                alignItems: "flex-start",
+                flexWrap: "wrap",
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 22 }}>Use my defaults</div>
+                <div style={{ marginTop: 6, color: "#6b7280", lineHeight: 1.5 }}>
+                  Start with your preferred setup from Settings.
+                </div>
+              </div>
+
+              <button
+                onClick={() => router.push("/settings")}
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: 14,
+                  border: "1px solid #d1d5db",
+                  background: "white",
+                  cursor: "pointer",
+                  fontWeight: 800,
+                }}
+              >
+                Open Settings
+              </button>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gap: 12,
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              }}
+            >
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 16,
+                  border: "1px solid #eef2f7",
+                  background: "#fcfcfd",
+                }}
+              >
+                <div style={{ fontSize: 12, color: "#6b7280" }}>Default exam</div>
+                <div style={{ marginTop: 6, fontWeight: 900, fontSize: 18 }}>
+                  {userSettings.defaultExam === "step1" ? "Step 1" : userSettings.defaultExam}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 16,
+                  border: "1px solid #eef2f7",
+                  background: "#fcfcfd",
+                }}
+              >
+                <div style={{ fontSize: 12, color: "#6b7280" }}>Default mode</div>
+                <div style={{ marginTop: 6, fontWeight: 900, fontSize: 18 }}>
+                  {modeLabel(userSettings.defaultMode)}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 16,
+                  border: "1px solid #eef2f7",
+                  background: "#fcfcfd",
+                }}
+              >
+                <div style={{ fontSize: 12, color: "#6b7280" }}>Default count</div>
+                <div style={{ marginTop: 6, fontWeight: 900, fontSize: 18 }}>
+                  {defaultModeCount} questions
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => createAndStartSession(userSettings.defaultMode, defaultModeCount)}
+              disabled={loading}
+              style={{
+                width: "100%",
+                padding: "14px 16px",
+                borderRadius: 16,
+                border: "1px solid #bfdbfe",
+                background: "#eff6ff",
+                cursor: loading ? "not-allowed" : "pointer",
+                fontWeight: 900,
+                fontSize: 16,
+              }}
+            >
+              {loading ? "Starting…" : `Start ${modeLabel(userSettings.defaultMode)}`}
+            </button>
+          </section>
 
           <section
             style={{
@@ -437,7 +639,10 @@ export default function StudyPage() {
                 style={{
                   padding: "16px",
                   borderRadius: 18,
-                  border: "1px solid #dbe7d8",
+                  border:
+                    userSettings.defaultMode === "practice"
+                      ? "2px solid #86efac"
+                      : "1px solid #dbe7d8",
                   background: "#f8fff9",
                   cursor: loading ? "not-allowed" : "pointer",
                   textAlign: "left",
@@ -448,7 +653,7 @@ export default function StudyPage() {
                   Untimed. Immediate feedback after each question. Best for daily learning.
                 </div>
                 <div style={{ marginTop: 10, fontSize: 12, color: "#6b7280" }}>
-                  Default: 10 questions
+                  Default: {userSettings.practiceQuestionCount} questions
                 </div>
               </button>
 
@@ -458,7 +663,10 @@ export default function StudyPage() {
                 style={{
                   padding: "16px",
                   borderRadius: 18,
-                  border: "1px solid #ece5c8",
+                  border:
+                    userSettings.defaultMode === "timed_block"
+                      ? "2px solid #fde68a"
+                      : "1px solid #ece5c8",
                   background: "#fffdf6",
                   cursor: loading ? "not-allowed" : "pointer",
                   textAlign: "left",
@@ -479,7 +687,10 @@ export default function StudyPage() {
                 style={{
                   padding: "16px",
                   borderRadius: 18,
-                  border: "1px solid #f0dddd",
+                  border:
+                    userSettings.defaultMode === "exam_sim"
+                      ? "2px solid #fecaca"
+                      : "1px solid #f0dddd",
                   background: "#fff8f8",
                   cursor: loading ? "not-allowed" : "pointer",
                   textAlign: "left",

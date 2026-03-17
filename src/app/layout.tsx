@@ -37,6 +37,9 @@
  * - A barra superior usa a logo real em /img/helpus-logo.png
  * - Toda referência visual principal à HelpUS aponta para o site institucional
  *
+ * Contato:
+ * - O item Contact agora abre o WhatsApp oficial da HelpUS
+ *
  * Observações importantes:
  * - Todo hook do NextAuth (useSession, signIn, signOut) exige que
  *   a aplicação esteja envolvida em <SessionProvider />
@@ -45,7 +48,8 @@
  * ✅ Atualização (2026-03-17):
  * - Logo real da HelpUS adicionada ao topo
  * - Logo e nome da HelpUS ligados ao site externo da HelpUS
- * - Study agora aponta para a rota real /study
+ * - Study aponta para a rota real /study
+ * - Contact alterado para abrir WhatsApp
  * - Menu desktop e mobile preservados
  * - Estrutura pronta para evolução futura
  */
@@ -59,6 +63,7 @@ export const metadata: Metadata = {
 };
 
 const HELPUS_SITE_URL = "https://helpusbr.com";
+const HELPUS_WHATSAPP_URL = "https://wa.me/5583998721848";
 
 const navLinkStyle: React.CSSProperties = {
   textDecoration: "none",
@@ -259,13 +264,15 @@ export default function RootLayout({
                   </span>
 
                   <a
-                    href="mailto:helpus.ecommerce@gmail.com"
+                    href={HELPUS_WHATSAPP_URL}
+                    target="_blank"
+                    rel="noreferrer"
                     style={{
                       ...navLinkStyle,
-                      color: "#1d4ed8",
+                      color: "#16a34a",
                     }}
                   >
-                    Contact
+                    WhatsApp
                   </a>
                 </nav>
 
@@ -350,13 +357,15 @@ export default function RootLayout({
                   </a>
 
                   <a
-                    href="mailto:helpus.ecommerce@gmail.com"
+                    href={HELPUS_WHATSAPP_URL}
+                    target="_blank"
+                    rel="noreferrer"
                     style={{
                       ...mobileMenuLinkStyle,
-                      color: "#1d4ed8",
+                      color: "#16a34a",
                     }}
                   >
-                    Contact HelpUS
+                    WhatsApp HelpUS
                   </a>
                 </div>
               </details>
