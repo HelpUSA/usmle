@@ -7,6 +7,8 @@
  * Responsabilidade:
  * - Registrar (ou atualizar) a tentativa do usuário para um item da sessão
  * - Calcular resultado (correct/wrong/skipped) consultando question_choices.is_correct
+ * - Retornar imediatamente o payload didático necessário para o player exibir
+ *   o review logo após o submit da questão
  *
  * Contrato:
  * - POST /api/sessions/:sessionId/items/:sessionItemId/attempt
@@ -16,9 +18,21 @@
  * - Só permite tentativa quando a sessão estiver em status "in_progress"
  * - Upsert por session_item_id: se já existir attempt, atualiza; senão, insere
  *
- * Observação:
- * - Ajuste de tipagem para build (Vercel/TS): evitamos depender de rowCount (que pode ser null)
- *   e usamos rows.length, que é sempre seguro.
+ * Observações:
+ * - Ajuste de tipagem para build (Vercel/TS): evitamos depender de rowCount
+ *   (que pode ser null) e usamos rows.length, que é sempre seguro.
+ * - O frontend do player espera um payload "enriquecido" no topo da resposta:
+ *   - is_correct / result
+ *   - explanation_short / explanation_long
+ *   - bibliography
+ *   - choices[] com is_correct + explanation
+ * - Sem esse payload enriquecido, o submit funciona, mas o review imediato
+ *   não aparece após responder a questão.
+ *
+ * ✅ Atualização (2026-03-17):
+ * - Mantido o upsert de attempt para preservar o comportamento atual do projeto
+ * - Adicionado retorno didático completo para suportar feedback imediato no player
+ * - Mantido o objeto `attempt` na resposta por compatibilidade retroativa
  */
 
 import { NextResponse } from "next/server";
@@ -33,6 +47,29 @@ const BodySchema = z.object({
   confidence: z.number().int().min(1).max(5).optional(), // 1..5
   flagged_for_review: z.boolean().optional(),
 });
+
+type AttemptRow = {
+  attempt_id: string;
+  user_id: string;
+  session_id: string;
+  session_item_id: string;
+  question_version_id: string;
+  selected_choice_id: string | null;
+  result: "correct" | "wrong" | "skipped";
+  is_correct: boolean | null;
+  time_spent_seconds: number | null;
+  confidence: number | null;
+  flagged_for_review: boolean;
+  answered_at: string;
+};
+
+type FeedbackChoiceRow = {
+  choice_id: string;
+  label: string;
+  choice_text: string;
+  is_correct: boolean;
+  explanation: string | null;
+};
 
 export async function POST(
   req: Request,
@@ -144,7 +181,7 @@ export async function POST(
         [sessionItemId]
       );
 
-      let attemptRow: any;
+      let attemptRow: AttemptRow;
 
       // ✅ TS-safe (Vercel): usar rows.length
       if (existingAttempt.rows.length > 0) {
@@ -178,42 +215,41 @@ export async function POST(
           ]
         );
 
-        attemptRow = upd.rows[0];
-        return { status: 200 as const, payload: { attempt: attemptRow } };
+        attemptRow = upd.rows[0] as AttemptRow;
+      } else {
+        const ins = await client.query(
+          `
+          INSERT INTO attempts (
+            user_id, session_id, session_item_id, question_version_id,
+            selected_choice_id, result, is_correct,
+            time_spent_seconds, confidence, flagged_for_review
+          )
+          VALUES (
+            $1, $2, $3, $4,
+            $5, $6, $7,
+            $8, $9, $10
+          )
+          RETURNING
+            attempt_id, user_id, session_id, session_item_id, question_version_id,
+            selected_choice_id, result, is_correct, time_spent_seconds, confidence,
+            flagged_for_review, answered_at
+          `,
+          [
+            userId,
+            sessionId,
+            sessionItemId,
+            item.question_version_id,
+            selectedChoiceId,
+            attemptResult,
+            isCorrect,
+            body.time_spent_seconds ?? null,
+            body.confidence ?? null,
+            body.flagged_for_review ?? false,
+          ]
+        );
+
+        attemptRow = ins.rows[0] as AttemptRow;
       }
-
-      const ins = await client.query(
-        `
-        INSERT INTO attempts (
-          user_id, session_id, session_item_id, question_version_id,
-          selected_choice_id, result, is_correct,
-          time_spent_seconds, confidence, flagged_for_review
-        )
-        VALUES (
-          $1, $2, $3, $4,
-          $5, $6, $7,
-          $8, $9, $10
-        )
-        RETURNING
-          attempt_id, user_id, session_id, session_item_id, question_version_id,
-          selected_choice_id, result, is_correct, time_spent_seconds, confidence,
-          flagged_for_review, answered_at
-        `,
-        [
-          userId,
-          sessionId,
-          sessionItemId,
-          item.question_version_id,
-          selectedChoiceId,
-          attemptResult,
-          isCorrect,
-          body.time_spent_seconds ?? null,
-          body.confidence ?? null,
-          body.flagged_for_review ?? false,
-        ]
-      );
-
-      attemptRow = ins.rows[0];
 
       // 5) Atualizar user_question_state (upsert) — mantém seu comportamento atual
       const qRes = await client.query(
@@ -264,7 +300,77 @@ export async function POST(
         ]
       );
 
-      return { status: 201 as const, payload: { attempt: attemptRow } };
+      /**
+       * 6) Buscar o conteúdo pedagógico da questão para o review imediato
+       *
+       * O frontend do player precisa disso logo após o submit:
+       * - explanation_short / explanation_long
+       * - bibliography
+       * - todas as alternativas com gabarito + explicação
+       */
+      const qvRes = await client.query(
+        `
+        SELECT
+          explanation_short,
+          explanation_long,
+          bibliography
+        FROM question_versions
+        WHERE question_version_id = $1
+        LIMIT 1
+        `,
+        [item.question_version_id]
+      );
+
+      if (qvRes.rows.length === 0) {
+        return {
+          status: 500 as const,
+          payload: { error: "question_version content not found" },
+        };
+      }
+
+      const qv = qvRes.rows[0] as {
+        explanation_short: string | null;
+        explanation_long: string | null;
+        bibliography: unknown;
+      };
+
+      const choicesRes = await client.query(
+        `
+        SELECT
+          choice_id,
+          label,
+          choice_text,
+          is_correct,
+          explanation
+        FROM question_choices
+        WHERE question_version_id = $1
+        ORDER BY label ASC
+        `,
+        [item.question_version_id]
+      );
+
+      const feedbackChoices = choicesRes.rows as FeedbackChoiceRow[];
+
+      /**
+       * 7) Retornar payload enriquecido no topo da resposta
+       *
+       * Mantemos também `attempt` por compatibilidade retroativa, caso alguma outra
+       * tela/cliente já consuma esse objeto.
+       */
+      const payload = {
+        attempt: attemptRow,
+        is_correct: attemptRow.is_correct,
+        result: attemptRow.result,
+        explanation_short: qv.explanation_short ?? null,
+        explanation_long: qv.explanation_long ?? null,
+        bibliography: qv.bibliography ?? null,
+        choices: feedbackChoices,
+      };
+
+      return {
+        status: existingAttempt.rows.length > 0 ? (200 as const) : (201 as const),
+        payload,
+      };
     });
 
     return NextResponse.json(result.payload, { status: result.status });
