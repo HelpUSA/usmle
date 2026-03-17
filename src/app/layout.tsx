@@ -19,23 +19,28 @@
  *   - exibe menu expansível com <details>/<summary>
  *   - oculta a navegação horizontal do desktop
  *
+ * Regras de navegação nesta fase:
+ * - Dashboard:
+ *   - rota real: /
+ * - Study:
+ *   - por enquanto reutiliza a home/dashboard em /
+ *   - será separado depois em rota própria
+ * - Progress:
+ *   - rota real: /progress
+ * - Results / Settings:
+ *   - ainda não possuem página
+ *   - aparecem como itens planejados ("Soon")
+ *
  * Observações importantes:
  * - Todo hook do NextAuth (useSession, signIn, signOut) exige que
  *   a aplicação esteja envolvida em <SessionProvider />
  * - O wrapper <Providers /> centraliza dependências globais client-side
- * - Nesta fase, alguns links ainda apontam para áreas futuras do sistema:
- *   - Dashboard (/)
- *   - Study (/)
- *   - Results (#)
- *   - Progress (#)
- *   - Settings (#)
  *
  * ✅ Atualização (2026-03-17):
- * - Header global refinado
- * - Navegação desktop visível apenas em telas maiores
- * - Menu mobile funcional apenas em telas menores
- * - Responsividade corrigida para evitar menu duplicado
- * - Branding HelpUS integrado ao topo da aplicação
+ * - Progress ligado à rota real /progress
+ * - Itens ainda não implementados passam a ser visualmente identificados como futuros
+ * - Menu desktop e mobile alinhados entre si
+ * - Responsividade preservada
  */
 
 import type { Metadata } from "next";
@@ -56,6 +61,30 @@ const navLinkStyle: React.CSSProperties = {
   display: "inline-block",
 };
 
+const navSoonStyle: React.CSSProperties = {
+  color: "#9ca3af",
+  fontSize: 14,
+  fontWeight: 700,
+  padding: "10px 12px",
+  borderRadius: 10,
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 8,
+  cursor: "default",
+  userSelect: "none",
+};
+
+const soonBadgeStyle: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 900,
+  color: "#6b7280",
+  background: "#f3f4f6",
+  border: "1px solid #e5e7eb",
+  borderRadius: 999,
+  padding: "2px 6px",
+  lineHeight: 1.2,
+};
+
 const mobileMenuLinkStyle: React.CSSProperties = {
   textDecoration: "none",
   color: "#111827",
@@ -66,6 +95,21 @@ const mobileMenuLinkStyle: React.CSSProperties = {
   display: "block",
   background: "#f9fafb",
   border: "1px solid #eceff3",
+};
+
+const mobileSoonStyle: React.CSSProperties = {
+  color: "#9ca3af",
+  fontSize: 15,
+  fontWeight: 700,
+  padding: "12px 12px",
+  borderRadius: 12,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 8,
+  background: "#fafafa",
+  border: "1px solid #eceff3",
+  userSelect: "none",
 };
 
 export default function RootLayout({
@@ -193,15 +237,20 @@ export default function RootLayout({
                   <a href="/" style={navLinkStyle}>
                     Study
                   </a>
-                  <a href="#" style={navLinkStyle}>
-                    Results
-                  </a>
-                  <a href="#" style={navLinkStyle}>
+                  <a href="/progress" style={navLinkStyle}>
                     Progress
                   </a>
-                  <a href="#" style={navLinkStyle}>
+
+                  <span style={navSoonStyle}>
+                    Results
+                    <span style={soonBadgeStyle}>Soon</span>
+                  </span>
+
+                  <span style={navSoonStyle}>
                     Settings
-                  </a>
+                    <span style={soonBadgeStyle}>Soon</span>
+                  </span>
+
                   <a
                     href="mailto:helpus.ecommerce@gmail.com"
                     style={{
@@ -272,15 +321,20 @@ export default function RootLayout({
                   <a href="/" style={mobileMenuLinkStyle}>
                     Study
                   </a>
-                  <a href="#" style={mobileMenuLinkStyle}>
-                    Results
-                  </a>
-                  <a href="#" style={mobileMenuLinkStyle}>
+                  <a href="/progress" style={mobileMenuLinkStyle}>
                     Progress
                   </a>
-                  <a href="#" style={mobileMenuLinkStyle}>
-                    Settings
-                  </a>
+
+                  <div style={mobileSoonStyle}>
+                    <span>Results</span>
+                    <span style={soonBadgeStyle}>Soon</span>
+                  </div>
+
+                  <div style={mobileSoonStyle}>
+                    <span>Settings</span>
+                    <span style={soonBadgeStyle}>Soon</span>
+                  </div>
+
                   <a
                     href="mailto:helpus.ecommerce@gmail.com"
                     style={{
