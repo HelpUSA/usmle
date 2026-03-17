@@ -7,55 +7,12 @@
  * Responsabilidades:
  * - POST: criar uma nova sessão de estudo
  * - GET: listar sessões recentes do usuário autenticado
- *
- * Contrato:
- * - POST /api/sessions
- *   Body mínimo esperado:
- *   {
- *     mode: "practice" | "timed_block" | "exam_sim",
- *     exam: "step1" | "step2ck",
- *     language?: string
- *   }
- *
- * Regras importantes:
- * - Requer autenticação (NextAuth) ou header dev x-user-id
- * - Garante que o user exista em users_profile
- * - Cria a sessão sempre em status "in_progress"
- * - O mode é autoritativo: timed e time_limit_seconds são derivados do mode,
- *   e não aceitos como fonte de verdade vinda do cliente
- *
- * Semântica de produto:
- * - practice:
- *   - timed = false
- *   - sem limite de tempo
- *   - estratégia de review imediato por questão
- *
- * - timed_block:
- *   - timed = true
- *   - limite padrão de 60 minutos
- *   - estratégia de review diferido (somente ao final)
- *
- * - exam_sim:
- *   - timed = true
- *   - limite padrão de 4 horas
- *   - estratégia de review diferido (somente ao final)
- *
- * Observações:
- * - Mantemos compatibilidade com o contrato já usado no frontend:
- *   o cliente continua enviando { exam, mode }.
- * - timed/time_limit_seconds continuam presentes na resposta para que o frontend
- *   possa adaptar o comportamento da experiência.
- *
- * ✅ Atualização (2026-03-17):
- * - mode passou a definir o comportamento real da sessão
- * - removida a dependência de timed/time_limit_seconds vindos do body
- * - settings_json passou a registrar metadados úteis de UX por modo
  */
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { query } from "@/lib/db";
-import { getUserIdFromRequest } from "@/lib/auth";
+import { getUserIdForApi } from "@/lib/auth"; // ✅ CORRETO
 
 const CreateSessionSchema = z.object({
   mode: z.enum(["practice", "timed_block", "exam_sim"]),
@@ -81,7 +38,7 @@ function deriveSessionBehavior(mode: SessionMode) {
     case "timed_block":
       return {
         timed: true,
-        time_limit_seconds: 60 * 60, // 60 min
+        time_limit_seconds: 60 * 60,
         settings_json: {
           review_strategy: "deferred",
           timer_visible: true,
@@ -92,7 +49,7 @@ function deriveSessionBehavior(mode: SessionMode) {
     case "exam_sim":
       return {
         timed: true,
-        time_limit_seconds: 4 * 60 * 60, // 4 h
+        time_limit_seconds: 4 * 60 * 60,
         settings_json: {
           review_strategy: "deferred",
           timer_visible: true,
@@ -109,7 +66,11 @@ function deriveSessionBehavior(mode: SessionMode) {
 
 export async function POST(req: Request) {
   try {
-    const userId = getUserIdFromRequest(req);
+    // ✅ AGORA FUNCIONA COM:
+    // - header x-user-id
+    // - sessão NextAuth
+    const userId = await getUserIdForApi(req);
+
     const bodyJson = await req.json().catch(() => ({}));
     const body = CreateSessionSchema.parse(bodyJson);
 
@@ -174,7 +135,7 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const userId = getUserIdFromRequest(req);
+    const userId = await getUserIdForApi(req); // ✅ CORRETO
 
     const sessions = await query(
       `

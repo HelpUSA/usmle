@@ -1,13 +1,39 @@
+/**
+ * Session Submit Route (POST)
+ *
+ * 📍 Localização:
+ * src/app/api/sessions/[sessionId]/submit/route.ts
+ *
+ * Responsabilidades:
+ * - Submeter/finalizar uma sessão
+ * - Calcular resumo final da sessão
+ * - Garantir idempotência no submit
+ *
+ * Regras importantes:
+ * - Requer autenticação (NextAuth) ou header dev x-user-id
+ * - Não permite submit de sessão vazia
+ * - Se a sessão já estiver submitted, apenas retorna o resumo atual
+ * - Só permite transição real quando a sessão estiver in_progress
+ *
+ * Observações:
+ * - TS-safe: usa rows.length em vez de rowCount
+ *
+ * ✅ Atualização (2026-03-17):
+ * - Troca de getUserIdFromRequest por getUserIdForApi
+ * - Submissão agora funciona no browser autenticado e no modo dev/teste
+ * - rowCount removido para manter compatibilidade TS/Vercel
+ */
+
 import { NextResponse } from "next/server";
 import { withTx } from "@/lib/db";
-import { getUserIdFromRequest } from "@/lib/auth";
+import { getUserIdForApi } from "@/lib/auth";
 
 export async function POST(
   req: Request,
   { params }: { params: { sessionId: string } }
 ) {
   try {
-    const userId = getUserIdFromRequest(req);
+    const userId = await getUserIdForApi(req);
     const { sessionId } = params;
 
     const result = await withTx(async (client) => {
@@ -22,7 +48,7 @@ export async function POST(
         [sessionId]
       );
 
-      if (sRes.rowCount === 0) {
+      if (sRes.rows.length === 0) {
         return { status: 404 as const, payload: { error: "Session not found" } };
       }
 
@@ -46,9 +72,10 @@ export async function POST(
         `,
         [sessionId]
       );
+
       const totalItems = itemsCountRes.rows[0].total_items as number;
 
-      // ✅ Blindagem: não permite submit vazio
+      // não permite submit vazio
       if (totalItems === 0) {
         return {
           status: 400 as const,
@@ -76,7 +103,7 @@ export async function POST(
       const skipped = (statsRes.rows[0].skipped as number) ?? 0;
       const unanswered = totalItems - answered;
 
-      // ✅ Idempotência: se já submitted, NÃO altera nada — só retorna o resumo
+      // idempotência: se já submitted, não altera nada
       if (session.status === "submitted") {
         return {
           status: 200 as const,
@@ -93,7 +120,7 @@ export async function POST(
         };
       }
 
-      // ✅ Regra: só permite submit se estiver in_progress
+      // só permite submit se estiver in_progress
       if (session.status !== "in_progress") {
         return {
           status: 400 as const,

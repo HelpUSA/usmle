@@ -1,25 +1,44 @@
-// src/app/api/sessions/[sessionId]/review/route.ts
-//
-// Review Endpoint
-// - Só permite review se a sessão estiver submitted
-// - Retorna: sessão + items com stem, explanations, bibliography/prompt,
-//   attempt info, alternativa correta, alternativa marcada,
-//   e TODAS as choices com is_correct + explanation (review UX v2)
-//
-// Observação: TS-safe (evita rowCount).
+/**
+ * Session Review Route (GET)
+ *
+ * 📍 Localização:
+ * src/app/api/sessions/[sessionId]/review/route.ts
+ *
+ * Responsabilidades:
+ * - Retornar o review completo da sessão
+ * - Só permitir review quando a sessão estiver submitted
+ * - Incluir:
+ *   - dados da sessão
+ *   - items da sessão
+ *   - attempt do usuário
+ *   - resposta correta
+ *   - resposta selecionada
+ *   - todas as choices com is_correct + explanation
+ *
+ * Regras importantes:
+ * - Requer autenticação (NextAuth) ou header dev x-user-id
+ * - Só permite review de sessão submetida
+ *
+ * Observações:
+ * - TS-safe (evita rowCount)
+ *
+ * ✅ Atualização (2026-03-17):
+ * - Troca de getUserIdFromRequest por getUserIdForApi
+ * - Agora a rota funciona tanto no browser autenticado quanto em dev/testes
+ */
 
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { withTx } from "@/lib/db";
-import { getUserIdFromRequest } from "@/lib/auth";
+import { getUserIdForApi } from "@/lib/auth";
 
 export async function GET(
   req: Request,
   { params }: { params: { sessionId: string } }
 ) {
   try {
-    const userId = getUserIdFromRequest(req);
+    const userId = await getUserIdForApi(req);
     const { sessionId } = params;
 
     const result = await withTx(async (client) => {
@@ -33,7 +52,6 @@ export async function GET(
         [sessionId]
       );
 
-      // ✅ TS-safe
       if (sRes.rows.length === 0) {
         return { status: 404 as const, payload: { error: "Session not found" } };
       }
@@ -52,7 +70,7 @@ export async function GET(
         return { status: 403 as const, payload: { error: "Forbidden" } };
       }
 
-      // ✅ Blindagem: review só para sessão submetida
+      // review só para sessão submetida
       if (session.status !== "submitted") {
         return {
           status: 409 as const,
@@ -60,7 +78,7 @@ export async function GET(
         };
       }
 
-      // 2) Itens + attempt + correta/selecionada (sem expandir choices aqui pra não duplicar)
+      // 2) Itens + attempt + correta/selecionada
       const itemsRes = await client.query(
         `
         SELECT
@@ -202,7 +220,6 @@ export async function GET(
         selected_label: r.selected_label ?? null,
         selected_choice_text: r.selected_choice_text ?? null,
 
-        // ✅ review completo: alternativas + explicação por alternativa
         choices: choicesByQvId[r.question_version_id] ?? [],
       }));
 

@@ -33,12 +33,13 @@
  * - Mantido o upsert de attempt para preservar o comportamento atual do projeto
  * - Adicionado retorno didático completo para suportar feedback imediato no player
  * - Mantido o objeto `attempt` na resposta por compatibilidade retroativa
+ * - Troca de getUserIdFromRequest por getUserIdForApi
  */
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { withTx } from "@/lib/db";
-import { getUserIdFromRequest } from "@/lib/auth";
+import { getUserIdForApi } from "@/lib/auth";
 
 const BodySchema = z.object({
   // Para "skipped", mande null ou omita.
@@ -76,7 +77,7 @@ export async function POST(
   { params }: { params: { sessionId: string; sessionItemId: string } }
 ) {
   try {
-    const userId = getUserIdFromRequest(req);
+    const userId = await getUserIdForApi(req);
     const { sessionId, sessionItemId } = params;
 
     const bodyJson = await req.json().catch(() => ({}));
@@ -108,7 +109,7 @@ export async function POST(
         return { status: 403 as const, payload: { error: "Forbidden" } };
       }
 
-      // ✅ Blindagem: não permitir attempt fora do estado correto
+      // não permitir attempt fora do estado correto
       if (session.status !== "in_progress") {
         return {
           status: 409 as const,
@@ -140,7 +141,7 @@ export async function POST(
         question_version_id: string;
       };
 
-      // 3) Calcular resultado (correct/wrong/skipped) comparando com question_choices.is_correct
+      // 3) Calcular resultado comparando com question_choices.is_correct
       const selectedChoiceId = body.selected_choice_id ?? null;
 
       let attemptResult: "correct" | "wrong" | "skipped" = "skipped";
@@ -170,7 +171,7 @@ export async function POST(
         attemptResult = correct ? "correct" : "wrong";
       }
 
-      // 4) Upsert attempt (se existir, atualiza)
+      // 4) Upsert attempt
       const existingAttempt = await client.query(
         `
         SELECT attempt_id
@@ -183,7 +184,6 @@ export async function POST(
 
       let attemptRow: AttemptRow;
 
-      // ✅ TS-safe (Vercel): usar rows.length
       if (existingAttempt.rows.length > 0) {
         const attemptId = existingAttempt.rows[0].attempt_id as string;
 
@@ -251,7 +251,7 @@ export async function POST(
         attemptRow = ins.rows[0] as AttemptRow;
       }
 
-      // 5) Atualizar user_question_state (upsert) — mantém seu comportamento atual
+      // 5) Atualizar user_question_state
       const qRes = await client.query(
         `
         SELECT question_id
@@ -302,11 +302,6 @@ export async function POST(
 
       /**
        * 6) Buscar o conteúdo pedagógico da questão para o review imediato
-       *
-       * O frontend do player precisa disso logo após o submit:
-       * - explanation_short / explanation_long
-       * - bibliography
-       * - todas as alternativas com gabarito + explicação
        */
       const qvRes = await client.query(
         `
@@ -353,9 +348,6 @@ export async function POST(
 
       /**
        * 7) Retornar payload enriquecido no topo da resposta
-       *
-       * Mantemos também `attempt` por compatibilidade retroativa, caso alguma outra
-       * tela/cliente já consuma esse objeto.
        */
       const payload = {
         attempt: attemptRow,

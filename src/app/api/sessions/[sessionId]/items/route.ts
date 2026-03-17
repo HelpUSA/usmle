@@ -30,6 +30,10 @@
  * Patch adicional (fallback automático):
  * - Se NÃO existir nenhuma questão publicada fora do seed_dev,
  *   liberamos seed_dev automaticamente para não travar o produto em ambiente seed-only.
+ *
+ * ✅ Atualização (2026-03-17):
+ * - Troca de getUserIdFromRequest por getUserIdForApi
+ * - Agora a rota funciona tanto com header dev quanto com sessão autenticada do browser
  */
 
 export const runtime = "nodejs";
@@ -37,7 +41,7 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { withTx } from "@/lib/db";
-import { getUserIdFromRequest } from "@/lib/auth";
+import { getUserIdForApi } from "@/lib/auth";
 
 const BodySchema = z.object({
   count: z.number().int().min(1).max(200).default(10),
@@ -62,7 +66,7 @@ export async function GET(
   { params }: { params: { sessionId: string } }
 ) {
   try {
-    const userId = getUserIdFromRequest(req);
+    const userId = await getUserIdForApi(req);
     const { sessionId } = params;
 
     const result = await withTx(async (client) => {
@@ -110,7 +114,7 @@ export async function POST(
   { params }: { params: { sessionId: string } }
 ) {
   try {
-    const userId = getUserIdFromRequest(req);
+    const userId = await getUserIdForApi(req);
     const { sessionId } = params;
 
     const bodyJson = await req.json().catch(() => ({}));

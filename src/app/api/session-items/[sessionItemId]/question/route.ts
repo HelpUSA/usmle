@@ -1,13 +1,40 @@
+/**
+ * Session Item Question Route (GET)
+ *
+ * 📍 Localização:
+ * src/app/api/session-items/[sessionItemId]/question/route.ts
+ *
+ * Responsabilidades:
+ * - Carregar a questão associada a um session_item
+ * - Validar que o session_item pertence ao usuário autenticado
+ * - Retornar:
+ *   - metadados mínimos do session_item
+ *   - conteúdo da question_version
+ *   - choices sem is_correct
+ *
+ * Regras importantes:
+ * - Requer autenticação (NextAuth) ou header dev x-user-id
+ * - NÃO retorna explicações nem gabarito antes do submit
+ *
+ * Observações:
+ * - TS-safe: usa rows.length em vez de rowCount
+ *
+ * ✅ Atualização (2026-03-17):
+ * - Troca de getUserIdFromRequest por getUserIdForApi
+ * - Agora funciona corretamente no browser autenticado e no modo dev/teste
+ * - Mantém blindagem para não vazar feedback antes da resposta
+ */
+
 import { NextResponse } from "next/server";
 import { withTx } from "@/lib/db";
-import { getUserIdFromRequest } from "@/lib/auth";
+import { getUserIdForApi } from "@/lib/auth";
 
 export async function GET(
   req: Request,
   { params }: { params: { sessionItemId: string } }
 ) {
   try {
-    const userId = getUserIdFromRequest(req);
+    const userId = await getUserIdForApi(req);
     const { sessionItemId } = params;
 
     const result = await withTx(async (client) => {
@@ -15,8 +42,12 @@ export async function GET(
       const itemRes = await client.query(
         `
         SELECT
-          si.session_item_id, si.session_id, si.position, si.question_version_id,
-          s.user_id, s.status
+          si.session_item_id,
+          si.session_id,
+          si.position,
+          si.question_version_id,
+          s.user_id,
+          s.status
         FROM session_items si
         JOIN sessions s ON s.session_id = si.session_id
         WHERE si.session_item_id = $1
@@ -24,7 +55,6 @@ export async function GET(
         [sessionItemId]
       );
 
-      // ✅ TS-safe: rowCount pode ser null em alguns typings do pg
       if (itemRes.rows.length === 0) {
         return {
           status: 404 as const,
@@ -49,7 +79,10 @@ export async function GET(
       const qvRes = await client.query(
         `
         SELECT
-          question_version_id, exam, language, difficulty,
+          question_version_id,
+          exam,
+          language,
+          difficulty,
           stem
         FROM question_versions
         WHERE question_version_id = $1
@@ -57,7 +90,6 @@ export async function GET(
         [item.question_version_id]
       );
 
-      // ✅ TS-safe
       if (qvRes.rows.length === 0) {
         return {
           status: 500 as const,
@@ -85,7 +117,7 @@ export async function GET(
             position: item.position,
             question_version_id: item.question_version_id,
           },
-          question: qvRes.rows[0], // <- sem explanation_short/long
+          question: qvRes.rows[0],
           choices: choicesRes.rows,
         },
       };
