@@ -23,8 +23,8 @@
  * - Dashboard:
  *   - rota real: /
  * - Study:
- *   - por enquanto reutiliza a home/dashboard em /
- *   - será separado depois em rota própria
+ *   - rota real: /study
+ *   - concentra o fluxo operacional de estudo
  * - Progress:
  *   - rota real: /progress
  * - Results:
@@ -34,7 +34,7 @@
  *   - aparece como item planejado ("Soon")
  *
  * Branding:
- * - A barra superior agora usa a logo real em /img/helpus-logo.png
+ * - A barra superior usa a logo real em /img/helpus-logo.png
  * - Toda referência visual principal à HelpUS aponta para o site institucional
  *
  * Observações importantes:
@@ -45,6 +45,7 @@
  * ✅ Atualização (2026-03-17):
  * - Logo real da HelpUS adicionada ao topo
  * - Logo e nome da HelpUS ligados ao site externo da HelpUS
+ * - Study agora aponta para a rota real /study
  * - Menu desktop e mobile preservados
  * - Estrutura pronta para evolução futura
  */
@@ -242,7 +243,7 @@ export default function RootLayout({
                   <a href="/" style={navLinkStyle}>
                     Dashboard
                   </a>
-                  <a href="/" style={navLinkStyle}>
+                  <a href="/study" style={navLinkStyle}>
                     Study
                   </a>
                   <a href="/results" style={navLinkStyle}>
@@ -324,7 +325,7 @@ export default function RootLayout({
                   <a href="/" style={mobileMenuLinkStyle}>
                     Dashboard
                   </a>
-                  <a href="/" style={mobileMenuLinkStyle}>
+                  <a href="/study" style={mobileMenuLinkStyle}>
                     Study
                   </a>
                   <a href="/results" style={mobileMenuLinkStyle}>

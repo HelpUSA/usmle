@@ -14,41 +14,28 @@
  * - Depois do login:
  *   - funcionar como dashboard visual e de impacto
  *   - mostrar resumo rápido com gráficos
- *   - destacar sessão em andamento
- *   - oferecer ações principais de estudo
- *   - evitar duplicação com páginas mais específicas como Results e Progress
+ *   - destacar visão geral da atividade do usuário
+ *   - apontar para as áreas operacionais do sistema sem duplicá-las
  *
  * Contrato de API utilizado:
- * - GET  /api/sessions
+ * - GET /api/sessions
  *   Lista as sessões recentes do usuário autenticado
- * - POST /api/sessions
- *   Body obrigatório: { exam, mode }
- * - POST /api/sessions/:sessionId/items
- *   Gera itens da sessão (idempotente)
  *
  * Estratégia de UX:
  * - Mobile-first
  * - Menos blocos textuais longos
  * - Mais leitura visual via cards e gráficos simples
- * - Home focada em visão geral e ações, não em histórico detalhado
- *
- * Regras de produto nesta fase:
- * - Practice:
- *   - quick start com 10 questões
- * - Timed block:
- *   - quick start com 40 questões
- * - Exam simulation:
- *   - quick start usando preset curto (40 questões)
+ * - Home focada em visão geral e navegação, não em fluxo operacional detalhado
  *
  * Observações:
- * - Results e Progress já existem como áreas mais específicas
- * - Por isso, o dashboard evita repetir listas longas e detalhes excessivos
- * - O objetivo aqui é orientar o usuário e dar contexto visual rápido
+ * - Study agora possui página dedicada em /study
+ * - Results e Progress já existem como áreas específicas
+ * - O Dashboard evita repetir ações operacionais já tratadas em Study
  *
  * ✅ Atualização (2026-03-17):
- * - Dashboard redesenhado para maior impacto visual
- * - Inclusão de gráficos na home autenticada
- * - Redução de texto e remoção de áreas duplicadas
+ * - Dashboard mantido como visão geral
+ * - Removida duplicação com a nova página /study
+ * - Inclusão de card de navegação para o Study hub
  * - Uso da logo HelpUS em /img/helpus-logo.png
  * - Gráfico Activity ajustado para priorizar os dias mais recentes
  */
@@ -61,20 +48,6 @@ import { apiFetch } from "@/lib/apiClient";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 type SessionMode = "practice" | "timed_block" | "exam_sim";
-type ExamType = "step1";
-
-type CreateSessionResponse = {
-  session_id: string;
-  user_id: string;
-  mode: SessionMode;
-  exam: string;
-  language?: string;
-  timed?: boolean;
-  time_limit_seconds?: number | null;
-  status?: "in_progress" | "submitted" | "abandoned" | string;
-  started_at?: string;
-  submitted_at?: string | null;
-};
 
 type SessionSummary = {
   session_id: string;
@@ -95,39 +68,6 @@ type DailyPoint = {
   label: string;
   count: number;
 };
-
-function modeLabel(mode: SessionMode) {
-  switch (mode) {
-    case "practice":
-      return "Practice";
-    case "timed_block":
-      return "Timed block";
-    case "exam_sim":
-      return "Exam simulation";
-    default:
-      return mode;
-  }
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleString();
-}
-
-function getRecommendedCount(mode: SessionMode): number {
-  switch (mode) {
-    case "practice":
-      return 10;
-    case "timed_block":
-      return 40;
-    case "exam_sim":
-      return 40;
-    default:
-      return 10;
-  }
-}
 
 function getDateKey(value?: string | null) {
   if (!value) return null;
@@ -232,8 +172,6 @@ export default function HomePage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
 
-  const [exam] = useState<ExamType>("step1");
-  const [loading, setLoading] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
@@ -325,29 +263,6 @@ export default function HomePage() {
 
   async function handleSignOut() {
     await signOut({ callbackUrl: "/" });
-  }
-
-  async function createAndStartSession(mode: SessionMode) {
-    setLoading(true);
-    setErr(null);
-
-    try {
-      const sessionRes = await apiFetch<CreateSessionResponse>("/api/sessions", {
-        method: "POST",
-        body: JSON.stringify({ mode, exam }),
-      });
-
-      await apiFetch<{ items?: unknown[] }>(`/api/sessions/${sessionRes.session_id}/items`, {
-        method: "POST",
-        body: JSON.stringify({ count: getRecommendedCount(mode) }),
-      });
-
-      router.push(`/session/${sessionRes.session_id}`);
-    } catch (e: any) {
-      setErr(e?.message ?? "Unknown error");
-    } finally {
-      setLoading(false);
-    }
   }
 
   const userLabel =
@@ -518,7 +433,7 @@ export default function HomePage() {
 
               {[
                 "Visual dashboard with study momentum",
-                "Quick start for the 3 main study modes",
+                "Dedicated Study hub for starting and resuming sessions",
                 "Results and Progress as separate views",
                 "Session continuity across visits",
               ].map((text) => (
@@ -1071,7 +986,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Main actions */}
+          {/* Study hub card */}
           <section
             style={{
               display: "grid",
@@ -1089,71 +1004,39 @@ export default function HomePage() {
                 gap: 14,
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 20 }}>Continue studying</div>
+              <div style={{ fontWeight: 900, fontSize: 20 }}>Study hub</div>
 
-              {loadingSessions ? (
-                <div style={{ color: "#555" }}>Loading…</div>
-              ) : activeSession ? (
-                <>
-                  <div
-                    style={{
-                      padding: 14,
-                      borderRadius: 16,
-                      background: "#f8fbff",
-                      border: "1px solid #dbeafe",
-                      display: "grid",
-                      gap: 6,
-                    }}
-                  >
-                    <div style={{ fontWeight: 800 }}>{modeLabel(activeSession.mode)}</div>
-                    <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.5 }}>
-                      {formatDate(activeSession.started_at)}
-                    </div>
-                  </div>
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 16,
+                  background: activeSession ? "#f8fbff" : "#f9fafb",
+                  border: activeSession ? "1px solid #dbeafe" : "1px solid #eef2f7",
+                  color: "#4b5563",
+                  lineHeight: 1.55,
+                }}
+              >
+                {loadingSessions
+                  ? "Loading your current study status…"
+                  : activeSession
+                  ? `You have an open session waiting for you. Go to Study to resume it or start a new one.`
+                  : "Go to Study to start Practice, Timed block, or Exam simulation."}
+              </div>
 
-                  <button
-                    onClick={() => router.push(`/session/${activeSession.session_id}`)}
-                    style={{
-                      width: "100%",
-                      padding: "14px 14px",
-                      borderRadius: 14,
-                      border: "1px solid #99c2ff",
-                      background: "#f7fbff",
-                      cursor: "pointer",
-                      fontWeight: 900,
-                    }}
-                  >
-                    Resume current session
-                  </button>
-
-                  <button
-                    onClick={() => router.push(`/session/${activeSession.session_id}/review`)}
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 14,
-                      border: "1px solid #d1d5db",
-                      background: "white",
-                      cursor: "pointer",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Open review
-                  </button>
-                </>
-              ) : (
-                <div
-                  style={{
-                    padding: 14,
-                    borderRadius: 16,
-                    background: "#f9fafb",
-                    border: "1px solid #eef2f7",
-                    color: "#6b7280",
-                  }}
-                >
-                  No open session right now.
-                </div>
-              )}
+              <button
+                onClick={() => router.push("/study")}
+                style={{
+                  width: "100%",
+                  padding: "14px 14px",
+                  borderRadius: 14,
+                  border: "1px solid #d1d5db",
+                  background: "#ffffff",
+                  cursor: "pointer",
+                  fontWeight: 900,
+                }}
+              >
+                Open Study
+              </button>
             </div>
 
             <div
@@ -1163,49 +1046,31 @@ export default function HomePage() {
                 border: "1px solid #e5e7eb",
                 background: "white",
                 display: "grid",
-                gap: 10,
+                gap: 12,
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 20 }}>Start studying</div>
+              <div style={{ fontWeight: 900, fontSize: 20 }}>Quick navigation</div>
 
               {[
-                {
-                  title: "Practice",
-                  subtitle: "Untimed · immediate review",
-                  action: () => createAndStartSession("practice"),
-                  bg: "#f8fff9",
-                },
-                {
-                  title: "Timed block",
-                  subtitle: "Timed · deferred review",
-                  action: () => createAndStartSession("timed_block"),
-                  bg: "#fffdf6",
-                },
-                {
-                  title: "Exam simulation",
-                  subtitle: "Simulation-style · short preset",
-                  action: () => createAndStartSession("exam_sim"),
-                  bg: "#fff8f8",
-                },
+                { label: "Study", href: "/study" },
+                { label: "Results", href: "/results" },
+                { label: "Progress", href: "/progress" },
               ].map((item) => (
                 <button
-                  key={item.title}
-                  onClick={item.action}
-                  disabled={loading}
+                  key={item.label}
+                  onClick={() => router.push(item.href)}
                   style={{
                     width: "100%",
                     padding: "14px 14px",
                     borderRadius: 14,
-                    border: "1px solid #d1d5db",
-                    background: item.bg,
-                    cursor: loading ? "not-allowed" : "pointer",
+                    border: "1px solid #e5e7eb",
+                    background: "#fcfcfd",
+                    cursor: "pointer",
                     textAlign: "left",
+                    fontWeight: 800,
                   }}
                 >
-                  <div style={{ fontWeight: 900 }}>{item.title}</div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: "#666", lineHeight: 1.45 }}>
-                    {item.subtitle}
-                  </div>
+                  {item.label}
                 </button>
               ))}
             </div>
