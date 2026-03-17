@@ -49,7 +49,7 @@
  * - Dashboard redesenhado para maior impacto visual
  * - Inclusão de gráficos na home autenticada
  * - Redução de texto e remoção de áreas duplicadas
- * - Uso da logo HelpUS em /img/helpus-logo.png
+ * - Uso da logo HelpUS em /public/img/helpus-logo.png
  */
 
 "use client";
@@ -405,7 +405,7 @@ export default function HomePage() {
                 }}
               >
                 <img
-                  src="/img/helpus-logo.png"
+                  src="/public/img/helpus-logo.png"
                   alt="HelpUS logo"
                   style={{
                     width: 64,
@@ -584,7 +584,7 @@ export default function HomePage() {
                 }}
               >
                 <img
-                  src="/img/helpus-logo.png"
+                  src="/public/img/helpus-logo.png"
                   alt="HelpUS logo"
                   style={{
                     width: 58,
