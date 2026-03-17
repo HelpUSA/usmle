@@ -9,20 +9,24 @@
  * - Exibir o histórico de sessões do usuário de forma clara e mobile-first
  * - Permitir filtrar sessões por modo e status
  * - Permitir abrir review de sessões concluídas e retomar sessões em andamento
+ * - Funcionar também como destino alternativo após submit quando o usuário
+ *   não quiser abrir o review automaticamente
  *
  * Fonte de dados utilizada nesta versão:
  * - GET /api/sessions
  *
- * O que esta primeira versão mostra:
+ * O que esta versão mostra:
  * - total de sessões
  * - sessões concluídas
  * - sessões em andamento
+ * - sessões abandonadas
  * - filtros por modo
  * - filtros por status
  * - histórico recente em cards
  * - ações rápidas:
  *   - resume
  *   - open review
+ *   - open study
  *
  * Limitações conhecidas desta fase:
  * - Ainda não mostra score, accuracy ou tempo total por sessão
@@ -33,11 +37,12 @@
  * - Mobile-first
  * - Cards verticais
  * - Filtros simples e visíveis
- * - Navegação direta para session ou review
+ * - Navegação direta para session, review e study
  *
  * ✅ Atualização (2026-03-17):
- * - Primeira página Results criada
+ * - Página Results refinada
  * - Histórico com filtros e ações
+ * - Preparada para fluxo vindo de SessionPage
  * - Preparada para futura expansão com score e métricas por sessão
  */
 
@@ -100,6 +105,13 @@ function statusBadgeBackground(status?: string | null) {
   return "#f3f4f6";
 }
 
+function statusBorderColor(status?: string | null) {
+  if (status === "submitted") return "#d7f0dc";
+  if (status === "in_progress") return "#f0dfab";
+  if (status === "abandoned") return "#f5caca";
+  return "#e5e7eb";
+}
+
 export default function ResultsPage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
@@ -147,6 +159,16 @@ export default function ResultsPage() {
   const inProgressSessions = sessions.filter((s) => s.status === "in_progress").length;
   const abandonedSessions = sessions.filter((s) => s.status === "abandoned").length;
 
+  const latestOpenSession = useMemo(
+    () => sessions.find((s) => s.status === "in_progress") ?? null,
+    [sessions]
+  );
+
+  const latestCompletedSession = useMemo(
+    () => sessions.find((s) => s.status === "submitted") ?? null,
+    [sessions]
+  );
+
   return (
     <main
       style={{
@@ -193,8 +215,8 @@ export default function ResultsPage() {
           }}
         >
           Browse your study history, revisit completed sessions, and resume unfinished ones.
-          This first version focuses on session history and navigation. Score and deeper session
-          analytics can be added in the next iteration.
+          This version focuses on session history and navigation. Score and deeper analytics
+          can be added in the next iteration.
         </p>
       </section>
 
@@ -272,6 +294,104 @@ export default function ResultsPage() {
                 </div>
               </div>
             ))}
+          </section>
+
+          {/* Quick actions */}
+          <section
+            style={{
+              padding: 18,
+              borderRadius: 20,
+              border: "1px solid #e5e7eb",
+              background: "white",
+              display: "grid",
+              gap: 12,
+            }}
+          >
+            <div style={{ fontWeight: 900, fontSize: 20 }}>Quick actions</div>
+
+            <div
+              style={{
+                display: "grid",
+                gap: 12,
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              }}
+            >
+              {latestOpenSession ? (
+                <button
+                  onClick={() => router.push(`/session/${latestOpenSession.session_id}`)}
+                  style={{
+                    padding: "14px 14px",
+                    borderRadius: 14,
+                    border: "1px solid #e7d59d",
+                    background: "#fffdf6",
+                    cursor: "pointer",
+                    fontWeight: 800,
+                    textAlign: "left",
+                  }}
+                >
+                  <div>Resume latest open session</div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: "#6b7280", fontWeight: 600 }}>
+                    {modeLabel(latestOpenSession.mode)}
+                  </div>
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push("/study")}
+                  style={{
+                    padding: "14px 14px",
+                    borderRadius: 14,
+                    border: "1px solid #d1d5db",
+                    background: "#fcfcfd",
+                    cursor: "pointer",
+                    fontWeight: 800,
+                    textAlign: "left",
+                  }}
+                >
+                  <div>Start a new study session</div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: "#6b7280", fontWeight: 600 }}>
+                    Open Study
+                  </div>
+                </button>
+              )}
+
+              {latestCompletedSession ? (
+                <button
+                  onClick={() => router.push(`/session/${latestCompletedSession.session_id}/review`)}
+                  style={{
+                    padding: "14px 14px",
+                    borderRadius: 14,
+                    border: "1px solid #d5ead8",
+                    background: "#f8fff9",
+                    cursor: "pointer",
+                    fontWeight: 800,
+                    textAlign: "left",
+                  }}
+                >
+                  <div>Open latest completed review</div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: "#6b7280", fontWeight: 600 }}>
+                    {modeLabel(latestCompletedSession.mode)}
+                  </div>
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push("/progress")}
+                  style={{
+                    padding: "14px 14px",
+                    borderRadius: 14,
+                    border: "1px solid #d1d5db",
+                    background: "#fcfcfd",
+                    cursor: "pointer",
+                    fontWeight: 800,
+                    textAlign: "left",
+                  }}
+                >
+                  <div>Open Progress</div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: "#6b7280", fontWeight: 600 }}>
+                    View study trends
+                  </div>
+                </button>
+              )}
+            </div>
           </section>
 
           {/* Filters */}
@@ -374,7 +494,7 @@ export default function ResultsPage() {
                     style={{
                       padding: 14,
                       borderRadius: 14,
-                      border: "1px solid #f0f0f0",
+                      border: `1px solid ${statusBorderColor(s.status)}`,
                       background: "#fcfcfc",
                       display: "grid",
                       gap: 10,
@@ -436,48 +556,66 @@ export default function ResultsPage() {
                       }}
                     >
                       {s.status === "in_progress" ? (
-                        <button
-                          onClick={() => router.push(`/session/${s.session_id}`)}
-                          style={{
-                            padding: "12px 12px",
-                            borderRadius: 12,
-                            border: "1px solid #d1d5db",
-                            background: "white",
-                            cursor: "pointer",
-                            fontWeight: 700,
-                          }}
-                        >
-                          Resume session
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => router.push(`/session/${s.session_id}/review`)}
-                          style={{
-                            padding: "12px 12px",
-                            borderRadius: 12,
-                            border: "1px solid #d1d5db",
-                            background: "white",
-                            cursor: "pointer",
-                            fontWeight: 700,
-                          }}
-                        >
-                          Open review
-                        </button>
-                      )}
+                        <>
+                          <button
+                            onClick={() => router.push(`/session/${s.session_id}`)}
+                            style={{
+                              padding: "12px 12px",
+                              borderRadius: 12,
+                              border: "1px solid #d1d5db",
+                              background: "white",
+                              cursor: "pointer",
+                              fontWeight: 700,
+                            }}
+                          >
+                            Resume session
+                          </button>
 
-                      <button
-                        onClick={() => router.push("/")}
-                        style={{
-                          padding: "12px 12px",
-                          borderRadius: 12,
-                          border: "1px solid #d1d5db",
-                          background: "white",
-                          cursor: "pointer",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Go to dashboard
-                      </button>
+                          <button
+                            onClick={() => router.push("/study")}
+                            style={{
+                              padding: "12px 12px",
+                              borderRadius: 12,
+                              border: "1px solid #d1d5db",
+                              background: "white",
+                              cursor: "pointer",
+                              fontWeight: 700,
+                            }}
+                          >
+                            Open Study
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => router.push(`/session/${s.session_id}/review`)}
+                            style={{
+                              padding: "12px 12px",
+                              borderRadius: 12,
+                              border: "1px solid #d1d5db",
+                              background: "white",
+                              cursor: "pointer",
+                              fontWeight: 700,
+                            }}
+                          >
+                            Open review
+                          </button>
+
+                          <button
+                            onClick={() => router.push("/study")}
+                            style={{
+                              padding: "12px 12px",
+                              borderRadius: 12,
+                              border: "1px solid #d1d5db",
+                              background: "white",
+                              cursor: "pointer",
+                              fontWeight: 700,
+                            }}
+                          >
+                            New study session
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}

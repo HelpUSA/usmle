@@ -30,15 +30,14 @@
  * - Results:
  *   - rota real: /results
  * - Settings:
- *   - ainda não possui página
- *   - aparece como item planejado ("Soon")
+ *   - rota real: /settings
  *
  * Branding:
  * - A barra superior usa a logo real em /img/helpus-logo.png
  * - Toda referência visual principal à HelpUS aponta para o site institucional
  *
  * Contato:
- * - O item Contact agora abre o WhatsApp oficial da HelpUS
+ * - O item de contato abre o WhatsApp oficial da HelpUS
  *
  * Observações importantes:
  * - Todo hook do NextAuth (useSession, signIn, signOut) exige que
@@ -49,9 +48,9 @@
  * - Logo real da HelpUS adicionada ao topo
  * - Logo e nome da HelpUS ligados ao site externo da HelpUS
  * - Study aponta para a rota real /study
- * - Contact alterado para abrir WhatsApp
+ * - Settings aponta para a rota real /settings
+ * - Contact abre WhatsApp
  * - Menu desktop e mobile preservados
- * - Estrutura pronta para evolução futura
  */
 
 import type { Metadata } from "next";
@@ -75,30 +74,6 @@ const navLinkStyle: React.CSSProperties = {
   display: "inline-block",
 };
 
-const navSoonStyle: React.CSSProperties = {
-  color: "#9ca3af",
-  fontSize: 14,
-  fontWeight: 700,
-  padding: "10px 12px",
-  borderRadius: 10,
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 8,
-  cursor: "default",
-  userSelect: "none",
-};
-
-const soonBadgeStyle: React.CSSProperties = {
-  fontSize: 10,
-  fontWeight: 900,
-  color: "#6b7280",
-  background: "#f3f4f6",
-  border: "1px solid #e5e7eb",
-  borderRadius: 999,
-  padding: "2px 6px",
-  lineHeight: 1.2,
-};
-
 const mobileMenuLinkStyle: React.CSSProperties = {
   textDecoration: "none",
   color: "#111827",
@@ -109,21 +84,6 @@ const mobileMenuLinkStyle: React.CSSProperties = {
   display: "block",
   background: "#f9fafb",
   border: "1px solid #eceff3",
-};
-
-const mobileSoonStyle: React.CSSProperties = {
-  color: "#9ca3af",
-  fontSize: 15,
-  fontWeight: 700,
-  padding: "12px 12px",
-  borderRadius: 12,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: 8,
-  background: "#fafafa",
-  border: "1px solid #eceff3",
-  userSelect: "none",
 };
 
 export default function RootLayout({
@@ -257,11 +217,9 @@ export default function RootLayout({
                   <a href="/progress" style={navLinkStyle}>
                     Progress
                   </a>
-
-                  <span style={navSoonStyle}>
+                  <a href="/settings" style={navLinkStyle}>
                     Settings
-                    <span style={soonBadgeStyle}>Soon</span>
-                  </span>
+                  </a>
 
                   <a
                     href={HELPUS_WHATSAPP_URL}
@@ -341,11 +299,9 @@ export default function RootLayout({
                   <a href="/progress" style={mobileMenuLinkStyle}>
                     Progress
                   </a>
-
-                  <div style={mobileSoonStyle}>
-                    <span>Settings</span>
-                    <span style={soonBadgeStyle}>Soon</span>
-                  </div>
+                  <a href="/settings" style={mobileMenuLinkStyle}>
+                    Settings
+                  </a>
 
                   <a
                     href={HELPUS_SITE_URL}

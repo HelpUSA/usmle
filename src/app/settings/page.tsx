@@ -38,6 +38,7 @@
  * - Primeira página real de Settings criada
  * - Mobile-first
  * - Persistência local habilitada
+ * - Botão de reset para restaurar padrões
  */
 
 "use client";
@@ -56,6 +57,11 @@ type UserSettings = {
   confirmBeforeLeavingSession: boolean;
   emphasizeTimer: boolean;
 };
+
+type ToggleSettingKey =
+  | "autoOpenReviewAfterSubmit"
+  | "confirmBeforeLeavingSession"
+  | "emphasizeTimer";
 
 const HELPUS_SITE_URL = "https://helpusbr.com";
 const HELPUS_WHATSAPP_URL = "https://wa.me/5583998721848";
@@ -138,6 +144,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
     setSaved(true);
 
@@ -147,6 +154,17 @@ export default function SettingsPage() {
 
   async function handleSignOut() {
     await signOut({ callbackUrl: "/" });
+  }
+
+  function handleResetDefaults() {
+    setSettings(defaultSettings);
+  }
+
+  function updateToggle(key: ToggleSettingKey, value: boolean) {
+    setSettings((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   }
 
   return (
@@ -201,18 +219,43 @@ export default function SettingsPage() {
 
           <div
             style={{
-              minWidth: 110,
-              padding: "8px 12px",
-              borderRadius: 999,
-              border: "1px solid #dbeafe",
-              background: saved ? "#eff6ff" : "#f9fafb",
-              color: saved ? "#1d4ed8" : "#6b7280",
-              fontSize: 12,
-              fontWeight: 800,
-              textAlign: "center",
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
             }}
           >
-            {saved ? "Saved" : "Local settings"}
+            <button
+              onClick={handleResetDefaults}
+              style={{
+                padding: "8px 12px",
+                borderRadius: 999,
+                border: "1px solid #d1d5db",
+                background: "white",
+                color: "#374151",
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Reset defaults
+            </button>
+
+            <div
+              style={{
+                minWidth: 110,
+                padding: "8px 12px",
+                borderRadius: 999,
+                border: "1px solid #dbeafe",
+                background: saved ? "#eff6ff" : "#f9fafb",
+                color: saved ? "#1d4ed8" : "#6b7280",
+                fontSize: 12,
+                fontWeight: 800,
+                textAlign: "center",
+              }}
+            >
+              {saved ? "Saved" : "Local settings"}
+            </div>
           </div>
         </div>
       </section>
@@ -410,15 +453,15 @@ export default function SettingsPage() {
 
             {[
               {
-                key: "autoOpenReviewAfterSubmit",
+                key: "autoOpenReviewAfterSubmit" as ToggleSettingKey,
                 label: "Open review automatically after session submit",
               },
               {
-                key: "confirmBeforeLeavingSession",
+                key: "confirmBeforeLeavingSession" as ToggleSettingKey,
                 label: "Confirm before leaving an active session",
               },
               {
-                key: "emphasizeTimer",
+                key: "emphasizeTimer" as ToggleSettingKey,
                 label: "Show timer in highlighted mode during timed sessions",
               },
             ].map((item) => (
@@ -437,13 +480,8 @@ export default function SettingsPage() {
               >
                 <input
                   type="checkbox"
-                  checked={Boolean(settings[item.key as keyof UserSettings])}
-                  onChange={(e) =>
-                    setSettings((prev) => ({
-                      ...prev,
-                      [item.key]: e.target.checked,
-                    }))
-                  }
+                  checked={settings[item.key]}
+                  onChange={(e) => updateToggle(item.key, e.target.checked)}
                   style={{
                     marginTop: 2,
                     transform: "scale(1.1)",

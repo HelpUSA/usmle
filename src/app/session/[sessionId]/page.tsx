@@ -12,7 +12,7 @@
  * - Registrar tentativa por session_item
  * - Controlar navegação entre questões
  * - Respeitar o modo da sessão (practice vs timed modes)
- * - Submeter a sessão ao final e redirecionar para o review
+ * - Submeter a sessão ao final e redirecionar conforme preferências do usuário
  *
  * Contrato de API utilizado:
  * - GET    /api/sessions
@@ -33,6 +33,15 @@
  *   - timed_block / exam_sim: sem feedback imediato; revisão apenas ao final
  * - O submit da sessão deve ocorrer antes do review
  *
+ * Preferências vindas de Settings:
+ * - confirmBeforeLeavingSession:
+ *   - avisa antes de fechar/sair com sessão ativa
+ * - emphasizeTimer:
+ *   - aumenta o destaque visual do timer em sessões cronometradas
+ * - autoOpenReviewAfterSubmit:
+ *   - true  -> vai direto para /session/[sessionId]/review
+ *   - false -> vai para /results
+ *
  * Observações:
  * - Este componente é client-side por depender de interação contínua do usuário
  * - Estilo propositalmente simples (sem UI lib) para focar no fluxo funcional
@@ -47,7 +56,8 @@
  * - Diferenciação visível entre practice, timed_block e exam_sim
  * - Timer regressivo para modos cronometrados
  * - Timed modes com review diferido (sem feedback imediato por questão)
- * - Expiração automática do tempo com submit + redirecionamento ao review
+ * - Expiração automática do tempo com submit + redirecionamento
+ * - Integração com Settings via localStorage
  */
 
 "use client";
@@ -91,11 +101,6 @@ type QuestionResponse = {
   };
   question: {
     stem: string;
-    /**
-     * prompt é opcional no GET do player:
-     * - Pode vir vazio se o endpoint atual retornar só `stem`.
-     * - Se vier preenchido, exibimos abaixo do stem como "question line".
-     */
     prompt?: string | null;
   };
   choices: Array<{
@@ -130,6 +135,67 @@ type AttemptResponse = {
   choices?: AttemptChoice[] | null;
 };
 
+type UserSettings = {
+  defaultExam: "step1";
+  defaultMode: "practice" | "timed_block" | "exam_sim";
+  practiceQuestionCount: number;
+  autoOpenReviewAfterSubmit: boolean;
+  confirmBeforeLeavingSession: boolean;
+  emphasizeTimer: boolean;
+};
+
+const SETTINGS_STORAGE_KEY = "usmle_user_settings_v1";
+
+const defaultSettings: UserSettings = {
+  defaultExam: "step1",
+  defaultMode: "practice",
+  practiceQuestionCount: 10,
+  autoOpenReviewAfterSubmit: true,
+  confirmBeforeLeavingSession: true,
+  emphasizeTimer: true,
+};
+
+function loadSettings(): UserSettings {
+  if (typeof window === "undefined") return defaultSettings;
+
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return defaultSettings;
+
+    const parsed = JSON.parse(raw) as Partial<UserSettings>;
+
+    return {
+      defaultExam: "step1",
+      defaultMode:
+        parsed.defaultMode === "practice" ||
+        parsed.defaultMode === "timed_block" ||
+        parsed.defaultMode === "exam_sim"
+          ? parsed.defaultMode
+          : defaultSettings.defaultMode,
+      practiceQuestionCount:
+        typeof parsed.practiceQuestionCount === "number" &&
+        parsed.practiceQuestionCount >= 1 &&
+        parsed.practiceQuestionCount <= 200
+          ? parsed.practiceQuestionCount
+          : defaultSettings.practiceQuestionCount,
+      autoOpenReviewAfterSubmit:
+        typeof parsed.autoOpenReviewAfterSubmit === "boolean"
+          ? parsed.autoOpenReviewAfterSubmit
+          : defaultSettings.autoOpenReviewAfterSubmit,
+      confirmBeforeLeavingSession:
+        typeof parsed.confirmBeforeLeavingSession === "boolean"
+          ? parsed.confirmBeforeLeavingSession
+          : defaultSettings.confirmBeforeLeavingSession,
+      emphasizeTimer:
+        typeof parsed.emphasizeTimer === "boolean"
+          ? parsed.emphasizeTimer
+          : defaultSettings.emphasizeTimer,
+    };
+  } catch {
+    return defaultSettings;
+  }
+}
+
 function formatRemainingTime(totalSeconds: number) {
   const safe = Math.max(0, totalSeconds);
   const hours = Math.floor(safe / 3600);
@@ -148,6 +214,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
   const sessionId = params.sessionId;
 
   const [sessionMeta, setSessionMeta] = useState<SessionSummary | null>(null);
+  const [userSettings, setUserSettings] = useState<UserSettings>(defaultSettings);
 
   const [items, setItems] = useState<SessionItem[]>([]);
   const [idx, setIdx] = useState(0);
@@ -160,15 +227,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
   const [loadingSessionMeta, setLoadingSessionMeta] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  /**
-   * Estados do fluxo didático:
-   * - submitted: usuário já clicou submit nessa questão?
-   * - feedback: payload retornado pelo POST attempt com explicações
-   *
-   * Importante:
-   * - Em practice, submitted=true mostra feedback e exige um segundo clique para avançar.
-   * - Em timed modes, submitted praticamente não entra em cena porque o avanço é imediato.
-   */
   const [submitted, setSubmitted] = useState(false);
   const [feedback, setFeedback] = useState<AttemptResponse | null>(null);
 
@@ -176,8 +234,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
   const [autoSubmitting, setAutoSubmitting] = useState(false);
 
   const autoSubmitTriggeredRef = useRef(false);
-
-  // Timestamp de início da questão atual (para cálculo de time_spent_seconds)
   const questionStartedAtRef = useRef<number | null>(null);
 
   const current = useMemo(() => items[idx], [items, idx]);
@@ -188,15 +244,27 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     (isTimedMode ? "deferred" : "immediate");
   const showImmediateFeedback = reviewStrategy === "immediate";
 
-  /**
-   * Busca os metadados da sessão atual.
-   *
-   * Hoje usamos GET /api/sessions e filtramos localmente por session_id,
-   * porque o projeto ainda não expõe uma rota dedicada GET /api/sessions/:sessionId.
-   */
+  useEffect(() => {
+    setUserSettings(loadSettings());
+
+    function syncSettings() {
+      setUserSettings(loadSettings());
+    }
+
+    window.addEventListener("focus", syncSettings);
+    window.addEventListener("storage", syncSettings);
+
+    return () => {
+      window.removeEventListener("focus", syncSettings);
+      window.removeEventListener("storage", syncSettings);
+    };
+  }, []);
+
   useEffect(() => {
     (async () => {
       setLoadingSessionMeta(true);
+      setErr(null);
+
       try {
         const res = await apiFetch<{ sessions: SessionSummary[] }>("/api/sessions");
         const found = (res.sessions ?? []).find((s) => s.session_id === sessionId) ?? null;
@@ -215,14 +283,22 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     })();
   }, [sessionId]);
 
-  /**
-   * Timer regressivo para timed modes.
-   *
-   * Estratégia:
-   * - calcula o prazo final com base em started_at + time_limit_seconds
-   * - atualiza remainingSeconds a cada 1s
-   * - ao chegar em 0, dispara submit automático uma única vez
-   */
+  useEffect(() => {
+    if (!userSettings.confirmBeforeLeavingSession) return;
+    if (!sessionMeta) return;
+    if (sessionMeta.status !== "in_progress") return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [userSettings.confirmBeforeLeavingSession, sessionMeta]);
+
   useEffect(() => {
     if (!sessionMeta?.timed) {
       setRemainingSeconds(null);
@@ -244,7 +320,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
 
       if (remaining <= 0 && !autoSubmitTriggeredRef.current) {
         autoSubmitTriggeredRef.current = true;
-        void submitSessionAndGoToReview(true);
+        void submitSessionAndRedirect(true);
       }
     }
 
@@ -256,11 +332,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     };
   }, [sessionMeta]);
 
-  /**
-   * Garante que os itens da sessão existam.
-   * Usa POST (idempotente) como contrato principal.
-   * Mantém fallback para GET caso a implementação atual ainda aceite apenas GET.
-   */
   useEffect(() => {
     (async () => {
       setLoadingItems(true);
@@ -274,11 +345,10 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
             method: "POST",
           });
         } catch {
-          // fallback defensivo
           res = await apiFetch<{ items: SessionItem[] }>(`/api/sessions/${sessionId}/items`);
         }
 
-        setItems(res.items);
+        setItems(res.items ?? []);
         setIdx(0);
       } catch (e: any) {
         setErr(e?.message ?? "Failed to load session items");
@@ -288,13 +358,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     })();
   }, [sessionId]);
 
-  /**
-   * Carrega a questão correspondente ao item atual
-   *
-   * Importante:
-   * - Resetamos seleção e feedback ao trocar de questão
-   * - Reiniciamos o timer de tempo gasto por questão
-   */
   useEffect(() => {
     (async () => {
       if (!current) return;
@@ -302,14 +365,15 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
       setErr(null);
       setSelected(null);
       setQ(null);
-
       setSubmitted(false);
       setFeedback(null);
 
       questionStartedAtRef.current = Date.now();
 
       try {
-        const res = await apiFetch<QuestionResponse>(`/api/session-items/${current.session_item_id}/question`);
+        const res = await apiFetch<QuestionResponse>(
+          `/api/session-items/${current.session_item_id}/question`
+        );
         setQ(res);
       } catch (e: any) {
         setErr(e?.message ?? "Failed to load question");
@@ -317,14 +381,13 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     })();
   }, [current?.session_item_id]);
 
-  /**
-   * Submete a sessão e vai para o review.
-   * Pode ser chamado:
-   * - manualmente pelo botão Finish & Review
-   * - ao terminar a última questão
-   * - automaticamente quando o tempo expira
-   */
-  async function submitSessionAndGoToReview(fromTimer = false) {
+  function getPostSubmitDestination() {
+    return userSettings.autoOpenReviewAfterSubmit
+      ? `/session/${sessionId}/review`
+      : `/results`;
+  }
+
+  async function submitSessionAndRedirect(fromTimer = false) {
     if (saving || autoSubmitting) return;
 
     if (fromTimer) {
@@ -337,7 +400,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
 
     try {
       await apiFetch(`/api/sessions/${sessionId}/submit`, { method: "POST" });
-      router.push(`/session/${sessionId}/review`);
+      router.push(getPostSubmitDestination());
     } catch (e: any) {
       setErr(e?.message ?? "Failed to submit session");
       autoSubmitTriggeredRef.current = false;
@@ -350,18 +413,10 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     }
   }
 
-  /**
-   * Submete a sessão manualmente (botão Finish & Review)
-   */
   async function finish() {
-    await submitSessionAndGoToReview(false);
+    await submitSessionAndRedirect(false);
   }
 
-  /**
-   * Normaliza "is_correct" a partir de formatos diferentes do backend.
-   * - Preferimos is_correct boolean se existir
-   * - Caso contrário, usamos result (correct/wrong)
-   */
   function normalizeIsCorrect(fb: AttemptResponse | null): boolean | null {
     if (!fb) return null;
     if (typeof fb.is_correct === "boolean") return fb.is_correct;
@@ -370,37 +425,27 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     return null;
   }
 
-  /**
-   * Envia a tentativa OU avança, dependendo do modo e do estado.
-   *
-   * Practice:
-   * 1) Submit: envia attempt, recebe feedback, NÃO avança
-   * 2) Next: avança para próxima questão (ou Review na última)
-   *
-   * Timed modes:
-   * 1) Submit: envia attempt e avança imediatamente, sem revelar feedback
-   */
   async function submitOrNext() {
     if (!current) return;
 
-    // Practice: segundo passo do fluxo (Next / Go to Review)
     if (showImmediateFeedback && submitted) {
       if (idx < items.length - 1) {
         setIdx(idx + 1);
       } else {
-        await submitSessionAndGoToReview(false);
+        await submitSessionAndRedirect(false);
       }
       return;
     }
 
-    // Primeiro submit sempre exige uma opção selecionada
     if (!selected) return;
 
     setSaving(true);
     setErr(null);
 
     const startedAt = questionStartedAtRef.current;
-    const timeSpentSeconds = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 1000)) : 10;
+    const timeSpentSeconds = startedAt
+      ? Math.max(1, Math.round((Date.now() - startedAt) / 1000))
+      : 10;
 
     try {
       const fb = await apiFetch<AttemptResponse>(
@@ -419,11 +464,10 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
         setFeedback(fb ?? null);
         setSubmitted(true);
       } else {
-        // Timed modes: não revela feedback, apenas avança
         if (idx < items.length - 1) {
           setIdx(idx + 1);
         } else {
-          await submitSessionAndGoToReview(false);
+          await submitSessionAndRedirect(false);
         }
       }
     } catch (e: any) {
@@ -435,14 +479,6 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
 
   const isCorrect = normalizeIsCorrect(feedback);
 
-  /**
-   * Depois do submit em practice, preferimos renderizar choices do FEEDBACK,
-   * porque elas incluem:
-   * - is_correct
-   * - explanation
-   *
-   * Antes do submit, ou em timed modes, usamos apenas as choices do GET.
-   */
   const visibleChoices = useMemo(() => {
     if (!q) return [];
     if (!showImmediateFeedback) return q.choices;
@@ -470,6 +506,33 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
         return "Session";
     }
   }, [sessionMeta?.mode]);
+
+  const timerStyle: React.CSSProperties =
+    isTimedMode && userSettings.emphasizeTimer
+      ? {
+          width: "100%",
+          maxWidth: 260,
+          padding: "14px 16px",
+          borderRadius: 16,
+          border: "2px solid #e7c77a",
+          background:
+            remainingSeconds !== null && remainingSeconds <= 300 ? "#fdecea" : "#fff8e1",
+          fontWeight: 900,
+          fontSize: 18,
+          textAlign: "center",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+        }
+      : {
+          width: "100%",
+          maxWidth: 240,
+          padding: "10px 12px",
+          borderRadius: 12,
+          border: "1px solid #e7c77a",
+          background:
+            remainingSeconds !== null && remainingSeconds <= 300 ? "#fdecea" : "#fff8e1",
+          fontWeight: 800,
+          textAlign: "center",
+        };
 
   return (
     <main
@@ -540,20 +603,17 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           </div>
         </div>
 
-        <div style={{ display: "grid", gap: 8, justifyItems: "end", flex: "0 1 240px", width: "100%" }}>
+        <div
+          style={{
+            display: "grid",
+            gap: 8,
+            justifyItems: "end",
+            flex: "0 1 260px",
+            width: "100%",
+          }}
+        >
           {isTimedMode && remainingSeconds !== null ? (
-            <div
-              style={{
-                width: "100%",
-                maxWidth: 240,
-                padding: "10px 12px",
-                borderRadius: 12,
-                border: "1px solid #e7c77a",
-                background: remainingSeconds <= 300 ? "#fdecea" : "#fff8e1",
-                fontWeight: 800,
-                textAlign: "center",
-              }}
-            >
+            <div style={timerStyle}>
               Time left: {formatRemainingTime(remainingSeconds)}
             </div>
           ) : null}
@@ -620,7 +680,8 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
               const isSelected = selected === c.choice_id;
 
               const showAfter = showImmediateFeedback && submitted;
-              const isCorrectChoice = showAfter && (c.is_correct === true || c.choice_id === correctChoiceId);
+              const isCorrectChoice =
+                showAfter && (c.is_correct === true || c.choice_id === correctChoiceId);
               const isWrongSelected = showAfter && isSelected && !isCorrectChoice;
 
               return (
@@ -697,7 +758,8 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                 padding: 14,
                 borderRadius: 14,
                 border: "1px solid #ddd",
-                background: isCorrect === true ? "#e9f7ef" : isCorrect === false ? "#fdecea" : "#f7f7f7",
+                background:
+                  isCorrect === true ? "#e9f7ef" : isCorrect === false ? "#fdecea" : "#f7f7f7",
               }}
             >
               <div style={{ fontWeight: 900, marginBottom: 8 }}>
@@ -705,13 +767,27 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
               </div>
 
               {feedback?.explanation_short ? (
-                <div style={{ marginTop: 6, fontSize: 14, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 14,
+                    whiteSpace: "pre-wrap",
+                    lineHeight: 1.5,
+                  }}
+                >
                   {feedback.explanation_short}
                 </div>
               ) : null}
 
               {feedback?.explanation_long ? (
-                <div style={{ marginTop: 10, fontSize: 14, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+                <div
+                  style={{
+                    marginTop: 10,
+                    fontSize: 14,
+                    whiteSpace: "pre-wrap",
+                    lineHeight: 1.5,
+                  }}
+                >
                   {feedback.explanation_long}
                 </div>
               ) : null}
@@ -737,7 +813,14 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                         ) : null}
 
                         {b.note ? (
-                          <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4, whiteSpace: "pre-wrap" }}>
+                          <div
+                            style={{
+                              fontSize: 12,
+                              opacity: 0.85,
+                              marginTop: 4,
+                              whiteSpace: "pre-wrap",
+                            }}
+                          >
                             {b.note}
                           </div>
                         ) : null}
@@ -770,7 +853,9 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
               : showImmediateFeedback && submitted
               ? idx < items.length - 1
                 ? "Next"
-                : "Go to Review"
+                : userSettings.autoOpenReviewAfterSubmit
+                ? "Go to Review"
+                : "Finish Session"
               : idx < items.length - 1
               ? "Submit"
               : isTimedMode

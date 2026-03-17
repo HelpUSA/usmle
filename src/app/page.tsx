@@ -1019,7 +1019,7 @@ export default function HomePage() {
                 {loadingSessions
                   ? "Loading your current study status…"
                   : activeSession
-                  ? `You have an open session waiting for you. Go to Study to resume it or start a new one.`
+                  ? "You have an open session waiting for you. Go to Study to resume it or start a new one."
                   : "Go to Study to start Practice, Timed block, or Exam simulation."}
               </div>
 
@@ -1055,6 +1055,7 @@ export default function HomePage() {
                 { label: "Study", href: "/study" },
                 { label: "Results", href: "/results" },
                 { label: "Progress", href: "/progress" },
+                { label: "Settings", href: "/settings" },
               ].map((item) => (
                 <button
                   key={item.label}

@@ -397,24 +397,16 @@ export default function ProgressPage() {
 
               <div
                 style={{
-                  display: "flex",
-                  gap: 8,
-                  flexWrap: "wrap",
+                  fontSize: 12,
+                  padding: "6px 10px",
+                  borderRadius: 999,
+                  border: "1px solid #dbeafe",
+                  background: "#eff6ff",
+                  color: "#1d4ed8",
+                  fontWeight: 800,
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 12,
-                    padding: "6px 10px",
-                    borderRadius: 999,
-                    border: "1px solid #dbeafe",
-                    background: "#eff6ff",
-                    color: "#1d4ed8",
-                    fontWeight: 800,
-                  }}
-                >
-                  Peak day: {peakDay.label} ({peakDay.count})
-                </div>
+                Peak day: {peakDay.label} ({peakDay.count})
               </div>
             </div>
 
@@ -559,8 +551,7 @@ export default function ProgressPage() {
                     const previous = modePercents
                       .slice(0, idx)
                       .reduce((sum, value) => sum + value, 0);
-                    const offset =
-                      circumference - (previous / 100) * circumference;
+                    const offset = circumference - (previous / 100) * circumference;
 
                     return (
                       <circle
@@ -683,8 +674,7 @@ export default function ProgressPage() {
                     const previous = statusPercents
                       .slice(0, idx)
                       .reduce((sum, value) => sum + value, 0);
-                    const offset =
-                      circumference - (previous / 100) * circumference;
+                    const offset = circumference - (previous / 100) * circumference;
 
                     return (
                       <circle
