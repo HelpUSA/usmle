@@ -54,13 +54,14 @@
  *
  * ✅ Atualização (2026-03-17 · navegação protegida):
  * - Menu global agora respeita confirmBeforeLeavingSession
- * - Links internos do menu verificam existência de sessão ativa (status = in_progress)
+ * - Links internos do menu usam ProtectedNavLink
  * - Se houver sessão ativa e a preferência estiver habilitada, mostra confirmação antes de sair
  * - Links externos (site HelpUS / WhatsApp) permanecem sem bloqueio
  */
 
 import type { Metadata } from "next";
 import Providers from "./providers";
+import ProtectedNavLink from "./ProtectedNavLink";
 
 export const metadata: Metadata = {
   title: "HelpUS · USMLE Platform",
@@ -91,101 +92,6 @@ const mobileMenuLinkStyle: React.CSSProperties = {
   background: "#f9fafb",
   border: "1px solid #eceff3",
 };
-
-const guardedNavigationScript = `
-(function () {
-  const SETTINGS_STORAGE_KEY = "usmle_user_settings_v1";
-  const GUARD_SELECTOR = "[data-confirm-leaving-session='true']";
-  const ACTIVE_SESSION_WARNING =
-    "You have an active study session. Leave this page and abandon the current flow?";
-
-  function loadSettings() {
-    try {
-      const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
-      if (!raw) {
-        return { confirmBeforeLeavingSession: true };
-      }
-
-      const parsed = JSON.parse(raw);
-      return {
-        confirmBeforeLeavingSession:
-          typeof parsed?.confirmBeforeLeavingSession === "boolean"
-            ? parsed.confirmBeforeLeavingSession
-            : true,
-      };
-    } catch {
-      return { confirmBeforeLeavingSession: true };
-    }
-  }
-
-  function isPlainLeftClick(event) {
-    return (
-      event.button === 0 &&
-      !event.metaKey &&
-      !event.ctrlKey &&
-      !event.shiftKey &&
-      !event.altKey
-    );
-  }
-
-  async function hasActiveSession() {
-    try {
-      const res = await fetch("/api/sessions", {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-        credentials: "same-origin",
-        cache: "no-store",
-      });
-
-      if (!res.ok) return false;
-
-      const data = await res.json();
-      const sessions = Array.isArray(data?.sessions) ? data.sessions : [];
-
-      return sessions.some((session) => session?.status === "in_progress");
-    } catch {
-      return false;
-    }
-  }
-
-  async function onDocumentClick(event) {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-
-    const anchor = target.closest(GUARD_SELECTOR);
-    if (!(anchor instanceof HTMLAnchorElement)) return;
-
-    if (!isPlainLeftClick(event)) return;
-    if (anchor.target && anchor.target !== "_self") return;
-    if (anchor.hasAttribute("download")) return;
-
-    const href = anchor.getAttribute("href");
-    if (!href || href.startsWith("#")) return;
-
-    const settings = loadSettings();
-    if (!settings.confirmBeforeLeavingSession) return;
-
-    event.preventDefault();
-
-    const shouldWarn = await hasActiveSession();
-    if (!shouldWarn) {
-      window.location.href = anchor.href;
-      return;
-    }
-
-    const confirmed = window.confirm(ACTIVE_SESSION_WARNING);
-    if (confirmed) {
-      window.location.href = anchor.href;
-    }
-  }
-
-  document.addEventListener("click", function (event) {
-    void onDocumentClick(event);
-  });
-})();
-`;
 
 export default function RootLayout({
   children,
@@ -227,8 +133,6 @@ export default function RootLayout({
               margin: 0 auto;
             }
           `}</style>
-
-          <script dangerouslySetInnerHTML={{ __html: guardedNavigationScript }} />
 
           {/* HEADER */}
           <header
@@ -308,21 +212,21 @@ export default function RootLayout({
                     flexWrap: "wrap",
                   }}
                 >
-                  <a href="/" style={navLinkStyle} data-confirm-leaving-session="true">
+                  <ProtectedNavLink href="/" style={navLinkStyle}>
                     Dashboard
-                  </a>
-                  <a href="/study" style={navLinkStyle} data-confirm-leaving-session="true">
+                  </ProtectedNavLink>
+                  <ProtectedNavLink href="/study" style={navLinkStyle}>
                     Study
-                  </a>
-                  <a href="/results" style={navLinkStyle} data-confirm-leaving-session="true">
+                  </ProtectedNavLink>
+                  <ProtectedNavLink href="/results" style={navLinkStyle}>
                     Results
-                  </a>
-                  <a href="/progress" style={navLinkStyle} data-confirm-leaving-session="true">
+                  </ProtectedNavLink>
+                  <ProtectedNavLink href="/progress" style={navLinkStyle}>
                     Progress
-                  </a>
-                  <a href="/settings" style={navLinkStyle} data-confirm-leaving-session="true">
+                  </ProtectedNavLink>
+                  <ProtectedNavLink href="/settings" style={navLinkStyle}>
                     Settings
-                  </a>
+                  </ProtectedNavLink>
 
                   <a
                     href={HELPUS_WHATSAPP_URL}
@@ -390,41 +294,21 @@ export default function RootLayout({
                     gap: 10,
                   }}
                 >
-                  <a
-                    href="/"
-                    style={mobileMenuLinkStyle}
-                    data-confirm-leaving-session="true"
-                  >
+                  <ProtectedNavLink href="/" style={mobileMenuLinkStyle}>
                     Dashboard
-                  </a>
-                  <a
-                    href="/study"
-                    style={mobileMenuLinkStyle}
-                    data-confirm-leaving-session="true"
-                  >
+                  </ProtectedNavLink>
+                  <ProtectedNavLink href="/study" style={mobileMenuLinkStyle}>
                     Study
-                  </a>
-                  <a
-                    href="/results"
-                    style={mobileMenuLinkStyle}
-                    data-confirm-leaving-session="true"
-                  >
+                  </ProtectedNavLink>
+                  <ProtectedNavLink href="/results" style={mobileMenuLinkStyle}>
                     Results
-                  </a>
-                  <a
-                    href="/progress"
-                    style={mobileMenuLinkStyle}
-                    data-confirm-leaving-session="true"
-                  >
+                  </ProtectedNavLink>
+                  <ProtectedNavLink href="/progress" style={mobileMenuLinkStyle}>
                     Progress
-                  </a>
-                  <a
-                    href="/settings"
-                    style={mobileMenuLinkStyle}
-                    data-confirm-leaving-session="true"
-                  >
+                  </ProtectedNavLink>
+                  <ProtectedNavLink href="/settings" style={mobileMenuLinkStyle}>
                     Settings
-                  </a>
+                  </ProtectedNavLink>
 
                   <a
                     href={HELPUS_SITE_URL}
