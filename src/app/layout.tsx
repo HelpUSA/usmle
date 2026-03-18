@@ -51,6 +51,12 @@
  * - Settings aponta para a rota real /settings
  * - Contact abre WhatsApp
  * - Menu desktop e mobile preservados
+ *
+ * ✅ Atualização (2026-03-17 · navegação protegida):
+ * - Menu global agora respeita confirmBeforeLeavingSession
+ * - Links internos do menu verificam existência de sessão ativa (status = in_progress)
+ * - Se houver sessão ativa e a preferência estiver habilitada, mostra confirmação antes de sair
+ * - Links externos (site HelpUS / WhatsApp) permanecem sem bloqueio
  */
 
 import type { Metadata } from "next";
@@ -85,6 +91,101 @@ const mobileMenuLinkStyle: React.CSSProperties = {
   background: "#f9fafb",
   border: "1px solid #eceff3",
 };
+
+const guardedNavigationScript = `
+(function () {
+  const SETTINGS_STORAGE_KEY = "usmle_user_settings_v1";
+  const GUARD_SELECTOR = "[data-confirm-leaving-session='true']";
+  const ACTIVE_SESSION_WARNING =
+    "You have an active study session. Leave this page and abandon the current flow?";
+
+  function loadSettings() {
+    try {
+      const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (!raw) {
+        return { confirmBeforeLeavingSession: true };
+      }
+
+      const parsed = JSON.parse(raw);
+      return {
+        confirmBeforeLeavingSession:
+          typeof parsed?.confirmBeforeLeavingSession === "boolean"
+            ? parsed.confirmBeforeLeavingSession
+            : true,
+      };
+    } catch {
+      return { confirmBeforeLeavingSession: true };
+    }
+  }
+
+  function isPlainLeftClick(event) {
+    return (
+      event.button === 0 &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.shiftKey &&
+      !event.altKey
+    );
+  }
+
+  async function hasActiveSession() {
+    try {
+      const res = await fetch("/api/sessions", {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+
+      if (!res.ok) return false;
+
+      const data = await res.json();
+      const sessions = Array.isArray(data?.sessions) ? data.sessions : [];
+
+      return sessions.some((session) => session?.status === "in_progress");
+    } catch {
+      return false;
+    }
+  }
+
+  async function onDocumentClick(event) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const anchor = target.closest(GUARD_SELECTOR);
+    if (!(anchor instanceof HTMLAnchorElement)) return;
+
+    if (!isPlainLeftClick(event)) return;
+    if (anchor.target && anchor.target !== "_self") return;
+    if (anchor.hasAttribute("download")) return;
+
+    const href = anchor.getAttribute("href");
+    if (!href || href.startsWith("#")) return;
+
+    const settings = loadSettings();
+    if (!settings.confirmBeforeLeavingSession) return;
+
+    event.preventDefault();
+
+    const shouldWarn = await hasActiveSession();
+    if (!shouldWarn) {
+      window.location.href = anchor.href;
+      return;
+    }
+
+    const confirmed = window.confirm(ACTIVE_SESSION_WARNING);
+    if (confirmed) {
+      window.location.href = anchor.href;
+    }
+  }
+
+  document.addEventListener("click", function (event) {
+    void onDocumentClick(event);
+  });
+})();
+`;
 
 export default function RootLayout({
   children,
@@ -126,6 +227,8 @@ export default function RootLayout({
               margin: 0 auto;
             }
           `}</style>
+
+          <script dangerouslySetInnerHTML={{ __html: guardedNavigationScript }} />
 
           {/* HEADER */}
           <header
@@ -205,19 +308,19 @@ export default function RootLayout({
                     flexWrap: "wrap",
                   }}
                 >
-                  <a href="/" style={navLinkStyle}>
+                  <a href="/" style={navLinkStyle} data-confirm-leaving-session="true">
                     Dashboard
                   </a>
-                  <a href="/study" style={navLinkStyle}>
+                  <a href="/study" style={navLinkStyle} data-confirm-leaving-session="true">
                     Study
                   </a>
-                  <a href="/results" style={navLinkStyle}>
+                  <a href="/results" style={navLinkStyle} data-confirm-leaving-session="true">
                     Results
                   </a>
-                  <a href="/progress" style={navLinkStyle}>
+                  <a href="/progress" style={navLinkStyle} data-confirm-leaving-session="true">
                     Progress
                   </a>
-                  <a href="/settings" style={navLinkStyle}>
+                  <a href="/settings" style={navLinkStyle} data-confirm-leaving-session="true">
                     Settings
                   </a>
 
@@ -287,19 +390,39 @@ export default function RootLayout({
                     gap: 10,
                   }}
                 >
-                  <a href="/" style={mobileMenuLinkStyle}>
+                  <a
+                    href="/"
+                    style={mobileMenuLinkStyle}
+                    data-confirm-leaving-session="true"
+                  >
                     Dashboard
                   </a>
-                  <a href="/study" style={mobileMenuLinkStyle}>
+                  <a
+                    href="/study"
+                    style={mobileMenuLinkStyle}
+                    data-confirm-leaving-session="true"
+                  >
                     Study
                   </a>
-                  <a href="/results" style={mobileMenuLinkStyle}>
+                  <a
+                    href="/results"
+                    style={mobileMenuLinkStyle}
+                    data-confirm-leaving-session="true"
+                  >
                     Results
                   </a>
-                  <a href="/progress" style={mobileMenuLinkStyle}>
+                  <a
+                    href="/progress"
+                    style={mobileMenuLinkStyle}
+                    data-confirm-leaving-session="true"
+                  >
                     Progress
                   </a>
-                  <a href="/settings" style={mobileMenuLinkStyle}>
+                  <a
+                    href="/settings"
+                    style={mobileMenuLinkStyle}
+                    data-confirm-leaving-session="true"
+                  >
                     Settings
                   </a>
 
