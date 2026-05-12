@@ -19,7 +19,7 @@
  * - This page does not mutate backend state.
  * - Correctness and answer mapping are computed by the backend.
  * - The page route is singular: /session/[sessionId]/review.
- * - The Back button must therefore navigate to /session/[sessionId].
+ * - The Back button navigates to /results instead of reopening the submitted player.
  */
 
 "use client";
@@ -232,6 +232,10 @@ export default function ReviewPage({
     if (next) setActivePos(next.position);
   }
 
+  function goBackToResults() {
+    router.push("/results");
+  }
+
   return (
     <div
       style={{
@@ -335,10 +339,10 @@ export default function ReviewPage({
             </button>
 
             <button
-              onClick={() => router.push(`/session/${sessionId}`)}
+              onClick={goBackToResults}
               disabled={loading}
               style={btnSmall(loading)}
-              title="Back to session"
+              title="Back to results"
             >
               Back
             </button>
@@ -542,7 +546,11 @@ export default function ReviewPage({
                         const isCorrect = choice.is_correct === true;
 
                         const tone: "neutral" | "correct" | "wrong" =
-                          isCorrect ? "correct" : isSelected ? "wrong" : "neutral";
+                          isCorrect
+                            ? "correct"
+                            : isSelected
+                            ? "wrong"
+                            : "neutral";
 
                         const title =
                           isCorrect && isSelected
