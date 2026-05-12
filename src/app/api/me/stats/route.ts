@@ -1,19 +1,136 @@
+/*
+ * File: src/app/api/me/stats/route.ts
+ *
+ * Responsibility:
+ * - Return authenticated-user performance statistics.
+ * - Aggregate submitted-session attempts over a configurable date range.
+ * - Provide:
+ *   - overall attempt metrics;
+ *   - metrics grouped by exam;
+ *   - metrics grouped by study mode.
+ *
+ * API contract:
+ * - GET /api/me/stats?range=30
+ *
+ * Auth contract:
+ * - User identity is resolved by getUserIdForApi(req).
+ * - In production, this should resolve through the authenticated NextAuth session.
+ * - In development/test, getUserIdForApi may also allow a validated x-user-id.
+ *
+ * Data contract:
+ * - Only submitted sessions are counted.
+ * - Attempts counted as answered are result IN ('correct', 'wrong', 'skipped').
+ * - Accuracy = correct / answered.
+ */
+
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { withTx } from "@/lib/db";
 import { getUserIdForApi } from "@/lib/auth";
 
-const QuerySchema = z.object({
-  range: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(365)
-    .default(30),
-});
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-// GET /api/me/stats?range=30
-// MVP: overall + by_exam (somente sessões submitted)
+const QuerySchema = z
+  .object({
+    range: z.coerce.number().int().min(1).max(365).default(30),
+  })
+  .strict();
+
+type AggregateRow = {
+  answered?: number | string | null;
+  correct?: number | string | null;
+  wrong?: number | string | null;
+  skipped?: number | string | null;
+  avg_time_seconds?: number | string | null;
+};
+
+type ByExamRow = AggregateRow & {
+  exam?: string | null;
+};
+
+type ByModeRow = AggregateRow & {
+  mode?: string | null;
+};
+
+type NormalizedAggregate = {
+  answered: number;
+  correct: number;
+  wrong: number;
+  skipped: number;
+  accuracy: number;
+  avg_time_seconds: number;
+};
+
+function toNumber(value: unknown): number {
+  const numeric = Number(value ?? 0);
+
+  if (!Number.isFinite(numeric)) {
+    return 0;
+  }
+
+  return numeric;
+}
+
+function normalizeAggregate(row: AggregateRow | null | undefined): NormalizedAggregate {
+  const answered = toNumber(row?.answered);
+  const correct = toNumber(row?.correct);
+
+  return {
+    answered,
+    correct,
+    wrong: toNumber(row?.wrong),
+    skipped: toNumber(row?.skipped),
+    accuracy: answered > 0 ? correct / answered : 0,
+    avg_time_seconds: toNumber(row?.avg_time_seconds),
+  };
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ZodError) {
+    return error.issues
+      .map((issue) => `${issue.path.join(".") || "query"}: ${issue.message}`)
+      .join("; ");
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error;
+  }
+
+  return fallback;
+}
+
+function isAuthError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+
+  return (
+    message.includes("unauthorized") ||
+    message.includes("not authenticated") ||
+    message.includes("authentication required") ||
+    message.includes("sign in")
+  );
+}
+
+function getErrorStatus(error: unknown): number {
+  if (error instanceof ZodError) {
+    return 400;
+  }
+
+  if (isAuthError(error)) {
+    return 401;
+  }
+
+  return 500;
+}
+
 export async function GET(req: Request) {
   try {
     const userId = await getUserIdForApi(req);
@@ -22,14 +139,14 @@ export async function GET(req: Request) {
     const parsed = QuerySchema.parse({
       range: url.searchParams.get("range") ?? undefined,
     });
+
     const rangeDays = parsed.range;
 
-    const result = await withTx(async (client) => {
-      // Overall
+    const payload = await withTx(async (client) => {
       const overallRes = await client.query(
         `
         SELECT
-          COUNT(*) FILTER (WHERE a.result IN ('correct','wrong','skipped'))::int AS answered,
+          COUNT(*) FILTER (WHERE a.result IN ('correct', 'wrong', 'skipped'))::int AS answered,
           COUNT(*) FILTER (WHERE a.result = 'correct')::int AS correct,
           COUNT(*) FILTER (WHERE a.result = 'wrong')::int AS wrong,
           COUNT(*) FILTER (WHERE a.result = 'skipped')::int AS skipped,
@@ -37,30 +154,22 @@ export async function GET(req: Request) {
         FROM attempts a
         JOIN sessions s ON s.session_id = a.session_id
         WHERE a.user_id = $1
+          AND s.user_id = $1
           AND s.status = 'submitted'
-          AND s.submitted_at >= (now() - ($2 || ' days')::interval)
+          AND s.submitted_at >= (now() - ($2::int * interval '1 day'))
         `,
-        [userId, String(rangeDays)]
+        [userId, rangeDays]
       );
 
-      const o = overallRes.rows[0] ?? {
-        answered: 0,
-        correct: 0,
-        wrong: 0,
-        skipped: 0,
-        avg_time_seconds: 0,
-      };
+      const overall = normalizeAggregate(
+        (overallRes.rows?.[0] ?? null) as AggregateRow | null
+      );
 
-      const answered = Number(o.answered ?? 0);
-      const correct = Number(o.correct ?? 0);
-      const accuracy = answered > 0 ? correct / answered : 0;
-
-      // By exam
       const byExamRes = await client.query(
         `
         SELECT
           s.exam,
-          COUNT(*) FILTER (WHERE a.result IN ('correct','wrong','skipped'))::int AS answered,
+          COUNT(*) FILTER (WHERE a.result IN ('correct', 'wrong', 'skipped'))::int AS answered,
           COUNT(*) FILTER (WHERE a.result = 'correct')::int AS correct,
           COUNT(*) FILTER (WHERE a.result = 'wrong')::int AS wrong,
           COUNT(*) FILTER (WHERE a.result = 'skipped')::int AS skipped,
@@ -68,50 +177,71 @@ export async function GET(req: Request) {
         FROM attempts a
         JOIN sessions s ON s.session_id = a.session_id
         WHERE a.user_id = $1
+          AND s.user_id = $1
           AND s.status = 'submitted'
-          AND s.submitted_at >= (now() - ($2 || ' days')::interval)
+          AND s.submitted_at >= (now() - ($2::int * interval '1 day'))
         GROUP BY s.exam
         ORDER BY s.exam ASC
         `,
-        [userId, String(rangeDays)]
+        [userId, rangeDays]
       );
 
-      const by_exam = (byExamRes.rows ?? []).map((r: any) => {
-        const ans = Number(r.answered ?? 0);
-        const cor = Number(r.correct ?? 0);
-        return {
-          exam: r.exam,
-          answered: ans,
-          correct: cor,
-          wrong: Number(r.wrong ?? 0),
-          skipped: Number(r.skipped ?? 0),
-          accuracy: ans > 0 ? cor / ans : 0,
-          avg_time_seconds: Number(r.avg_time_seconds ?? 0),
-        };
-      });
+      const byModeRes = await client.query(
+        `
+        SELECT
+          s.mode,
+          COUNT(*) FILTER (WHERE a.result IN ('correct', 'wrong', 'skipped'))::int AS answered,
+          COUNT(*) FILTER (WHERE a.result = 'correct')::int AS correct,
+          COUNT(*) FILTER (WHERE a.result = 'wrong')::int AS wrong,
+          COUNT(*) FILTER (WHERE a.result = 'skipped')::int AS skipped,
+          COALESCE(AVG(a.time_spent_seconds), 0)::float AS avg_time_seconds
+        FROM attempts a
+        JOIN sessions s ON s.session_id = a.session_id
+        WHERE a.user_id = $1
+          AND s.user_id = $1
+          AND s.status = 'submitted'
+          AND s.submitted_at >= (now() - ($2::int * interval '1 day'))
+        GROUP BY s.mode
+        ORDER BY s.mode ASC
+        `,
+        [userId, rangeDays]
+      );
+
+      const by_exam = ((byExamRes.rows ?? []) as ByExamRow[]).map((row) => ({
+        exam: row.exam ?? "unknown",
+        ...normalizeAggregate(row),
+      }));
+
+      const by_mode = ((byModeRes.rows ?? []) as ByModeRow[]).map((row) => ({
+        mode: row.mode ?? "unknown",
+        ...normalizeAggregate(row),
+      }));
 
       return {
-        status: 200 as const,
-        payload: {
-          range_days: rangeDays,
-          overall: {
-            answered,
-            correct,
-            wrong: Number(o.wrong ?? 0),
-            skipped: Number(o.skipped ?? 0),
-            accuracy,
-            avg_time_seconds: Number(o.avg_time_seconds ?? 0),
-          },
-          by_exam,
-        },
+        range_days: rangeDays,
+        overall,
+        by_exam,
+        by_mode,
       };
     });
 
-    return NextResponse.json(result.payload, { status: result.status });
-  } catch (err: any) {
+    return NextResponse.json(payload, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 400 }
+      {
+        error: getErrorMessage(error, "Failed to load user statistics"),
+      },
+      {
+        status: getErrorStatus(error),
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
     );
   }
 }

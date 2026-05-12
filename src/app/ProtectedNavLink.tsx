@@ -1,8 +1,29 @@
+/*
+ * File: src/app/ProtectedNavLink.tsx
+ *
+ * Responsibility:
+ * - Provide a protected internal navigation link for the global app shell.
+ * - Respect the user's local confirmBeforeLeavingSession preference.
+ * - Warn before leaving an active session route when there is an in_progress session.
+ *
+ * Important behavior:
+ * - External links should not use this component.
+ * - Normal browser behaviors are preserved:
+ *   - open in new tab;
+ *   - ctrl/cmd click;
+ *   - shift click;
+ *   - already-prevented events.
+ * - The warning is intentionally limited to current routes under /session.
+ */
+
 "use client";
 
-import * as React from "react";
+import type { ComponentProps, MouseEvent, ReactNode } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+
+type LinkHref = ComponentProps<typeof Link>["href"];
 
 type UserSettings = {
   confirmBeforeLeavingSession?: boolean;
@@ -15,21 +36,35 @@ type SessionsListResponse = {
   }>;
 };
 
+export type ProtectedNavLinkProps = Omit<ComponentProps<typeof Link>, "onClick"> & {
+  children: ReactNode;
+  confirmMessage?: string;
+  requireSessionLeaveConfirm?: boolean;
+  onAfterConfirmed?: () => void;
+};
+
 const SETTINGS_STORAGE_KEY = "usmle_user_settings_v1";
+
 const ACTIVE_SESSION_WARNING =
   "You have an active study session. Leave this page and abandon the current flow?";
 
 function loadUserSettings(): UserSettings {
+  if (typeof window === "undefined") {
+    return { confirmBeforeLeavingSession: true };
+  }
+
   try {
     const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+
     if (!raw) {
       return { confirmBeforeLeavingSession: true };
     }
 
     const parsed = JSON.parse(raw) as UserSettings;
+
     return {
       confirmBeforeLeavingSession:
-        typeof parsed?.confirmBeforeLeavingSession === "boolean"
+        typeof parsed.confirmBeforeLeavingSession === "boolean"
           ? parsed.confirmBeforeLeavingSession
           : true,
     };
@@ -54,23 +89,63 @@ async function hasActiveSession(): Promise<boolean> {
     }
 
     const data = (await res.json()) as SessionsListResponse;
-    const sessions = Array.isArray(data?.sessions) ? data.sessions : [];
+    const sessions = Array.isArray(data.sessions) ? data.sessions : [];
 
-    return sessions.some((session) => session?.status === "in_progress");
+    return sessions.some((session) => session.status === "in_progress");
   } catch {
     return false;
   }
 }
 
-export type ProtectedNavLinkProps = Omit<
-  React.ComponentProps<typeof Link>,
-  "onClick"
-> & {
-  children: React.ReactNode;
-  confirmMessage?: string;
-  requireSessionLeaveConfirm?: boolean;
-  onAfterConfirmed?: () => void;
-};
+function isModifiedNavigationClick(event: MouseEvent<HTMLAnchorElement>): boolean {
+  return (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  );
+}
+
+function isSessionRoute(pathname: string | null): boolean {
+  return Boolean(pathname && pathname.startsWith("/session/"));
+}
+
+function normalizeHref(href: LinkHref): string {
+  if (typeof href === "string") {
+    return href;
+  }
+
+  const pathname = href.pathname ?? "";
+
+  const queryParams = new URLSearchParams();
+
+  if (href.query) {
+    for (const [key, value] of Object.entries(href.query)) {
+      if (value === undefined) {
+        continue;
+      }
+
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          queryParams.append(key, String(item));
+        }
+      } else {
+        queryParams.set(key, String(value));
+      }
+    }
+  }
+
+  const query = queryParams.toString();
+  const hash = href.hash
+    ? href.hash.startsWith("#")
+      ? href.hash
+      : `#${href.hash}`
+    : "";
+
+  return `${pathname}${query ? `?${query}` : ""}${hash}`;
+}
 
 export default function ProtectedNavLink({
   children,
@@ -81,27 +156,32 @@ export default function ProtectedNavLink({
   ...props
 }: ProtectedNavLinkProps) {
   const router = useRouter();
-  const [isChecking, setIsChecking] = React.useState(false);
+  const pathname = usePathname();
+  const [isChecking, setIsChecking] = useState(false);
 
-  const handleClick = React.useCallback(
-    async (event: React.MouseEvent<HTMLAnchorElement>) => {
-      if (!requireSessionLeaveConfirm) {
+  const targetHref = useMemo(() => normalizeHref(href), [href]);
+
+  const shouldProtectCurrentRoute = useMemo(() => {
+    return requireSessionLeaveConfirm && isSessionRoute(pathname);
+  }, [pathname, requireSessionLeaveConfirm]);
+
+  const handleClick = useCallback(
+    async (event: MouseEvent<HTMLAnchorElement>) => {
+      if (!shouldProtectCurrentRoute) {
         return;
       }
 
-      if (
-        event.defaultPrevented ||
-        event.button !== 0 ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey
-      ) {
+      if (isModifiedNavigationClick(event)) {
         return;
       }
 
       const settings = loadUserSettings();
+
       if (!settings.confirmBeforeLeavingSession) {
+        return;
+      }
+
+      if (pathname === targetHref) {
         return;
       }
 
@@ -116,35 +196,38 @@ export default function ProtectedNavLink({
       try {
         const shouldWarn = await hasActiveSession();
 
-        if (!shouldWarn) {
-          onAfterConfirmed?.();
-          router.push(String(href));
-          return;
-        }
+        if (shouldWarn) {
+          const confirmed = window.confirm(confirmMessage);
 
-        const confirmed = window.confirm(confirmMessage);
-        if (!confirmed) {
-          return;
+          if (!confirmed) {
+            return;
+          }
         }
 
         onAfterConfirmed?.();
-        router.push(String(href));
+        router.push(targetHref);
       } finally {
         setIsChecking(false);
       }
     },
     [
       confirmMessage,
-      href,
       isChecking,
       onAfterConfirmed,
-      requireSessionLeaveConfirm,
+      pathname,
       router,
+      shouldProtectCurrentRoute,
+      targetHref,
     ]
   );
 
   return (
-    <Link href={href} onClick={handleClick} {...props}>
+    <Link
+      href={href}
+      onClick={handleClick}
+      aria-disabled={isChecking ? true : undefined}
+      {...props}
+    >
       {children}
     </Link>
   );

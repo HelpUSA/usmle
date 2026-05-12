@@ -1,29 +1,26 @@
-/**
- * NextAuth Route Handler (NextAuth v4)
+/*
+ * File: src/app/api/auth/[...nextauth]/route.ts
  *
- * 📍 Localização:
- * src/app/api/auth/[...nextauth]/route.ts
+ * Responsibility:
+ * - Expose NextAuth v4 GET/POST route handlers in the Next.js App Router.
+ * - Use the centralized authOptions from src/auth.ts.
  *
- * Objetivo:
- * - Expor handlers GET/POST do NextAuth no App Router
- * - Usar configuração CENTRALIZADA de autenticação (src/auth.ts)
+ * Important behavior:
+ * - Do not define authOptions here.
+ * - Authentication providers, callbacks, session strategy, JWT settings,
+ *   and secret handling must remain centralized in src/auth.ts.
  *
- * Motivo da mudança:
- * - Evita duplicação de config (providers, callbacks, session)
- * - Garante que getServerSession() e login usem a MESMA lógica
- * - Permite controle correto de expiração (maxAge)
- *
- * ⚠️ Regra importante:
- * - NÃO definir authOptions aqui
- * - Toda configuração deve ficar em: src/auth.ts
- *
- * ✅ Atualização:
- * - Agora usa authOptions central
- * - Compatível com sessão JWT + expiração configurada
+ * Runtime behavior:
+ * - Authentication must run dynamically.
+ * - This route uses the Node.js runtime because NextAuth v4 depends on
+ *   Node-compatible behavior.
  */
 
 import NextAuth from "next-auth";
 import { authOptions } from "@/auth";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const handler = NextAuth(authOptions);
 

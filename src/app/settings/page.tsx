@@ -1,50 +1,29 @@
-/**
- * SettingsPage
+/*
+ * File: src/app/settings/page.tsx
  *
- * 📍 Localização:
- * src/app/settings/page.tsx
+ * Responsibility:
+ * - Render the user Settings page.
+ * - Let the signed-in user review account information.
+ * - Let the user configure local study preferences used by:
+ *   - src/app/study/page.tsx;
+ *   - src/app/session/[sessionId]/page.tsx;
+ *   - src/app/ProtectedNavLink.tsx.
  *
- * Objetivo:
- * - Criar a primeira página real de configurações do usuário
- * - Oferecer uma área clara para preferências pessoais e de estudo
- * - Funcionar bem em celular e desktop
+ * Current persistence strategy:
+ * - Settings are stored in localStorage under usmle_user_settings_v1.
+ * - This keeps the UX functional before a backend settings table/profile field
+ *   is introduced.
  *
- * Escopo desta primeira versão:
- * - Account:
- *   - nome
- *   - email
- *   - logout
- * - Study defaults:
- *   - exame padrão
- *   - modo padrão
- *   - quantidade padrão para Practice
- * - Session preferences:
- *   - abrir review automaticamente ao final
- *   - confirmar antes de abandonar sessão
- *   - timer destacado
- * - Support:
- *   - link para WhatsApp HelpUS
- *   - link para site HelpUS
- *
- * Persistência nesta fase:
- * - Preferências ficam salvas em localStorage
- * - Isso permite UX funcional antes de criar backend específico de settings
- *
- * Observações:
- * - Em versão futura, essas preferências podem migrar para users_profile/settings_json
- * - A UI já foi organizada pensando nessa evolução
- *
- * ✅ Atualização (2026-03-17):
- * - Primeira página real de Settings criada
- * - Mobile-first
- * - Persistência local habilitada
- * - Botão de reset para restaurar padrões
+ * Important behavior:
+ * - Does not overwrite saved localStorage values before hydration completes.
+ * - Keeps the local settings schema compatible with the rest of the app.
+ * - Settings can later migrate to users_profile/settings_json.
  */
 
 "use client";
 
 import { useEffect, useState } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 type StudyMode = "practice" | "timed_block" | "exam_sim";
 type ExamType = "step1";
@@ -76,40 +55,61 @@ const defaultSettings: UserSettings = {
   emphasizeTimer: true,
 };
 
+function isStudyMode(value: unknown): value is StudyMode {
+  return value === "practice" || value === "timed_block" || value === "exam_sim";
+}
+
+function isExamType(value: unknown): value is ExamType {
+  return value === "step1";
+}
+
+function clampPracticeQuestionCount(value: unknown): number {
+  const numeric = Number(value);
+
+  if (!Number.isFinite(numeric)) {
+    return defaultSettings.practiceQuestionCount;
+  }
+
+  return Math.min(200, Math.max(1, Math.round(numeric)));
+}
+
 function loadSettings(): UserSettings {
-  if (typeof window === "undefined") return defaultSettings;
+  if (typeof window === "undefined") {
+    return defaultSettings;
+  }
 
   try {
     const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
-    if (!raw) return defaultSettings;
+
+    if (!raw) {
+      return defaultSettings;
+    }
 
     const parsed = JSON.parse(raw) as Partial<UserSettings>;
 
     return {
-      defaultExam:
-        parsed.defaultExam === "step1"
-          ? "step1"
-          : defaultSettings.defaultExam,
-      defaultMode:
-        parsed.defaultMode === "practice" ||
-        parsed.defaultMode === "timed_block" ||
-        parsed.defaultMode === "exam_sim"
-          ? parsed.defaultMode
-          : defaultSettings.defaultMode,
-      practiceQuestionCount:
-        typeof parsed.practiceQuestionCount === "number" &&
-        parsed.practiceQuestionCount >= 1 &&
-        parsed.practiceQuestionCount <= 200
-          ? parsed.practiceQuestionCount
-          : defaultSettings.practiceQuestionCount,
+      defaultExam: isExamType(parsed.defaultExam)
+        ? parsed.defaultExam
+        : defaultSettings.defaultExam,
+
+      defaultMode: isStudyMode(parsed.defaultMode)
+        ? parsed.defaultMode
+        : defaultSettings.defaultMode,
+
+      practiceQuestionCount: clampPracticeQuestionCount(
+        parsed.practiceQuestionCount
+      ),
+
       autoOpenReviewAfterSubmit:
         typeof parsed.autoOpenReviewAfterSubmit === "boolean"
           ? parsed.autoOpenReviewAfterSubmit
           : defaultSettings.autoOpenReviewAfterSubmit,
+
       confirmBeforeLeavingSession:
         typeof parsed.confirmBeforeLeavingSession === "boolean"
           ? parsed.confirmBeforeLeavingSession
           : defaultSettings.confirmBeforeLeavingSession,
+
       emphasizeTimer:
         typeof parsed.emphasizeTimer === "boolean"
           ? parsed.emphasizeTimer
@@ -120,7 +120,7 @@ function loadSettings(): UserSettings {
   }
 }
 
-function modeLabel(mode: StudyMode) {
+function modeLabel(mode: StudyMode): string {
   switch (mode) {
     case "practice":
       return "Practice";
@@ -128,8 +128,21 @@ function modeLabel(mode: StudyMode) {
       return "Timed block";
     case "exam_sim":
       return "Exam simulation";
-    default:
-      return mode;
+    default: {
+      const exhaustiveCheck: never = mode;
+      return exhaustiveCheck;
+    }
+  }
+}
+
+function examLabel(exam: ExamType): string {
+  switch (exam) {
+    case "step1":
+      return "Step 1";
+    default: {
+      const exhaustiveCheck: never = exam;
+      return exhaustiveCheck;
+    }
   }
 }
 
@@ -137,23 +150,34 @@ export default function SettingsPage() {
   const { data: session, status } = useSession();
 
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
+  const [hasLoadedSettings, setHasLoadedSettings] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const isSignedIn = !!session?.user?.email;
+  const isAuthLoading = status === "loading";
+  const isSignedIn =
+    status === "authenticated" && Boolean(session?.user?.email);
 
   useEffect(() => {
     setSettings(loadSettings());
+    setHasLoadedSettings(true);
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!hasLoadedSettings || typeof window === "undefined") {
+      return;
+    }
 
     window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
     setSaved(true);
 
-    const t = window.setTimeout(() => setSaved(false), 1200);
-    return () => window.clearTimeout(t);
-  }, [settings]);
+    const timer = window.setTimeout(() => setSaved(false), 1200);
+
+    return () => window.clearTimeout(timer);
+  }, [settings, hasLoadedSettings]);
+
+  async function handleSignIn() {
+    await signIn("google", { callbackUrl: "/settings" });
+  }
 
   async function handleSignOut() {
     await signOut({ callbackUrl: "/" });
@@ -188,7 +212,7 @@ export default function SettingsPage() {
         }}
       >
         <div style={{ fontSize: 12, color: "#6b7280" }}>
-          {status === "loading"
+          {isAuthLoading
             ? "Loading session…"
             : isSignedIn
             ? `Signed in as ${session?.user?.email}`
@@ -215,7 +239,14 @@ export default function SettingsPage() {
             >
               Settings
             </h1>
-            <div style={{ marginTop: 6, color: "#4b5563", lineHeight: 1.55 }}>
+
+            <div
+              style={{
+                marginTop: 6,
+                color: "#4b5563",
+                lineHeight: 1.55,
+              }}
+            >
               Personalize your account and study defaults.
             </div>
           </div>
@@ -229,7 +260,9 @@ export default function SettingsPage() {
             }}
           >
             <button
+              type="button"
               onClick={handleResetDefaults}
+              disabled={!hasLoadedSettings}
               style={{
                 padding: "8px 12px",
                 borderRadius: 999,
@@ -238,7 +271,8 @@ export default function SettingsPage() {
                 color: "#374151",
                 fontSize: 12,
                 fontWeight: 800,
-                cursor: "pointer",
+                cursor: hasLoadedSettings ? "pointer" : "not-allowed",
+                opacity: hasLoadedSettings ? 1 : 0.55,
               }}
             >
               Reset defaults
@@ -246,7 +280,7 @@ export default function SettingsPage() {
 
             <div
               style={{
-                minWidth: 110,
+                minWidth: 116,
                 padding: "8px 12px",
                 borderRadius: 999,
                 border: "1px solid #dbeafe",
@@ -257,13 +291,17 @@ export default function SettingsPage() {
                 textAlign: "center",
               }}
             >
-              {saved ? "Saved" : "Local settings"}
+              {!hasLoadedSettings
+                ? "Loading"
+                : saved
+                ? "Saved"
+                : "Local settings"}
             </div>
           </div>
         </div>
       </section>
 
-      {!isSignedIn ? (
+      {isAuthLoading ? (
         <section
           style={{
             padding: 18,
@@ -272,12 +310,45 @@ export default function SettingsPage() {
             background: "white",
           }}
         >
+          Loading your account…
+        </section>
+      ) : !isSignedIn ? (
+        <section
+          style={{
+            padding: 18,
+            borderRadius: 20,
+            border: "1px solid #e5e7eb",
+            background: "white",
+            display: "grid",
+            gap: 12,
+          }}
+        >
           <div style={{ fontWeight: 900, fontSize: 20 }}>
             Sign in to use settings
           </div>
-          <div style={{ marginTop: 8, color: "#555", lineHeight: 1.6 }}>
-            Settings are more useful when tied to your study account.
+
+          <div style={{ color: "#555", lineHeight: 1.6 }}>
+            Settings are more useful when tied to your study account. Local
+            preferences will still be preserved in this browser.
           </div>
+
+          <button
+            type="button"
+            onClick={() => void handleSignIn()}
+            style={{
+              width: "100%",
+              maxWidth: 260,
+              padding: "12px 14px",
+              borderRadius: 14,
+              border: "1px solid #111827",
+              background: "#111827",
+              color: "white",
+              cursor: "pointer",
+              fontWeight: 900,
+            }}
+          >
+            Continue with Google
+          </button>
         </section>
       ) : (
         <>
@@ -300,43 +371,14 @@ export default function SettingsPage() {
                 gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
               }}
             >
-              <div
-                style={{
-                  padding: 14,
-                  borderRadius: 16,
-                  border: "1px solid #eef2f7",
-                  background: "#fcfcfd",
-                }}
-              >
-                <div style={{ fontSize: 12, color: "#6b7280" }}>Name</div>
-                <div style={{ marginTop: 6, fontWeight: 800 }}>
-                  {session?.user?.name ?? "—"}
-                </div>
-              </div>
+              <InfoCard label="Name" value={session?.user?.name ?? "—"} />
 
-              <div
-                style={{
-                  padding: 14,
-                  borderRadius: 16,
-                  border: "1px solid #eef2f7",
-                  background: "#fcfcfd",
-                }}
-              >
-                <div style={{ fontSize: 12, color: "#6b7280" }}>Email</div>
-                <div
-                  style={{
-                    marginTop: 6,
-                    fontWeight: 800,
-                    wordBreak: "break-word",
-                  }}
-                >
-                  {session?.user?.email ?? "—"}
-                </div>
-              </div>
+              <InfoCard label="Email" value={session?.user?.email ?? "—"} />
             </div>
 
             <button
-              onClick={handleSignOut}
+              type="button"
+              onClick={() => void handleSignOut()}
               style={{
                 width: "100%",
                 maxWidth: 220,
@@ -365,15 +407,22 @@ export default function SettingsPage() {
             <div style={{ fontWeight: 900, fontSize: 20 }}>Study defaults</div>
 
             <div style={{ display: "grid", gap: 6 }}>
-              <label style={{ fontSize: 13, color: "#555" }}>Default exam</label>
+              <label style={{ fontSize: 13, color: "#555" }}>
+                Default exam
+              </label>
+
               <select
                 value={settings.defaultExam}
-                onChange={(e) =>
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+
                   setSettings((prev) => ({
                     ...prev,
-                    defaultExam: e.target.value as ExamType,
-                  }))
-                }
+                    defaultExam: isExamType(nextValue)
+                      ? nextValue
+                      : defaultSettings.defaultExam,
+                  }));
+                }}
                 style={{
                   padding: "12px 12px",
                   borderRadius: 12,
@@ -383,18 +432,30 @@ export default function SettingsPage() {
               >
                 <option value="step1">Step 1</option>
               </select>
+
+              <div style={{ fontSize: 12, color: "#6b7280" }}>
+                Current default:{" "}
+                <strong>{examLabel(settings.defaultExam)}</strong>
+              </div>
             </div>
 
             <div style={{ display: "grid", gap: 6 }}>
-              <label style={{ fontSize: 13, color: "#555" }}>Default mode</label>
+              <label style={{ fontSize: 13, color: "#555" }}>
+                Default mode
+              </label>
+
               <select
                 value={settings.defaultMode}
-                onChange={(e) =>
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+
                   setSettings((prev) => ({
                     ...prev,
-                    defaultMode: e.target.value as StudyMode,
-                  }))
-                }
+                    defaultMode: isStudyMode(nextValue)
+                      ? nextValue
+                      : defaultSettings.defaultMode,
+                  }));
+                }}
                 style={{
                   padding: "12px 12px",
                   borderRadius: 12,
@@ -406,8 +467,10 @@ export default function SettingsPage() {
                 <option value="timed_block">Timed block</option>
                 <option value="exam_sim">Exam simulation</option>
               </select>
+
               <div style={{ fontSize: 12, color: "#6b7280" }}>
-                Current default: <strong>{modeLabel(settings.defaultMode)}</strong>
+                Current default:{" "}
+                <strong>{modeLabel(settings.defaultMode)}</strong>
               </div>
             </div>
 
@@ -415,17 +478,17 @@ export default function SettingsPage() {
               <label style={{ fontSize: 13, color: "#555" }}>
                 Practice question count
               </label>
+
               <input
                 type="number"
                 min={1}
                 max={200}
                 value={settings.practiceQuestionCount}
-                onChange={(e) =>
+                onChange={(event) =>
                   setSettings((prev) => ({
                     ...prev,
-                    practiceQuestionCount: Math.min(
-                      200,
-                      Math.max(1, Number(e.target.value) || 1)
+                    practiceQuestionCount: clampPracticeQuestionCount(
+                      event.target.value
                     ),
                   }))
                 }
@@ -435,8 +498,10 @@ export default function SettingsPage() {
                   border: "1px solid #d1d5db",
                 }}
               />
+
               <div style={{ fontSize: 12, color: "#6b7280" }}>
-                Used as the preferred count for daily untimed study.
+                Used as the preferred count for daily untimed study. Allowed
+                range: 1 to 200.
               </div>
             </div>
           </section>
@@ -451,20 +516,28 @@ export default function SettingsPage() {
               gap: 14,
             }}
           >
-            <div style={{ fontWeight: 900, fontSize: 20 }}>Session behavior</div>
+            <div style={{ fontWeight: 900, fontSize: 20 }}>
+              Session behavior
+            </div>
 
             {[
               {
-                key: "autoOpenReviewAfterSubmit" as ToggleSettingKey,
+                key: "autoOpenReviewAfterSubmit" as const,
                 label: "Open review automatically after session submit",
+                description:
+                  "After finishing a session, go straight to the review page instead of the results page.",
               },
               {
-                key: "confirmBeforeLeavingSession" as ToggleSettingKey,
+                key: "confirmBeforeLeavingSession" as const,
                 label: "Confirm before leaving an active session",
+                description:
+                  "Show a warning before navigating away from an active session route.",
               },
               {
-                key: "emphasizeTimer" as ToggleSettingKey,
+                key: "emphasizeTimer" as const,
                 label: "Show timer in highlighted mode during timed sessions",
+                description:
+                  "Make the countdown visually stronger in timed blocks and exam simulation.",
               },
             ].map((item) => (
               <label
@@ -483,13 +556,27 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={settings[item.key]}
-                  onChange={(e) => updateToggle(item.key, e.target.checked)}
+                  onChange={(event) =>
+                    updateToggle(item.key, event.target.checked)
+                  }
                   style={{
-                    marginTop: 2,
+                    marginTop: 3,
                     transform: "scale(1.1)",
                   }}
                 />
-                <div style={{ lineHeight: 1.5 }}>{item.label}</div>
+
+                <div style={{ lineHeight: 1.5 }}>
+                  <div style={{ fontWeight: 800 }}>{item.label}</div>
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: 13,
+                      color: "#6b7280",
+                    }}
+                  >
+                    {item.description}
+                  </div>
+                </div>
               </label>
             ))}
           </section>
@@ -551,5 +638,32 @@ export default function SettingsPage() {
         </>
       )}
     </main>
+  );
+}
+
+function InfoCard(props: { label: string; value: string }) {
+  const { label, value } = props;
+
+  return (
+    <div
+      style={{
+        padding: 14,
+        borderRadius: 16,
+        border: "1px solid #eef2f7",
+        background: "#fcfcfd",
+      }}
+    >
+      <div style={{ fontSize: 12, color: "#6b7280" }}>{label}</div>
+
+      <div
+        style={{
+          marginTop: 6,
+          fontWeight: 800,
+          wordBreak: "break-word",
+        }}
+      >
+        {value}
+      </div>
+    </div>
   );
 }

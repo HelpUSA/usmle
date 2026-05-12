@@ -1,45 +1,159 @@
-/**
- * Session Item Question Route (GET)
+/*
+ * File: src/app/api/session-items/[sessionItemId]/question/route.ts
  *
- * 📍 Localização:
- * src/app/api/session-items/[sessionItemId]/question/route.ts
+ * Responsibility:
+ * - Load the question associated with a session_item.
+ * - Validate that the session_item belongs to the authenticated user.
+ * - Return only pre-submit-safe question data:
+ *   - minimal session_item metadata;
+ *   - question_version stem/prompt-safe metadata;
+ *   - choices without is_correct and without explanations.
  *
- * Responsabilidades:
- * - Carregar a questão associada a um session_item
- * - Validar que o session_item pertence ao usuário autenticado
- * - Retornar:
- *   - metadados mínimos do session_item
- *   - conteúdo da question_version
- *   - choices sem is_correct
+ * API contract:
+ * - GET /api/session-items/:sessionItemId/question
  *
- * Regras importantes:
- * - Requer autenticação (NextAuth) ou header dev x-user-id
- * - NÃO retorna explicações nem gabarito antes do submit
+ * Auth contract:
+ * - User identity is resolved by getUserIdForApi(req).
+ * - In production, this should resolve through the authenticated NextAuth session.
+ * - In development/test, getUserIdForApi may allow a validated x-user-id.
  *
- * Observações:
- * - TS-safe: usa rows.length em vez de rowCount
- *
- * ✅ Atualização (2026-03-17):
- * - Troca de getUserIdFromRequest por getUserIdForApi
- * - Agora funciona corretamente no browser autenticado e no modo dev/teste
- * - Mantém blindagem para não vazar feedback antes da resposta
+ * Security behavior:
+ * - Does not return:
+ *   - question_choices.is_correct;
+ *   - question_choices.explanation;
+ *   - question_versions.explanation_short;
+ *   - question_versions.explanation_long;
+ *   - bibliography.
+ * - Refuses access if the session item belongs to another user.
+ * - Refuses question loading after the session is no longer in_progress.
  */
 
 import { NextResponse } from "next/server";
+import { z, ZodError } from "zod";
 import { withTx } from "@/lib/db";
 import { getUserIdForApi } from "@/lib/auth";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { sessionItemId: string } }
-) {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const ParamsSchema = z.object({
+  sessionItemId: z.string().uuid("Invalid sessionItemId"),
+});
+
+type RouteParams = {
+  params: {
+    sessionItemId: string;
+  };
+};
+
+type SessionItemJoinRow = {
+  session_item_id: string;
+  session_id: string;
+  position: number;
+  question_version_id: string;
+  user_id: string;
+  status: string;
+};
+
+type QuestionVersionPublicRow = {
+  question_version_id: string;
+  exam: string;
+  language: string;
+  difficulty: string | null;
+  stem: string;
+  prompt?: string | null;
+};
+
+type ChoicePublicRow = {
+  choice_id: string;
+  label: string;
+  choice_text: string;
+};
+
+type QuestionPayload = {
+  session_item: {
+    session_item_id: string;
+    session_id: string;
+    position: number;
+    question_version_id: string;
+  };
+  question: QuestionVersionPublicRow;
+  choices: ChoicePublicRow[];
+};
+
+type RouteResult =
+  | {
+      status: 200;
+      payload: QuestionPayload;
+    }
+  | {
+      status: 403 | 404 | 409 | 500;
+      payload: {
+        error: string;
+      };
+    };
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ZodError) {
+    return error.issues
+      .map((issue) => `${issue.path.join(".") || "request"}: ${issue.message}`)
+      .join("; ");
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error;
+  }
+
+  return fallback;
+}
+
+function isAuthError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+
+  return (
+    message.includes("unauthorized") ||
+    message.includes("not authenticated") ||
+    message.includes("authentication required") ||
+    message.includes("sign in")
+  );
+}
+
+function getErrorStatus(error: unknown): number {
+  if (error instanceof ZodError) {
+    return 400;
+  }
+
+  if (isAuthError(error)) {
+    return 401;
+  }
+
+  return 500;
+}
+
+function jsonResponse(result: RouteResult) {
+  return NextResponse.json(result.payload, {
+    status: result.status,
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+export async function GET(req: Request, { params }: RouteParams) {
   try {
     const userId = await getUserIdForApi(req);
-    const { sessionItemId } = params;
+    const { sessionItemId } = ParamsSchema.parse(params);
 
-    const result = await withTx(async (client) => {
-      // 1) item + valida dono da sessão + status da sessão
-      const itemRes = await client.query(
+    const result = await withTx<RouteResult>(async (client) => {
+      const itemRes = await client.query<SessionItemJoinRow>(
         `
         SELECT
           si.session_item_id,
@@ -57,50 +171,56 @@ export async function GET(
 
       if (itemRes.rows.length === 0) {
         return {
-          status: 404 as const,
+          status: 404,
           payload: { error: "Session item not found" },
         };
       }
 
-      const item = itemRes.rows[0] as {
-        session_item_id: string;
-        session_id: string;
-        position: number;
-        question_version_id: string;
-        user_id: string;
-        status: string;
-      };
+      const item = itemRes.rows[0];
 
       if (item.user_id !== userId) {
-        return { status: 403 as const, payload: { error: "Forbidden" } };
+        return {
+          status: 403,
+          payload: { error: "Forbidden" },
+        };
       }
 
-      // 2) question_version (SEM explicações para não vazar gabarito)
-      const qvRes = await client.query(
+      if (item.status !== "in_progress") {
+        return {
+          status: 409,
+          payload: { error: "Session is not in_progress" },
+        };
+      }
+
+      const questionRes = await client.query<QuestionVersionPublicRow>(
         `
         SELECT
           question_version_id,
           exam,
           language,
           difficulty,
-          stem
+          stem,
+          prompt
         FROM question_versions
         WHERE question_version_id = $1
+        LIMIT 1
         `,
         [item.question_version_id]
       );
 
-      if (qvRes.rows.length === 0) {
+      if (questionRes.rows.length === 0) {
         return {
-          status: 500 as const,
-          payload: { error: "Question version not found (data integrity)" },
+          status: 500,
+          payload: { error: "Question version not found" },
         };
       }
 
-      // 3) choices (sem is_correct)
-      const choicesRes = await client.query(
+      const choicesRes = await client.query<ChoicePublicRow>(
         `
-        SELECT choice_id, label, choice_text
+        SELECT
+          choice_id,
+          label,
+          choice_text
         FROM question_choices
         WHERE question_version_id = $1
         ORDER BY label ASC
@@ -109,7 +229,7 @@ export async function GET(
       );
 
       return {
-        status: 200 as const,
+        status: 200,
         payload: {
           session_item: {
             session_item_id: item.session_item_id,
@@ -117,17 +237,24 @@ export async function GET(
             position: item.position,
             question_version_id: item.question_version_id,
           },
-          question: qvRes.rows[0],
+          question: questionRes.rows[0],
           choices: choicesRes.rows,
         },
       };
     });
 
-    return NextResponse.json(result.payload, { status: result.status });
-  } catch (err: any) {
+    return jsonResponse(result);
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 400 }
+      {
+        error: getErrorMessage(error, "Failed to load question"),
+      },
+      {
+        status: getErrorStatus(error),
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
     );
   }
 }

@@ -1,36 +1,74 @@
-/**
- * ReviewPage
+/*
+ * File: src/app/session/[sessionId]/review/page.tsx
  *
- * 📍 Localização:
- * src/app/session/[sessionId]/review/page.tsx
+ * Responsibility:
+ * - Render the read-only review screen for a completed or in-progress study session.
+ * - Fetch the full session review payload from the backend.
+ * - Display each reviewed item with:
+ *   - question stem;
+ *   - correctness status;
+ *   - selected answer;
+ *   - correct answer;
+ *   - all choices when provided by the API;
+ *   - per-choice explanations when available.
  *
- * Tela de review da sessão (MVP).
- *
- * Responsabilidades:
- * - Buscar o review completo da sessão no backend
- * - Exibir, por item:
- *   - stem
- *   - resultado (correct/wrong/skipped/unanswered)
- *   - resposta marcada pelo usuário
- *   - resposta correta
- *   - ✅ TODAS as alternativas com explicação por alternativa (why correct/why wrong)
- *
- * Contrato de API utilizado:
+ * API contract used:
  * - GET /api/sessions/:sessionId/review
  *
- * Regras importantes:
- * - Esta tela é somente leitura (não altera estado)
- * - Depende do backend para calcular correctness e retornar a resposta correta
- *
- * Observação:
- * - Este componente é client-side por simplicidade do MVP (fetch + render)
+ * Important behavior:
+ * - This page does not mutate backend state.
+ * - Correctness and answer mapping are computed by the backend.
+ * - The page route is singular: /session/[sessionId]/review.
+ * - The Back button must therefore navigate to /session/[sessionId].
  */
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/apiClient";
+
+type JsonValue =
+  | null
+  | boolean
+  | number
+  | string
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+type ReviewChoice = {
+  choice_id: string;
+  label: string;
+  choice_text: string;
+  is_correct: boolean;
+  explanation: string | null;
+};
+
+type ReviewItem = {
+  session_item_id: string;
+  position: number;
+
+  question_version_id?: string;
+  explanation_short?: string | null;
+  explanation_long?: string | null;
+  bibliography?: JsonValue | null;
+  prompt?: string | null;
+
+  stem: string;
+  result: "correct" | "wrong" | "skipped" | null;
+
+  selected_choice_id?: string | null;
+  correct_choice_id?: string | null;
+
+  selected_label: string | null;
+  selected_choice_text: string | null;
+
+  correct_label: string | null;
+  correct_choice_text: string | null;
+
+  choices?: ReviewChoice[];
+};
 
 type ReviewResponse = {
   session: {
@@ -39,45 +77,43 @@ type ReviewResponse = {
     started_at: string;
     submitted_at: string | null;
   };
-  items: Array<{
-    session_item_id: string;
-    position: number;
-
-    // ✅ Mantidos do seu backend atualizado
-    question_version_id?: string;
-    explanation_short?: string | null;
-    explanation_long?: string | null;
-    bibliography?: any | null; // jsonb
-    prompt?: string | null;
-
-    stem: string;
-    result: "correct" | "wrong" | "skipped" | null;
-
-    // ✅ IDs (para mapear seleção e correta)
-    selected_choice_id?: string | null;
-    correct_choice_id?: string | null;
-
-    selected_label: string | null;
-    selected_choice_text: string | null;
-
-    correct_label: string | null;
-    correct_choice_text: string | null;
-
-    // ✅ choices completas + explicação por alternativa (question_choices.explanation)
-    choices?: Array<{
-      choice_id: string;
-      label: string;
-      choice_text: string;
-      is_correct: boolean;
-      explanation: string | null;
-    }>;
-  }>;
+  items: ReviewItem[];
 };
 
 type Status = "neutral" | "correct" | "wrong";
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error;
+  }
+
+  return fallback;
+}
+
+function formatReferenceBlock(item: ReviewItem): string {
+  const parts: string[] = [];
+
+  if (item.prompt && item.prompt.trim().length > 0) {
+    parts.push(`Prompt: ${item.prompt}`);
+  }
+
+  if (item.bibliography !== undefined && item.bibliography !== null) {
+    parts.push(`Bibliography: ${JSON.stringify(item.bibliography, null, 2)}`);
+  }
+
+  if (parts.length === 0) {
+    return "(Coming soon) Clickable references and external learning resources will appear here.";
+  }
+
+  return parts.join("\n\n");
 }
 
 export default function ReviewPage({
@@ -92,17 +128,29 @@ export default function ReviewPage({
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // UI state
   const [activePos, setActivePos] = useState<number>(1);
   const [fontScale, setFontScale] = useState<number>(1);
 
-  // Persist font scale (optional, MVP-safe)
   useEffect(() => {
-    const saved = localStorage.getItem("review_font_scale");
-    if (saved) setFontScale(Number(saved) || 1);
+    try {
+      const saved = localStorage.getItem("review_font_scale");
+      if (!saved) return;
+
+      const parsed = Number(saved);
+      if (Number.isFinite(parsed)) {
+        setFontScale(clamp(parsed, 0.85, 1.25));
+      }
+    } catch {
+      // Ignore localStorage failures. Font scale persistence is optional.
+    }
   }, []);
+
   useEffect(() => {
-    localStorage.setItem("review_font_scale", String(fontScale));
+    try {
+      localStorage.setItem("review_font_scale", String(fontScale));
+    } catch {
+      // Ignore localStorage failures. Font scale persistence is optional.
+    }
   }, [fontScale]);
 
   const itemsSorted = useMemo(() => {
@@ -110,21 +158,24 @@ export default function ReviewPage({
     return [...data.items].sort((a, b) => a.position - b.position);
   }, [data]);
 
-  const activeItem = useMemo(() => {
-    return itemsSorted.find((x) => x.position === activePos) ?? null;
+  const activeIndex = useMemo(() => {
+    return itemsSorted.findIndex((x) => x.position === activePos);
   }, [itemsSorted, activePos]);
+
+  const activeItem = activeIndex >= 0 ? itemsSorted[activeIndex] : null;
 
   const summary = useMemo(() => {
     if (!data) return null;
+
     let correct = 0;
     let wrong = 0;
     let skipped = 0;
     let unanswered = 0;
 
-    for (const it of data.items) {
-      if (it.result === "correct") correct += 1;
-      else if (it.result === "wrong") wrong += 1;
-      else if (it.result === "skipped") skipped += 1;
+    for (const item of data.items) {
+      if (item.result === "correct") correct += 1;
+      else if (item.result === "wrong") wrong += 1;
+      else if (item.result === "skipped") skipped += 1;
       else unanswered += 1;
     }
 
@@ -142,45 +193,43 @@ export default function ReviewPage({
     };
   }, [data]);
 
-  function statusFor(item: ReviewResponse["items"][number]): Status {
-    if (item.result === "correct") return "correct";
-    if (item.result === "wrong") return "wrong";
-    return "neutral";
-  }
-
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setErr(null);
+
     try {
       const res = await apiFetch<ReviewResponse>(
         `/api/sessions/${sessionId}/review`
       );
+
       setData(res);
 
-      // Garantir activePos válido
       const sorted = [...res.items].sort((a, b) => a.position - b.position);
       setActivePos(sorted[0]?.position ?? 1);
-    } catch (e: any) {
-      setErr(e?.message ?? "Failed to load review");
+    } catch (error) {
+      setErr(getErrorMessage(error, "Failed to load review"));
     } finally {
       setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
-  const canPrev = activePos > 1;
-  const canNext =
-    activePos < (itemsSorted[itemsSorted.length - 1]?.position ?? 1);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const canPrev = activeIndex > 0;
+  const canNext = activeIndex >= 0 && activeIndex < itemsSorted.length - 1;
 
   function goPrev() {
-    setActivePos((p) => clamp(p - 1, 1, itemsSorted.length || 1));
+    if (!canPrev) return;
+    const previous = itemsSorted[activeIndex - 1];
+    if (previous) setActivePos(previous.position);
   }
+
   function goNext() {
-    setActivePos((p) => clamp(p + 1, 1, itemsSorted.length || 1));
+    if (!canNext) return;
+    const next = itemsSorted[activeIndex + 1];
+    if (next) setActivePos(next.position);
   }
 
   return (
@@ -192,7 +241,6 @@ export default function ReviewPage({
         fontFamily: "system-ui",
       }}
     >
-      {/* Sticky Header */}
       <div
         style={{
           position: "sticky",
@@ -226,6 +274,7 @@ export default function ReviewPage({
             >
               Session Review
             </div>
+
             <div
               style={{
                 color: "rgba(244,244,245,0.65)",
@@ -263,6 +312,7 @@ export default function ReviewPage({
             >
               A-
             </button>
+
             <button
               onClick={() =>
                 setFontScale((s) =>
@@ -276,19 +326,18 @@ export default function ReviewPage({
             </button>
 
             <button
-              onClick={load}
+              onClick={() => void load()}
               disabled={loading}
-              style={btnSmall()}
+              style={btnSmall(loading)}
               title="Refresh"
             >
               {loading ? "…" : "⟳"}
             </button>
 
-            {/* ✅ Patch: Back padronizado com /sessions */}
             <button
-              onClick={() => router.push(`/sessions/${sessionId}`)}
+              onClick={() => router.push(`/session/${sessionId}`)}
               disabled={loading}
-              style={btnSmall()}
+              style={btnSmall(loading)}
               title="Back to session"
             >
               Back
@@ -297,7 +346,13 @@ export default function ReviewPage({
         </div>
       </div>
 
-      <main style={{ maxWidth: 980, margin: "0 auto", padding: "14px 14px 110px" }}>
+      <main
+        style={{
+          maxWidth: 980,
+          margin: "0 auto",
+          padding: "14px 14px 110px",
+        }}
+      >
         {err && (
           <div
             style={{
@@ -339,8 +394,9 @@ export default function ReviewPage({
                     fontSize: 13,
                   }}
                 >
-                  This session is currently <strong>{data.session.status}</strong>
-                  . Review may be incomplete unless the session is submitted.
+                  This session is currently{" "}
+                  <strong>{data.session.status}</strong>. Review may be
+                  incomplete unless the session is submitted.
                 </div>
               </div>
             )}
@@ -372,7 +428,14 @@ export default function ReviewPage({
                   </div>
                 </div>
 
-                <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <div
+                  style={{
+                    marginTop: 10,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}
+                >
                   <span style={pill()}>correct: {summary.correct}</span>
                   <span style={pill()}>wrong: {summary.wrong}</span>
                   <span style={pill()}>skipped: {summary.skipped}</span>
@@ -381,16 +444,24 @@ export default function ReviewPage({
               </div>
             )}
 
-            {/* Question navigator */}
-            <div style={{ marginTop: 14, display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6 }}>
-              {itemsSorted.map((it) => {
-                const st = statusFor(it);
-                const isActive = it.position === activePos;
-                const color = navColor(st);
+            <div
+              style={{
+                marginTop: 14,
+                display: "flex",
+                gap: 8,
+                overflowX: "auto",
+                paddingBottom: 6,
+              }}
+            >
+              {itemsSorted.map((item) => {
+                const status = statusFor(item);
+                const isActive = item.position === activePos;
+                const color = navColor(status);
+
                 return (
                   <button
-                    key={it.session_item_id}
-                    onClick={() => setActivePos(it.position)}
+                    key={item.session_item_id}
+                    onClick={() => setActivePos(item.position)}
                     style={{
                       width: 34,
                       height: 34,
@@ -401,18 +472,21 @@ export default function ReviewPage({
                       fontSize: 13,
                       fontWeight: 700,
                       cursor: "pointer",
-                      boxShadow: isActive ? "0 0 0 2px rgba(244,244,245,0.20)" : "none",
+                      boxShadow: isActive
+                        ? "0 0 0 2px rgba(244,244,245,0.20)"
+                        : "none",
                       flex: "0 0 auto",
                     }}
-                    title={`Q${it.position} • ${it.result ?? "unanswered"}`}
+                    title={`Q${item.position} • ${
+                      item.result ?? "unanswered"
+                    }`}
                   >
-                    {it.position}
+                    {item.position}
                   </button>
                 );
               })}
             </div>
 
-            {/* Active card */}
             {activeItem && (
               <div
                 style={{
@@ -436,56 +510,64 @@ export default function ReviewPage({
                   <div style={{ fontWeight: 800 }}>
                     Question {activeItem.position} of {itemsSorted.length}
                   </div>
-                  <span style={{ ...pill(), borderColor: navColor(statusFor(activeItem)).border }}>
+
+                  <span
+                    style={{
+                      ...pill(),
+                      borderColor: navColor(statusFor(activeItem)).border,
+                    }}
+                  >
                     {activeItem.result ?? "unanswered"}
                   </span>
                 </div>
 
                 <div style={{ padding: 14 }}>
-                  {/* Stem */}
-                  <div style={{ fontSize: `${1 * fontScale}rem`, lineHeight: 1.55, color: "#f4f4f5" }}>
+                  <div
+                    style={{
+                      fontSize: `${1 * fontScale}rem`,
+                      lineHeight: 1.55,
+                      color: "#f4f4f5",
+                    }}
+                  >
                     {activeItem.stem}
                   </div>
 
-                  {/* ✅ FULL CHOICES + EXPLANATION PER CHOICE */}
                   <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
-                    {Array.isArray(activeItem.choices) && activeItem.choices.length > 0 ? (
-                      activeItem.choices.map((c) => {
-                        const isSelected = (activeItem.selected_choice_id ?? null) === c.choice_id;
-                        const isCorrect = c.is_correct === true;
+                    {Array.isArray(activeItem.choices) &&
+                    activeItem.choices.length > 0 ? (
+                      activeItem.choices.map((choice) => {
+                        const isSelected =
+                          (activeItem.selected_choice_id ?? null) ===
+                          choice.choice_id;
+                        const isCorrect = choice.is_correct === true;
 
-                        // Tone:
-                        // - correct => green
-                        // - selected but wrong => red
-                        // - others => neutral
                         const tone: "neutral" | "correct" | "wrong" =
                           isCorrect ? "correct" : isSelected ? "wrong" : "neutral";
 
                         const title =
                           isCorrect && isSelected
-                            ? "✅ Your answer (correct)"
+                            ? "Your answer (correct)"
                             : isCorrect
-                            ? "✅ Correct answer"
+                            ? "Correct answer"
                             : isSelected
-                            ? "❌ Your answer"
+                            ? "Your answer"
                             : "Choice";
 
                         return (
                           <ChoiceCardV2
-                            key={c.choice_id}
+                            key={choice.choice_id}
                             title={title}
-                            label={c.label}
-                            text={c.choice_text}
+                            label={choice.label}
+                            text={choice.choice_text}
                             tone={tone}
                             fontScale={fontScale}
-                            explanation={c.explanation}
-                            showExplanation={true}
+                            explanation={choice.explanation}
+                            showExplanation
                           />
                         );
                       })
                     ) : (
                       <>
-                        {/* Fallback: keep your old 2-card view if API hasn't been updated */}
                         <ChoiceCard
                           title="Your answer"
                           label={activeItem.selected_label}
@@ -499,6 +581,7 @@ export default function ReviewPage({
                           }
                           fontScale={fontScale}
                         />
+
                         <ChoiceCard
                           title="Correct answer"
                           label={activeItem.correct_label}
@@ -510,7 +593,6 @@ export default function ReviewPage({
                     )}
                   </div>
 
-                  {/* Blocks */}
                   <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
                     <InfoBlock
                       title="Educational Objective"
@@ -522,6 +604,7 @@ export default function ReviewPage({
                       kind="amber"
                       fontScale={fontScale}
                     />
+
                     <InfoBlock
                       title="Key Concept / Bottom Line"
                       body={
@@ -532,16 +615,10 @@ export default function ReviewPage({
                       kind="green"
                       fontScale={fontScale}
                     />
+
                     <InfoBlock
                       title="References & Resources"
-                      body={
-                        activeItem.bibliography || activeItem.prompt
-                          ? [activeItem.prompt ? `Prompt: ${activeItem.prompt}` : null,
-                             activeItem.bibliography ? `Bibliography: ${JSON.stringify(activeItem.bibliography)}` : null]
-                              .filter(Boolean)
-                              .join("\n\n")
-                          : "(Coming soon) Clickable references and external learning resources will appear here."
-                      }
+                      body={formatReferenceBlock(activeItem)}
                       kind="neutral"
                       fontScale={fontScale}
                     />
@@ -553,7 +630,6 @@ export default function ReviewPage({
         )}
       </main>
 
-      {/* Sticky footer nav */}
       <div
         style={{
           position: "fixed",
@@ -565,11 +641,24 @@ export default function ReviewPage({
           backdropFilter: "blur(10px)",
         }}
       >
-        <div style={{ maxWidth: 980, margin: "0 auto", padding: "12px 14px", display: "flex", gap: 10 }}>
+        <div
+          style={{
+            maxWidth: 980,
+            margin: "0 auto",
+            padding: "12px 14px",
+            display: "flex",
+            gap: 10,
+          }}
+        >
           <button onClick={goPrev} disabled={!canPrev} style={btnWide(!canPrev)}>
             Prev
           </button>
-          <button onClick={goNext} disabled={!canNext} style={btnWide(!canNext, true)}>
+
+          <button
+            onClick={goNext}
+            disabled={!canNext}
+            style={btnWide(!canNext, true)}
+          >
             Next
           </button>
         </div>
@@ -578,22 +667,27 @@ export default function ReviewPage({
   );
 }
 
-/* ----------------- UI helpers (inline, MVP-safe) ----------------- */
+function statusFor(item: ReviewItem): Status {
+  if (item.result === "correct") return "correct";
+  if (item.result === "wrong") return "wrong";
+  return "neutral";
+}
 
-function btnSmall(): React.CSSProperties {
+function btnSmall(disabled = false): CSSProperties {
   return {
     padding: "8px 10px",
     borderRadius: 12,
     border: "1px solid rgba(255,255,255,0.10)",
     background: "rgba(255,255,255,0.04)",
     color: "#f4f4f5",
-    cursor: "pointer",
+    cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.45 : 1,
     fontSize: 13,
     fontWeight: 650,
   };
 }
 
-function btnWide(disabled: boolean, primary?: boolean): React.CSSProperties {
+function btnWide(disabled: boolean, primary?: boolean): CSSProperties {
   return {
     flex: 1,
     padding: "12px 14px",
@@ -608,7 +702,7 @@ function btnWide(disabled: boolean, primary?: boolean): React.CSSProperties {
   };
 }
 
-function pill(): React.CSSProperties {
+function pill(): CSSProperties {
   return {
     padding: "2px 10px",
     borderRadius: 999,
@@ -620,14 +714,28 @@ function pill(): React.CSSProperties {
   };
 }
 
-function navColor(status: "neutral" | "correct" | "wrong") {
+function navColor(status: Status) {
   if (status === "correct") {
-    return { bg: "rgba(34,197,94,0.15)", border: "rgba(34,197,94,0.35)", text: "rgba(187,247,208,1)" };
+    return {
+      bg: "rgba(34,197,94,0.15)",
+      border: "rgba(34,197,94,0.35)",
+      text: "rgba(187,247,208,1)",
+    };
   }
+
   if (status === "wrong") {
-    return { bg: "rgba(239,68,68,0.14)", border: "rgba(239,68,68,0.35)", text: "rgba(254,202,202,1)" };
+    return {
+      bg: "rgba(239,68,68,0.14)",
+      border: "rgba(239,68,68,0.35)",
+      text: "rgba(254,202,202,1)",
+    };
   }
-  return { bg: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.10)", text: "rgba(244,244,245,0.85)" };
+
+  return {
+    bg: "rgba(255,255,255,0.04)",
+    border: "rgba(255,255,255,0.10)",
+    text: "rgba(244,244,245,0.85)",
+  };
 }
 
 function ChoiceCard(props: {
@@ -638,31 +746,45 @@ function ChoiceCard(props: {
   fontScale: number;
 }) {
   const { title, label, text, tone, fontScale } = props;
-
-  const colors =
-    tone === "correct"
-      ? { border: "rgba(34,197,94,0.35)", bg: "rgba(34,197,94,0.10)", badge: "rgba(34,197,94,0.22)" }
-      : tone === "wrong"
-      ? { border: "rgba(239,68,68,0.35)", bg: "rgba(239,68,68,0.10)", badge: "rgba(239,68,68,0.20)" }
-      : { border: "rgba(255,255,255,0.10)", bg: "rgba(255,255,255,0.03)", badge: "rgba(255,255,255,0.06)" };
+  const colors = choiceColors(tone);
 
   return (
-    <div style={{ borderRadius: 16, border: `1px solid ${colors.border}`, background: colors.bg, padding: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+    <div
+      style={{
+        borderRadius: 16,
+        border: `1px solid ${colors.border}`,
+        background: colors.bg,
+        padding: 12,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 10,
+          alignItems: "center",
+        }}
+      >
         <div style={{ fontWeight: 800, fontSize: 13 }}>{title}</div>
-        <span style={{ ...pill(), background: colors.badge }}>{label ?? "—"}</span>
+        <span style={{ ...pill(), background: colors.badge }}>
+          {label ?? "—"}
+        </span>
       </div>
-      <div style={{ marginTop: 8, fontSize: `${0.98 * fontScale}rem`, lineHeight: 1.5, color: "rgba(244,244,245,0.92)" }}>
+
+      <div
+        style={{
+          marginTop: 8,
+          fontSize: `${0.98 * fontScale}rem`,
+          lineHeight: 1.5,
+          color: "rgba(244,244,245,0.92)",
+        }}
+      >
         {text ?? "—"}
       </div>
     </div>
   );
 }
 
-/**
- * ✅ V2: Choice card com explicação ("Why correct/Why wrong").
- * Mantém o estilo do seu componente, só adiciona a seção de explanation.
- */
 function ChoiceCardV2(props: {
   title: string;
   label: string | null;
@@ -672,33 +794,83 @@ function ChoiceCardV2(props: {
   explanation: string | null | undefined;
   showExplanation: boolean;
 }) {
-  const { title, label, text, tone, fontScale, explanation, showExplanation } = props;
+  const {
+    title,
+    label,
+    text,
+    tone,
+    fontScale,
+    explanation,
+    showExplanation,
+  } = props;
 
-  const colors =
-    tone === "correct"
-      ? { border: "rgba(34,197,94,0.35)", bg: "rgba(34,197,94,0.10)", badge: "rgba(34,197,94,0.22)" }
-      : tone === "wrong"
-      ? { border: "rgba(239,68,68,0.35)", bg: "rgba(239,68,68,0.10)", badge: "rgba(239,68,68,0.20)" }
-      : { border: "rgba(255,255,255,0.10)", bg: "rgba(255,255,255,0.03)", badge: "rgba(255,255,255,0.06)" };
-
+  const colors = choiceColors(tone);
   const explainTitle = tone === "correct" ? "Why correct" : "Why wrong";
 
   return (
-    <div style={{ borderRadius: 16, border: `1px solid ${colors.border}`, background: colors.bg, padding: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+    <div
+      style={{
+        borderRadius: 16,
+        border: `1px solid ${colors.border}`,
+        background: colors.bg,
+        padding: 12,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 10,
+          alignItems: "center",
+        }}
+      >
         <div style={{ fontWeight: 800, fontSize: 13 }}>{title}</div>
-        <span style={{ ...pill(), background: colors.badge }}>{label ?? "—"}</span>
+        <span style={{ ...pill(), background: colors.badge }}>
+          {label ?? "—"}
+        </span>
       </div>
 
-      <div style={{ marginTop: 8, fontSize: `${0.98 * fontScale}rem`, lineHeight: 1.5, color: "rgba(244,244,245,0.92)" }}>
+      <div
+        style={{
+          marginTop: 8,
+          fontSize: `${0.98 * fontScale}rem`,
+          lineHeight: 1.5,
+          color: "rgba(244,244,245,0.92)",
+        }}
+      >
         {text ?? "—"}
       </div>
 
       {showExplanation && (
-        <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.10)" }}>
-          <div style={{ fontWeight: 850, fontSize: 12, color: "rgba(244,244,245,0.90)" }}>{explainTitle}</div>
-          <div style={{ marginTop: 6, fontSize: `${0.94 * fontScale}rem`, lineHeight: 1.5, color: "rgba(244,244,245,0.78)", whiteSpace: "pre-wrap" }}>
-            {explanation && String(explanation).trim().length > 0 ? explanation : "(No explanation provided yet.)"}
+        <div
+          style={{
+            marginTop: 10,
+            paddingTop: 10,
+            borderTop: "1px solid rgba(255,255,255,0.10)",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 850,
+              fontSize: 12,
+              color: "rgba(244,244,245,0.90)",
+            }}
+          >
+            {explainTitle}
+          </div>
+
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: `${0.94 * fontScale}rem`,
+              lineHeight: 1.5,
+              color: "rgba(244,244,245,0.78)",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {explanation && String(explanation).trim().length > 0
+              ? explanation
+              : "(No explanation provided yet.)"}
           </div>
         </div>
       )}
@@ -706,7 +878,36 @@ function ChoiceCardV2(props: {
   );
 }
 
-function InfoBlock(props: { title: string; body: string; kind: "neutral" | "amber" | "green"; fontScale: number }) {
+function choiceColors(tone: "neutral" | "correct" | "wrong") {
+  if (tone === "correct") {
+    return {
+      border: "rgba(34,197,94,0.35)",
+      bg: "rgba(34,197,94,0.10)",
+      badge: "rgba(34,197,94,0.22)",
+    };
+  }
+
+  if (tone === "wrong") {
+    return {
+      border: "rgba(239,68,68,0.35)",
+      bg: "rgba(239,68,68,0.10)",
+      badge: "rgba(239,68,68,0.20)",
+    };
+  }
+
+  return {
+    border: "rgba(255,255,255,0.10)",
+    bg: "rgba(255,255,255,0.03)",
+    badge: "rgba(255,255,255,0.06)",
+  };
+}
+
+function InfoBlock(props: {
+  title: string;
+  body: string;
+  kind: "neutral" | "amber" | "green";
+  fontScale: number;
+}) {
   const { title, body, kind, fontScale } = props;
 
   const colors =
@@ -717,9 +918,24 @@ function InfoBlock(props: { title: string; body: string; kind: "neutral" | "ambe
       : { border: "rgba(255,255,255,0.10)", bg: "rgba(255,255,255,0.03)" };
 
   return (
-    <div style={{ borderRadius: 16, border: `1px solid ${colors.border}`, background: colors.bg, padding: 12 }}>
+    <div
+      style={{
+        borderRadius: 16,
+        border: `1px solid ${colors.border}`,
+        background: colors.bg,
+        padding: 12,
+      }}
+    >
       <div style={{ fontWeight: 850, fontSize: 13 }}>{title}</div>
-      <div style={{ marginTop: 8, fontSize: `${0.95 * fontScale}rem`, lineHeight: 1.5, color: "rgba(244,244,245,0.80)", whiteSpace: "pre-wrap" }}>
+      <div
+        style={{
+          marginTop: 8,
+          fontSize: `${0.95 * fontScale}rem`,
+          lineHeight: 1.5,
+          color: "rgba(244,244,245,0.80)",
+          whiteSpace: "pre-wrap",
+        }}
+      >
         {body}
       </div>
     </div>

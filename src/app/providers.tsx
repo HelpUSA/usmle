@@ -1,32 +1,35 @@
-/**
- * Providers
+/*
+ * File: src/app/providers.tsx
  *
- * 📍 Localização:
- * src/app/providers.tsx
+ * Responsibility:
+ * - Centralize global client-side providers for the application.
+ * - Wrap the App Router tree with NextAuth SessionProvider.
  *
- * Função:
- * - Centralizar todos os providers client-side da aplicação
- * - Atualmente:
- *   - NextAuth SessionProvider (necessário para useSession, signIn, signOut)
+ * Why this file exists:
+ * - App Router layouts are Server Components by default.
+ * - SessionProvider is a Client Component.
+ * - This wrapper keeps the root layout clean while enabling useSession(),
+ *   signIn(), and signOut() across client-side pages/components.
  *
- * Por que este arquivo existe:
- * - No App Router, layouts são Server Components por padrão
- * - SessionProvider é um Client Component
- * - Este wrapper resolve essa separação de forma explícita e limpa
+ * Current providers:
+ * - NextAuth SessionProvider.
  *
- * Convenção:
- * - Qualquer provider global client-side novo deve ser adicionado aqui
- *   (ex: ThemeProvider, QueryClientProvider, etc.)
+ * Extension point:
+ * - Add future global client-side providers here, such as:
+ *   - ThemeProvider;
+ *   - QueryClientProvider;
+ *   - analytics/context providers.
  */
 
 "use client";
 
+import type { ReactNode } from "react";
 import { SessionProvider } from "next-auth/react";
 
-export default function Providers({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+type ProvidersProps = {
+  children: ReactNode;
+};
+
+export default function Providers({ children }: ProvidersProps) {
   return <SessionProvider>{children}</SessionProvider>;
 }

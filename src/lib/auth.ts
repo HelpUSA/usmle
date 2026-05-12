@@ -1,46 +1,91 @@
-/**
+/*
  * File: src/lib/auth.ts
  *
- * Purpose:
- * Centraliza a lógica de identificação do usuário para APIs.
+ * Responsibility:
+ * - Centralize API user identification logic.
+ * - Support authenticated browser calls through NextAuth v4 session.
+ * - Support development/test calls through x-user-id only outside production.
+ * - Generate a deterministic UUID from the authenticated user's email so the
+ *   same user maps consistently to users_profile.user_id in PostgreSQL.
  *
- * Suporta:
- * - chamadas autenticadas via sessão (NextAuth v4, via getServerSession)
- * - chamadas de teste/desenvolvimento via header `x-user-id`
+ * Preferred API helper:
+ * - getUserIdForApi(req)
  *
- * Também gera um UUID determinístico a partir do email,
- * garantindo consistência do user_id (uuid) no Postgres.
+ * Compatibility helper:
+ * - getUserIdFromRequest(req)
+ * - Header-only, development/test oriented.
  *
- * Estratégia atual:
- * - Preferimos getUserIdForApi(req) nas rotas API
- * - Mantemos getUserIdFromRequest(req) por compatibilidade com código legado,
- *   mas ela continua sendo "header-only"
- *
- * Last update:
- * 2026-03-17
+ * Important security behavior:
+ * - x-user-id must not be trusted in production.
+ * - In production, user identity should come from the authenticated session.
  */
 
 import { AUTH_MODULE_MARKER, authOptions } from "@/auth";
 import { getServerSession } from "next-auth";
-import crypto from "crypto";
+import { createHash } from "crypto";
+
+type ApiUser = {
+  email: string;
+  name: string | null;
+  image: string | null;
+};
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isDevUserHeaderAllowed(): boolean {
+  return process.env.NODE_ENV !== "production";
+}
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function normalizeHeaderUserId(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  if (!UUID_RE.test(trimmed)) {
+    throw new Error("Invalid x-user-id header. Expected UUID.");
+  }
+
+  return trimmed.toLowerCase();
+}
 
 /**
- * Compatibilidade com testes via PowerShell / chamadas dev.
+ * Compatibility with PowerShell/dev/test calls.
  *
- * ⚠️ Esta função é "header-only".
- * Se a rota precisar aceitar usuário autenticado do navegador,
- * prefira usar getUserIdForApi(req).
+ * This helper is intentionally header-only.
+ * For real authenticated browser/API use, prefer getUserIdForApi(req).
+ *
+ * Security:
+ * - x-user-id is accepted only outside production.
  */
-export function getUserIdFromRequest(req: Request) {
-  const userId = req.headers.get("x-user-id");
-  if (!userId) throw new Error("Missing x-user-id header");
+export function getUserIdFromRequest(req: Request): string {
+  if (!isDevUserHeaderAllowed()) {
+    throw new Error("x-user-id header is not allowed in production");
+  }
+
+  const userId = normalizeHeaderUserId(req.headers.get("x-user-id"));
+
+  if (!userId) {
+    throw new Error("Missing x-user-id header");
+  }
+
   return userId;
 }
 
 /**
- * Obtém o usuário autenticado via sessão (browser) usando NextAuth v4.
+ * Obtains the authenticated user through NextAuth v4.
  */
-export async function getUserFromSession() {
+export async function getUserFromSession(): Promise<ApiUser> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -48,62 +93,68 @@ export async function getUserFromSession() {
   }
 
   return {
-    email: session.user.email,
+    email: normalizeEmail(session.user.email),
     name: session.user.name ?? null,
     image: session.user.image ?? null,
   };
 }
 
 /**
- * Gera um UUID v4 determinístico a partir de uma string (ex: email),
- * para podermos usar o mesmo user_id (uuid) no Postgres.
+ * Generates a deterministic UUID-shaped value from a string, usually email.
  *
- * Implementação:
- * - usa os primeiros 16 bytes do SHA-256
- * - seta version = 4
- * - seta variant = RFC 4122
+ * Implementation:
+ * - Uses the first 16 bytes of SHA-256.
+ * - Sets UUID version bits.
+ * - Sets RFC 4122 variant bits.
+ *
+ * Note:
+ * - The UUID is deterministic, not random.
+ * - The version bits are set for UUID compatibility with PostgreSQL uuid fields.
  */
-function stableUuidFromString(input: string) {
-  const hash = crypto.createHash("sha256").update(input).digest();
-  const b = Buffer.from(hash.subarray(0, 16));
+function stableUuidFromString(input: string): string {
+  const normalizedInput = input.trim().toLowerCase();
+  const hash = createHash("sha256").update(normalizedInput).digest();
+  const bytes = Buffer.from(hash.subarray(0, 16));
 
-  // version 4
-  b[6] = (b[6] & 0x0f) | 0x40;
-  // variant RFC 4122
-  b[8] = (b[8] & 0x3f) | 0x80;
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
 
-  const hex = b.toString("hex");
-  return (
-    hex.slice(0, 8) +
-    "-" +
-    hex.slice(8, 12) +
-    "-" +
-    hex.slice(12, 16) +
-    "-" +
-    hex.slice(16, 20) +
-    "-" +
-    hex.slice(20, 32)
-  );
+  const hex = bytes.toString("hex");
+
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    hex.slice(12, 16),
+    hex.slice(16, 20),
+    hex.slice(20, 32),
+  ].join("-");
 }
 
 /**
- * Função principal para uso nas rotas API.
+ * Preferred helper for API routes.
  *
- * Ordem de prioridade:
- * 1) Header `x-user-id` (PowerShell / testes / dev)
- * 2) Sessão autenticada (browser / produção)
+ * Resolution order:
+ * 1. Development/test x-user-id header, only outside production.
+ * 2. Authenticated NextAuth session.
  *
- * Esta deve ser a função preferida nas rotas que precisam funcionar
- * tanto em desenvolvimento quanto no fluxo real autenticado.
+ * Production behavior:
+ * - Ignores x-user-id.
+ * - Requires a valid authenticated session.
  */
-export async function getUserIdForApi(req: Request) {
-  const headerUserId = req.headers.get("x-user-id");
-  if (headerUserId) return headerUserId;
+export async function getUserIdForApi(req: Request): Promise<string> {
+  if (isDevUserHeaderAllowed()) {
+    const headerUserId = normalizeHeaderUserId(req.headers.get("x-user-id"));
 
-  if (!AUTH_MODULE_MARKER) {
-    throw new Error("Auth module marker missing (unexpected).");
+    if (headerUserId) {
+      return headerUserId;
+    }
   }
 
-  const u = await getUserFromSession();
-  return stableUuidFromString(u.email);
+  if (!AUTH_MODULE_MARKER) {
+    throw new Error("Auth module marker missing.");
+  }
+
+  const user = await getUserFromSession();
+
+  return stableUuidFromString(user.email);
 }

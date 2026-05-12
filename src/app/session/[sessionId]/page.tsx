@@ -1,69 +1,42 @@
-/**
- * SessionPage
+/*
+ * File: src/app/session/[sessionId]/page.tsx
  *
- * 📍 Localização:
- * src/app/session/[sessionId]/page.tsx
+ * Responsibility:
+ * - Main study-session player screen.
+ * - Ensures session items exist through the idempotent session-items endpoint.
+ * - Loads and displays one question at a time.
+ * - Records attempts per session_item.
+ * - Controls navigation between questions.
+ * - Respects session mode semantics:
+ *   - practice: immediate feedback after submit;
+ *   - timed_block / exam_sim: deferred review after final submit.
+ * - Handles timed sessions with countdown and automatic final submission.
  *
- * Tela principal do player de sessão.
- *
- * Responsabilidades:
- * - Garantir que os itens da sessão existam (gera de forma idempotente)
- * - Exibir uma questão por vez
- * - Registrar tentativa por session_item
- * - Controlar navegação entre questões
- * - Respeitar o modo da sessão (practice vs timed modes)
- * - Submeter a sessão ao final e redirecionar conforme preferências do usuário
- *
- * Contrato de API utilizado:
+ * API contract used:
  * - GET    /api/sessions
- *   Usado para obter os metadados da sessão atual (mode, timed, time_limit_seconds, started_at)
+ *   Used to obtain session metadata: mode, timed, time_limit_seconds, started_at.
  * - POST   /api/sessions/:sessionId/items
- *   Gera itens da sessão (idempotente)
+ *   Generates session items idempotently.
+ * - GET    /api/sessions/:sessionId/items
+ *   Fallback read for already-generated session items.
  * - GET    /api/session-items/:sessionItemId/question
- *   Carrega a questão atual sem revelar o gabarito
+ *   Loads the current question without revealing the answer key.
  * - POST   /api/sessions/:sessionId/items/:sessionItemId/attempt
- *   Registra a tentativa e, no modo practice, devolve payload didático para feedback imediato
+ *   Records the attempt and, in immediate-review mode, returns didactic feedback.
  * - POST   /api/sessions/:sessionId/submit
- *   Finaliza a sessão antes do review
+ *   Finalizes the session before review/results navigation.
  *
- * Regras importantes:
- * - Nunca revela a resposta correta antes do submit da questão
- * - O modo da sessão é autoritativo:
- *   - practice: feedback imediato após submit
- *   - timed_block / exam_sim: sem feedback imediato; revisão apenas ao final
- * - O submit da sessão deve ocorrer antes do review
- *
- * Preferências vindas de Settings:
- * - confirmBeforeLeavingSession:
- *   - avisa antes de fechar/sair com sessão ativa
- * - emphasizeTimer:
- *   - aumenta o destaque visual do timer em sessões cronometradas
- * - autoOpenReviewAfterSubmit:
- *   - true  -> vai direto para /session/[sessionId]/review
- *   - false -> vai para /results
- *
- * Observações:
- * - Este componente é client-side por depender de interação contínua do usuário
- * - Estilo propositalmente simples (sem UI lib) para focar no fluxo funcional
- *
- * ✅ Atualização (2026-01-30):
- * - Fluxo de 2 passos para practice:
- *   - Submit → mostra feedback
- *   - Next → avança
- *
- * ✅ Atualização (2026-03-17):
- * - Leitura dos metadados reais da sessão
- * - Diferenciação visível entre practice, timed_block e exam_sim
- * - Timer regressivo para modos cronometrados
- * - Timed modes com review diferido (sem feedback imediato por questão)
- * - Expiração automática do tempo com submit + redirecionamento
- * - Integração com Settings via localStorage
- * - Confirmação opcional antes de encerrar sessão manualmente
+ * Important behavior:
+ * - Never reveals the correct answer before the question is submitted.
+ * - Session mode is authoritative.
+ * - The final session submit must happen before opening review.
+ * - The route is singular: /session/[sessionId].
  */
 
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/apiClient";
 
@@ -75,10 +48,12 @@ type SessionItem = {
   presented_at: string;
 };
 
+type SessionMode = "practice" | "timed_block" | "exam_sim";
+
 type SessionSummary = {
   session_id: string;
   user_id: string;
-  mode: "practice" | "timed_block" | "exam_sim";
+  mode: SessionMode;
   exam: string;
   language?: string;
   timed?: boolean;
@@ -138,7 +113,7 @@ type AttemptResponse = {
 
 type UserSettings = {
   defaultExam: "step1";
-  defaultMode: "practice" | "timed_block" | "exam_sim";
+  defaultMode: SessionMode;
   practiceQuestionCount: number;
   autoOpenReviewAfterSubmit: boolean;
   confirmBeforeLeavingSession: boolean;
@@ -164,6 +139,10 @@ const defaultSettings: UserSettings = {
   emphasizeTimer: true,
 };
 
+function isSessionMode(value: unknown): value is SessionMode {
+  return value === "practice" || value === "timed_block" || value === "exam_sim";
+}
+
 function loadSettings(): UserSettings {
   if (typeof window === "undefined") return defaultSettings;
 
@@ -175,12 +154,9 @@ function loadSettings(): UserSettings {
 
     return {
       defaultExam: "step1",
-      defaultMode:
-        parsed.defaultMode === "practice" ||
-        parsed.defaultMode === "timed_block" ||
-        parsed.defaultMode === "exam_sim"
-          ? parsed.defaultMode
-          : defaultSettings.defaultMode,
+      defaultMode: isSessionMode(parsed.defaultMode)
+        ? parsed.defaultMode
+        : defaultSettings.defaultMode,
       practiceQuestionCount:
         typeof parsed.practiceQuestionCount === "number" &&
         parsed.practiceQuestionCount >= 1 &&
@@ -205,6 +181,18 @@ function loadSettings(): UserSettings {
   }
 }
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error;
+  }
+
+  return fallback;
+}
+
 function formatRemainingTime(totalSeconds: number) {
   const safe = Math.max(0, totalSeconds);
   const hours = Math.floor(safe / 3600);
@@ -218,12 +206,25 @@ function formatRemainingTime(totalSeconds: number) {
   return `${hh}:${mm}:${ss}`;
 }
 
-export default function SessionPage({ params }: { params: { sessionId: string } }) {
+function normalizeIsCorrect(feedback: AttemptResponse | null): boolean | null {
+  if (!feedback) return null;
+  if (typeof feedback.is_correct === "boolean") return feedback.is_correct;
+  if (feedback.result === "correct") return true;
+  if (feedback.result === "wrong") return false;
+  return null;
+}
+
+export default function SessionPage({
+  params,
+}: {
+  params: { sessionId: string };
+}) {
   const router = useRouter();
   const sessionId = params.sessionId;
 
   const [sessionMeta, setSessionMeta] = useState<SessionSummary | null>(null);
-  const [userSettings, setUserSettings] = useState<UserSettings>(defaultSettings);
+  const [userSettings, setUserSettings] =
+    useState<UserSettings>(defaultSettings);
 
   const [items, setItems] = useState<SessionItem[]>([]);
   const [idx, setIdx] = useState(0);
@@ -245,13 +246,58 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
   const autoSubmitTriggeredRef = useRef(false);
   const questionStartedAtRef = useRef<number | null>(null);
 
-  const current = useMemo(() => items[idx], [items, idx]);
+  const current = useMemo(() => items[idx] ?? null, [items, idx]);
+  const currentSessionItemId = current?.session_item_id ?? null;
 
   const isTimedMode = Boolean(sessionMeta?.timed);
   const reviewStrategy =
     sessionMeta?.settings_json?.review_strategy ??
     (isTimedMode ? "deferred" : "immediate");
   const showImmediateFeedback = reviewStrategy === "immediate";
+
+  const getPostSubmitDestination = useCallback(() => {
+    return userSettings.autoOpenReviewAfterSubmit
+      ? `/session/${sessionId}/review`
+      : "/results";
+  }, [sessionId, userSettings.autoOpenReviewAfterSubmit]);
+
+  const submitSessionAndRedirect = useCallback(
+    async (fromTimer = false, ignoreBusyGuard = false) => {
+      if (!ignoreBusyGuard && (saving || autoSubmitting)) return;
+
+      if (fromTimer) {
+        setAutoSubmitting(true);
+      } else {
+        setSaving(true);
+      }
+
+      setErr(null);
+
+      try {
+        await apiFetch(`/api/sessions/${sessionId}/submit`, {
+          method: "POST",
+        });
+
+        router.push(getPostSubmitDestination());
+      } catch (error) {
+        setErr(getErrorMessage(error, "Failed to submit session"));
+        autoSubmitTriggeredRef.current = false;
+      } finally {
+        if (fromTimer) {
+          setAutoSubmitting(false);
+        } else {
+          setSaving(false);
+        }
+      }
+    },
+    [
+      autoSubmitting,
+      getPostSubmitDestination,
+      router,
+      saving,
+      sessionId,
+    ]
+  );
 
   useEffect(() => {
     setUserSettings(loadSettings());
@@ -269,28 +315,37 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     };
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      setLoadingSessionMeta(true);
-      setErr(null);
+  const loadSessionMeta = useCallback(async () => {
+    setLoadingSessionMeta(true);
+    setErr(null);
 
-      try {
-        const res = await apiFetch<{ sessions: SessionSummary[] }>("/api/sessions");
-        const found = (res.sessions ?? []).find((s) => s.session_id === sessionId) ?? null;
+    try {
+      const res = await apiFetch<{ sessions: SessionSummary[] }>(
+        "/api/sessions"
+      );
 
-        if (!found) {
-          setErr("Session metadata not found");
-          return;
-        }
+      const found =
+        (res.sessions ?? []).find((session) => session.session_id === sessionId) ??
+        null;
 
-        setSessionMeta(found);
-      } catch (e: any) {
-        setErr(e?.message ?? "Failed to load session metadata");
-      } finally {
-        setLoadingSessionMeta(false);
+      if (!found) {
+        setErr("Session metadata not found");
+        setSessionMeta(null);
+        return;
       }
-    })();
+
+      setSessionMeta(found);
+    } catch (error) {
+      setErr(getErrorMessage(error, "Failed to load session metadata"));
+      setSessionMeta(null);
+    } finally {
+      setLoadingSessionMeta(false);
+    }
   }, [sessionId]);
+
+  useEffect(() => {
+    void loadSessionMeta();
+  }, [loadSessionMeta]);
 
   useEffect(() => {
     if (!userSettings.confirmBeforeLeavingSession) return;
@@ -303,6 +358,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
@@ -314,22 +370,34 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
       return;
     }
 
+    if (sessionMeta.status && sessionMeta.status !== "in_progress") {
+      setRemainingSeconds(null);
+      return;
+    }
+
     if (!sessionMeta.started_at || !sessionMeta.time_limit_seconds) {
       setRemainingSeconds(null);
       return;
     }
 
     const startedAtMs = new Date(sessionMeta.started_at).getTime();
+
+    if (!Number.isFinite(startedAtMs)) {
+      setRemainingSeconds(null);
+      return;
+    }
+
     const deadlineMs = startedAtMs + sessionMeta.time_limit_seconds * 1000;
 
     function tick() {
       const now = Date.now();
       const remaining = Math.max(0, Math.floor((deadlineMs - now) / 1000));
+
       setRemainingSeconds(remaining);
 
       if (remaining <= 0 && !autoSubmitTriggeredRef.current) {
         autoSubmitTriggeredRef.current = true;
-        void submitSessionAndRedirect(true);
+        void submitSessionAndRedirect(true, true);
       }
     }
 
@@ -339,38 +407,53 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     return () => {
       window.clearInterval(timer);
     };
-  }, [sessionMeta]);
+  }, [sessionMeta, submitSessionAndRedirect]);
 
-  useEffect(() => {
-    (async () => {
-      setLoadingItems(true);
-      setErr(null);
+  const loadItems = useCallback(async () => {
+    setLoadingItems(true);
+    setErr(null);
+
+    try {
+      let res: { items: SessionItem[] };
 
       try {
-        let res: { items: SessionItem[] };
-
-        try {
-          res = await apiFetch<{ items: SessionItem[] }>(`/api/sessions/${sessionId}/items`, {
+        res = await apiFetch<{ items: SessionItem[] }>(
+          `/api/sessions/${sessionId}/items`,
+          {
             method: "POST",
-          });
-        } catch {
-          res = await apiFetch<{ items: SessionItem[] }>(`/api/sessions/${sessionId}/items`);
-        }
-
-        setItems(res.items ?? []);
-        setIdx(0);
-      } catch (e: any) {
-        setErr(e?.message ?? "Failed to load session items");
-      } finally {
-        setLoadingItems(false);
+          }
+        );
+      } catch {
+        res = await apiFetch<{ items: SessionItem[] }>(
+          `/api/sessions/${sessionId}/items`
+        );
       }
-    })();
+
+      const sortedItems = [...(res.items ?? [])].sort(
+        (a, b) => a.position - b.position
+      );
+
+      setItems(sortedItems);
+      setIdx(0);
+    } catch (error) {
+      setErr(getErrorMessage(error, "Failed to load session items"));
+      setItems([]);
+      setIdx(0);
+    } finally {
+      setLoadingItems(false);
+    }
   }, [sessionId]);
 
   useEffect(() => {
-    (async () => {
-      if (!current) return;
+    void loadItems();
+  }, [loadItems]);
 
+  useEffect(() => {
+    if (!currentSessionItemId) return;
+
+    let cancelled = false;
+
+    async function loadQuestion() {
       setErr(null);
       setSelected(null);
       setQ(null);
@@ -381,46 +464,25 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
 
       try {
         const res = await apiFetch<QuestionResponse>(
-          `/api/session-items/${current.session_item_id}/question`
+          `/api/session-items/${currentSessionItemId}/question`
         );
-        setQ(res);
-      } catch (e: any) {
-        setErr(e?.message ?? "Failed to load question");
-      }
-    })();
-  }, [current?.session_item_id]);
 
-  function getPostSubmitDestination() {
-    return userSettings.autoOpenReviewAfterSubmit
-      ? `/session/${sessionId}/review`
-      : `/results`;
-  }
-
-  async function submitSessionAndRedirect(fromTimer = false) {
-    if (saving || autoSubmitting) return;
-
-    if (fromTimer) {
-      setAutoSubmitting(true);
-    } else {
-      setSaving(true);
-    }
-
-    setErr(null);
-
-    try {
-      await apiFetch(`/api/sessions/${sessionId}/submit`, { method: "POST" });
-      router.push(getPostSubmitDestination());
-    } catch (e: any) {
-      setErr(e?.message ?? "Failed to submit session");
-      autoSubmitTriggeredRef.current = false;
-    } finally {
-      if (fromTimer) {
-        setAutoSubmitting(false);
-      } else {
-        setSaving(false);
+        if (!cancelled) {
+          setQ(res);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setErr(getErrorMessage(error, "Failed to load question"));
+        }
       }
     }
-  }
+
+    void loadQuestion();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentSessionItemId]);
 
   async function finish() {
     if (
@@ -431,18 +493,11 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
       const confirmed = window.confirm(
         "Do you want to finish this session now and leave the player?"
       );
+
       if (!confirmed) return;
     }
 
-    await submitSessionAndRedirect(false);
-  }
-
-  function normalizeIsCorrect(fb: AttemptResponse | null): boolean | null {
-    if (!fb) return null;
-    if (typeof fb.is_correct === "boolean") return fb.is_correct;
-    if (fb.result === "correct") return true;
-    if (fb.result === "wrong") return false;
-    return null;
+    await submitSessionAndRedirect(false, true);
   }
 
   async function submitOrNext() {
@@ -452,8 +507,9 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
       if (idx < items.length - 1) {
         setIdx(idx + 1);
       } else {
-        await submitSessionAndRedirect(false);
+        await submitSessionAndRedirect(false, true);
       }
+
       return;
     }
 
@@ -468,7 +524,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
       : 10;
 
     try {
-      const fb = await apiFetch<AttemptResponse>(
+      const attemptFeedback = await apiFetch<AttemptResponse>(
         `/api/sessions/${sessionId}/items/${current.session_item_id}/attempt`,
         {
           method: "POST",
@@ -481,17 +537,15 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
       );
 
       if (showImmediateFeedback) {
-        setFeedback(fb ?? null);
+        setFeedback(attemptFeedback ?? null);
         setSubmitted(true);
+      } else if (idx < items.length - 1) {
+        setIdx(idx + 1);
       } else {
-        if (idx < items.length - 1) {
-          setIdx(idx + 1);
-        } else {
-          await submitSessionAndRedirect(false);
-        }
+        await submitSessionAndRedirect(false, true);
       }
-    } catch (e: any) {
-      setErr(e?.message ?? "Failed to submit answer");
+    } catch (error) {
+      setErr(getErrorMessage(error, "Failed to submit answer"));
     } finally {
       setSaving(false);
     }
@@ -503,16 +557,21 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     if (!q) return [];
     if (!showImmediateFeedback) return q.choices;
     if (!submitted) return q.choices;
-    if (feedback?.choices && feedback.choices.length > 0) return feedback.choices;
+    if (feedback?.choices && feedback.choices.length > 0) {
+      return feedback.choices;
+    }
+
     return q.choices;
-  }, [q, showImmediateFeedback, submitted, feedback?.choices]);
+  }, [feedback, q, showImmediateFeedback, submitted]);
 
   const correctChoiceId = useMemo(() => {
     if (!showImmediateFeedback || !submitted) return null;
-    const fbChoices = feedback?.choices ?? [];
-    const correct = fbChoices.find((c) => c.is_correct);
+
+    const feedbackChoices = feedback?.choices ?? [];
+    const correct = feedbackChoices.find((choice) => choice.is_correct);
+
     return correct?.choice_id ?? null;
-  }, [showImmediateFeedback, submitted, feedback?.choices]);
+  }, [feedback, showImmediateFeedback, submitted]);
 
   const sessionModeLabel = useMemo(() => {
     switch (sessionMeta?.mode) {
@@ -527,7 +586,11 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
     }
   }, [sessionMeta?.mode]);
 
-  const timerStyle: React.CSSProperties =
+  const feedbackBibliography = Array.isArray(feedback?.bibliography)
+    ? feedback.bibliography
+    : [];
+
+  const timerStyle: CSSProperties =
     isTimedMode && userSettings.emphasizeTimer
       ? {
           width: "100%",
@@ -536,7 +599,9 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           borderRadius: 16,
           border: "2px solid #e7c77a",
           background:
-            remainingSeconds !== null && remainingSeconds <= 300 ? "#fdecea" : "#fff8e1",
+            remainingSeconds !== null && remainingSeconds <= 300
+              ? "#fdecea"
+              : "#fff8e1",
           fontWeight: 900,
           fontSize: 18,
           textAlign: "center",
@@ -549,10 +614,17 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           borderRadius: 12,
           border: "1px solid #e7c77a",
           background:
-            remainingSeconds !== null && remainingSeconds <= 300 ? "#fdecea" : "#fff8e1",
+            remainingSeconds !== null && remainingSeconds <= 300
+              ? "#fdecea"
+              : "#fff8e1",
           fontWeight: 800,
           textAlign: "center",
         };
+
+  const isBusy = saving || autoSubmitting;
+  const hasItems = items.length > 0;
+  const canSubmitChoice =
+    Boolean(selected) || (showImmediateFeedback && submitted);
 
   return (
     <main
@@ -581,10 +653,18 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
               lineHeight: 1.2,
             }}
           >
-            Session {sessionId.slice(0, 8)}… — Q {items.length ? idx + 1 : "?"}/{items.length || "?"}
+            Session {sessionId.slice(0, 8)}… — Q{" "}
+            {items.length ? idx + 1 : "?"}/{items.length || "?"}
           </h1>
 
-          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div
+            style={{
+              marginTop: 8,
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
             <span
               style={{
                 fontSize: 12,
@@ -633,20 +713,20 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           }}
         >
           {isTimedMode && remainingSeconds !== null ? (
-            <div style={timerStyle}>Time left: {formatRemainingTime(remainingSeconds)}</div>
+            <div style={timerStyle}>
+              Time left: {formatRemainingTime(remainingSeconds)}
+            </div>
           ) : null}
 
           <button
-            onClick={finish}
-            disabled={saving || autoSubmitting || loadingItems || items.length === 0}
+            onClick={() => void finish()}
+            disabled={isBusy || loadingItems || !hasItems}
             style={{
               padding: "10px 12px",
               borderRadius: 12,
               border: "1px solid #ccc",
               cursor:
-                saving || autoSubmitting || loadingItems || items.length === 0
-                  ? "not-allowed"
-                  : "pointer",
+                isBusy || loadingItems || !hasItems ? "not-allowed" : "pointer",
               width: "100%",
               maxWidth: 240,
               flex: "0 1 240px",
@@ -654,9 +734,9 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           >
             {autoSubmitting
               ? "Submitting…"
-              : isTimedMode
-              ? "End Session & Review"
-              : "Finish & Review"}
+              : userSettings.autoOpenReviewAfterSubmit
+              ? "Finish & Review"
+              : "Finish Session"}
           </button>
         </div>
       </div>
@@ -698,17 +778,20 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           ) : null}
 
           <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-            {visibleChoices.map((c) => {
-              const isSelected = selected === c.choice_id;
+            {visibleChoices.map((choice) => {
+              const isSelected = selected === choice.choice_id;
 
               const showAfter = showImmediateFeedback && submitted;
               const isCorrectChoice =
-                showAfter && (c.is_correct === true || c.choice_id === correctChoiceId);
-              const isWrongSelected = showAfter && isSelected && !isCorrectChoice;
+                showAfter &&
+                (choice.is_correct === true ||
+                  choice.choice_id === correctChoiceId);
+              const isWrongSelected =
+                showAfter && isSelected && !isCorrectChoice;
 
               return (
                 <label
-                  key={c.choice_id}
+                  key={choice.choice_id}
                   style={{
                     display: "flex",
                     gap: 10,
@@ -730,7 +813,11 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                     name="choice"
                     checked={isSelected}
                     disabled={submitted}
-                    onChange={() => setSelected(c.choice_id)}
+                    onChange={() => {
+                      if (!submitted) {
+                        setSelected(choice.choice_id);
+                      }
+                    }}
                     style={{
                       marginTop: 2,
                       transform: "scale(1.1)",
@@ -738,23 +825,37 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                   />
 
                   <div style={{ width: "100%", minWidth: 0 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 12,
+                      }}
+                    >
                       <div style={{ fontWeight: 800 }}>
-                        {c.label}
+                        {choice.label}
                         {showAfter && isCorrectChoice ? " ✅" : null}
                         {showAfter && isWrongSelected ? " ❌" : null}
                       </div>
 
                       {showAfter ? (
-                        <div style={{ fontSize: 12, opacity: 0.8, whiteSpace: "nowrap" }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            opacity: 0.8,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
                           {isCorrectChoice ? "Correct" : "Incorrect"}
                         </div>
                       ) : null}
                     </div>
 
-                    <div style={{ marginTop: 4, lineHeight: 1.45 }}>{c.choice_text}</div>
+                    <div style={{ marginTop: 4, lineHeight: 1.45 }}>
+                      {choice.choice_text}
+                    </div>
 
-                    {showAfter && c.explanation ? (
+                    {showAfter && choice.explanation ? (
                       <div
                         style={{
                           marginTop: 10,
@@ -764,7 +865,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                           lineHeight: 1.45,
                         }}
                       >
-                        {c.explanation}
+                        {choice.explanation}
                       </div>
                     ) : null}
                   </div>
@@ -781,7 +882,11 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                 borderRadius: 14,
                 border: "1px solid #ddd",
                 background:
-                  isCorrect === true ? "#e9f7ef" : isCorrect === false ? "#fdecea" : "#f7f7f7",
+                  isCorrect === true
+                    ? "#e9f7ef"
+                    : isCorrect === false
+                    ? "#fdecea"
+                    : "#f7f7f7",
               }}
             >
               <div style={{ fontWeight: 900, marginBottom: 8 }}>
@@ -818,27 +923,44 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                 </div>
               ) : null}
 
-              {Array.isArray(feedback?.bibliography) && feedback.bibliography.length > 0 ? (
+              {feedbackBibliography.length > 0 ? (
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 800, marginBottom: 6 }}>References</div>
+                  <div style={{ fontWeight: 800, marginBottom: 6 }}>
+                    References
+                  </div>
+
                   <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    {feedback.bibliography.map((b, i) => (
-                      <li key={i} style={{ marginBottom: 10 }}>
+                    {feedbackBibliography.map((reference, referenceIndex) => (
+                      <li key={referenceIndex} style={{ marginBottom: 10 }}>
                         <div style={{ fontSize: 13, lineHeight: 1.4 }}>
-                          <span style={{ fontWeight: 800 }}>{b.title ?? "Reference"}</span>
-                          {b.source ? ` — ${b.source}` : ""}
-                          {typeof b.year === "number" ? ` (${b.year})` : ""}
+                          <span style={{ fontWeight: 800 }}>
+                            {reference.title ?? "Reference"}
+                          </span>
+                          {reference.source ? ` — ${reference.source}` : ""}
+                          {typeof reference.year === "number"
+                            ? ` (${reference.year})`
+                            : ""}
                         </div>
 
-                        {b.url ? (
-                          <div style={{ fontSize: 13, marginTop: 4, wordBreak: "break-word" }}>
-                            <a href={b.url} target="_blank" rel="noreferrer">
-                              {b.url}
+                        {reference.url ? (
+                          <div
+                            style={{
+                              fontSize: 13,
+                              marginTop: 4,
+                              wordBreak: "break-word",
+                            }}
+                          >
+                            <a
+                              href={reference.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {reference.url}
                             </a>
                           </div>
                         ) : null}
 
-                        {b.note ? (
+                        {reference.note ? (
                           <div
                             style={{
                               fontSize: 12,
@@ -847,7 +969,7 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
                               whiteSpace: "pre-wrap",
                             }}
                           >
-                            {b.note}
+                            {reference.note}
                           </div>
                         ) : null}
                       </li>
@@ -859,22 +981,19 @@ export default function SessionPage({ params }: { params: { sessionId: string } 
           ) : null}
 
           <button
-            onClick={submitOrNext}
-            disabled={(!selected && !(showImmediateFeedback && submitted)) || saving || autoSubmitting}
+            onClick={() => void submitOrNext()}
+            disabled={!canSubmitChoice || isBusy}
             style={{
               marginTop: 14,
               padding: "12px 14px",
               borderRadius: 12,
               border: "1px solid #ccc",
-              cursor:
-                (!selected && !(showImmediateFeedback && submitted)) || saving || autoSubmitting
-                  ? "not-allowed"
-                  : "pointer",
+              cursor: !canSubmitChoice || isBusy ? "not-allowed" : "pointer",
               width: "100%",
               maxWidth: 340,
             }}
           >
-            {saving || autoSubmitting
+            {isBusy
               ? "Saving…"
               : showImmediateFeedback && submitted
               ? idx < items.length - 1

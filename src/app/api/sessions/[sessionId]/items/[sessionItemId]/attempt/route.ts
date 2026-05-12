@@ -1,53 +1,97 @@
-/**
- * Attempt Route (POST)
+/*
+ * File: src/app/api/sessions/[sessionId]/items/[sessionItemId]/attempt/route.ts
  *
- * 📍 Localização:
- * src/app/api/sessions/[sessionId]/items/[sessionItemId]/attempt/route.ts
+ * Responsibility:
+ * - Record or update the authenticated user's attempt for one session item.
+ * - Validate that the session belongs to the authenticated user.
+ * - Validate that the session item belongs to the requested session.
+ * - Validate that selected_choice_id belongs to the item's question_version.
+ * - Compute result: correct, wrong, or skipped.
+ * - Return an enriched feedback payload for immediate-review practice mode.
  *
- * Responsabilidade:
- * - Registrar (ou atualizar) a tentativa do usuário para um item da sessão
- * - Calcular resultado (correct/wrong/skipped) consultando question_choices.is_correct
- * - Retornar imediatamente o payload didático necessário para o player exibir
- *   o review logo após o submit da questão
- *
- * Contrato:
+ * API contract:
  * - POST /api/sessions/:sessionId/items/:sessionItemId/attempt
  *
- * Regras importantes:
- * - Requer autenticação (NextAuth) ou header dev x-user-id
- * - Só permite tentativa quando a sessão estiver em status "in_progress"
- * - Upsert por session_item_id: se já existir attempt, atualiza; senão, insere
+ * Request body:
+ * - selected_choice_id?: string | null
+ * - time_spent_seconds?: number
+ * - confidence?: number
+ * - flagged_for_review?: boolean
  *
- * Observações:
- * - Ajuste de tipagem para build (Vercel/TS): evitamos depender de rowCount
- *   (que pode ser null) e usamos rows.length, que é sempre seguro.
- * - O frontend do player espera um payload "enriquecido" no topo da resposta:
- *   - is_correct / result
- *   - explanation_short / explanation_long
+ * Auth contract:
+ * - User identity is resolved by getUserIdForApi(req).
+ * - The route must never record or update attempts for another user's session.
+ *
+ * Important behavior:
+ * - Only in_progress sessions accept attempts.
+ * - Upsert is preserved by session_item_id/user/session.
+ * - Updating the same attempt does not inflate times_seen.
+ * - Updating a previously correct attempt to wrong/skipped adjusts times_correct.
+ * - The enriched response keeps compatibility with the session player:
+ *   - attempt
+ *   - is_correct
+ *   - result
+ *   - explanation_short
+ *   - explanation_long
  *   - bibliography
- *   - choices[] com is_correct + explanation
- * - Sem esse payload enriquecido, o submit funciona, mas o review imediato
- *   não aparece após responder a questão.
- *
- * ✅ Atualização (2026-03-17):
- * - Mantido o upsert de attempt para preservar o comportamento atual do projeto
- * - Adicionado retorno didático completo para suportar feedback imediato no player
- * - Mantido o objeto `attempt` na resposta por compatibilidade retroativa
- * - Troca de getUserIdFromRequest por getUserIdForApi
+ *   - choices[] with is_correct and explanation
  */
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { withTx } from "@/lib/db";
 import { getUserIdForApi } from "@/lib/auth";
 
-const BodySchema = z.object({
-  // Para "skipped", mande null ou omita.
-  selected_choice_id: z.string().uuid().nullable().optional(),
-  time_spent_seconds: z.number().int().min(0).max(60 * 60).optional(),
-  confidence: z.number().int().min(1).max(5).optional(), // 1..5
-  flagged_for_review: z.boolean().optional(),
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const ParamsSchema = z.object({
+  sessionId: z.string().regex(UUID_RE, "Invalid sessionId"),
+  sessionItemId: z.string().regex(UUID_RE, "Invalid sessionItemId"),
 });
+
+const BodySchema = z
+  .object({
+    selected_choice_id: z.string().uuid().nullable().optional(),
+    time_spent_seconds: z.coerce.number().int().min(0).max(60 * 60).optional(),
+    confidence: z.coerce.number().int().min(1).max(5).optional(),
+    flagged_for_review: z.boolean().optional(),
+  })
+  .strict();
+
+type RouteParams = {
+  params: {
+    sessionId: string;
+    sessionItemId: string;
+  };
+};
+
+type AttemptResult = "correct" | "wrong" | "skipped";
+
+type SessionRow = {
+  session_id: string;
+  user_id: string;
+  status: string;
+};
+
+type SessionItemRow = {
+  session_item_id: string;
+  session_id: string;
+  question_version_id: string;
+};
+
+type SelectedChoiceRow = {
+  is_correct: boolean;
+};
+
+type ExistingAttemptRow = {
+  attempt_id: string;
+  result: AttemptResult;
+  is_correct: boolean | null;
+};
 
 type AttemptRow = {
   attempt_id: string;
@@ -56,12 +100,22 @@ type AttemptRow = {
   session_item_id: string;
   question_version_id: string;
   selected_choice_id: string | null;
-  result: "correct" | "wrong" | "skipped";
+  result: AttemptResult;
   is_correct: boolean | null;
   time_spent_seconds: number | null;
   confidence: number | null;
   flagged_for_review: boolean;
   answered_at: string;
+};
+
+type QuestionIdRow = {
+  question_id: string;
+};
+
+type QuestionVersionContentRow = {
+  explanation_short: string | null;
+  explanation_long: string | null;
+  bibliography: unknown;
 };
 
 type FeedbackChoiceRow = {
@@ -72,22 +126,101 @@ type FeedbackChoiceRow = {
   explanation: string | null;
 };
 
-export async function POST(
-  req: Request,
-  { params }: { params: { sessionId: string; sessionItemId: string } }
-) {
+type AttemptPayload = {
+  attempt: AttemptRow;
+  is_correct: boolean | null;
+  result: AttemptResult;
+  explanation_short: string | null;
+  explanation_long: string | null;
+  bibliography: unknown;
+  choices: FeedbackChoiceRow[];
+};
+
+type RouteResult =
+  | {
+      status: 200 | 201;
+      payload: AttemptPayload;
+    }
+  | {
+      status: 403 | 404 | 409 | 422 | 500;
+      payload: {
+        error: string;
+      };
+    };
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ZodError) {
+    return error.issues
+      .map((issue) => `${issue.path.join(".") || "request"}: ${issue.message}`)
+      .join("; ");
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error;
+  }
+
+  return fallback;
+}
+
+function isAuthError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+
+  return (
+    message.includes("unauthorized") ||
+    message.includes("not authenticated") ||
+    message.includes("authentication required") ||
+    message.includes("sign in")
+  );
+}
+
+function getErrorStatus(error: unknown): number {
+  if (error instanceof ZodError) {
+    return 400;
+  }
+
+  if (isAuthError(error)) {
+    return 401;
+  }
+
+  return 500;
+}
+
+function jsonResponse(result: RouteResult) {
+  return NextResponse.json(result.payload, {
+    status: result.status,
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+function correctValue(value: boolean | null): number {
+  return value === true ? 1 : 0;
+}
+
+export async function POST(req: Request, { params }: RouteParams) {
   try {
     const userId = await getUserIdForApi(req);
-    const { sessionId, sessionItemId } = params;
+    const { sessionId, sessionItemId } = ParamsSchema.parse(params);
 
     const bodyJson = await req.json().catch(() => ({}));
     const body = BodySchema.parse(bodyJson);
 
-    const result = await withTx(async (client) => {
-      // 1) Verifica sessão (e trava)
-      const sRes = await client.query(
+    const result = await withTx<RouteResult>(async (client) => {
+      const sessionRes = await client.query<SessionRow>(
         `
-        SELECT session_id, user_id, status
+        SELECT
+          session_id,
+          user_id,
+          status
         FROM sessions
         WHERE session_id = $1
         FOR UPDATE
@@ -95,34 +228,38 @@ export async function POST(
         [sessionId]
       );
 
-      if (sRes.rows.length === 0) {
-        return { status: 404 as const, payload: { error: "Session not found" } };
+      if (sessionRes.rows.length === 0) {
+        return {
+          status: 404,
+          payload: { error: "Session not found" },
+        };
       }
 
-      const session = sRes.rows[0] as {
-        session_id: string;
-        user_id: string;
-        status: string;
-      };
+      const session = sessionRes.rows[0];
 
       if (session.user_id !== userId) {
-        return { status: 403 as const, payload: { error: "Forbidden" } };
+        return {
+          status: 403,
+          payload: { error: "Forbidden" },
+        };
       }
 
-      // não permitir attempt fora do estado correto
       if (session.status !== "in_progress") {
         return {
-          status: 409 as const,
+          status: 409,
           payload: { error: "Session is not in_progress" },
         };
       }
 
-      // 2) Verifica item pertence à sessão (e trava)
-      const itemRes = await client.query(
+      const itemRes = await client.query<SessionItemRow>(
         `
-        SELECT session_item_id, session_id, question_version_id
+        SELECT
+          session_item_id,
+          session_id,
+          question_version_id
         FROM session_items
-        WHERE session_item_id = $1 AND session_id = $2
+        WHERE session_item_id = $1
+          AND session_id = $2
         FOR UPDATE
         `,
         [sessionItemId, sessionId]
@@ -130,64 +267,62 @@ export async function POST(
 
       if (itemRes.rows.length === 0) {
         return {
-          status: 404 as const,
+          status: 404,
           payload: { error: "Session item not found for this session" },
         };
       }
 
-      const item = itemRes.rows[0] as {
-        session_item_id: string;
-        session_id: string;
-        question_version_id: string;
-      };
-
-      // 3) Calcular resultado comparando com question_choices.is_correct
+      const item = itemRes.rows[0];
       const selectedChoiceId = body.selected_choice_id ?? null;
 
-      let attemptResult: "correct" | "wrong" | "skipped" = "skipped";
+      let attemptResult: AttemptResult = "skipped";
       let isCorrect: boolean | null = null;
 
       if (selectedChoiceId) {
-        const choiceRes = await client.query(
+        const choiceRes = await client.query<SelectedChoiceRow>(
           `
           SELECT is_correct
           FROM question_choices
-          WHERE choice_id = $1 AND question_version_id = $2
+          WHERE choice_id = $1
+            AND question_version_id = $2
           `,
           [selectedChoiceId, item.question_version_id]
         );
 
         if (choiceRes.rows.length === 0) {
           return {
-            status: 422 as const,
+            status: 422,
             payload: {
               error: "selected_choice_id does not belong to this question_version",
             },
           };
         }
 
-        const correct = Boolean(choiceRes.rows[0].is_correct);
-        isCorrect = correct;
-        attemptResult = correct ? "correct" : "wrong";
+        isCorrect = Boolean(choiceRes.rows[0].is_correct);
+        attemptResult = isCorrect ? "correct" : "wrong";
       }
 
-      // 4) Upsert attempt
-      const existingAttempt = await client.query(
+      const existingAttemptRes = await client.query<ExistingAttemptRow>(
         `
-        SELECT attempt_id
+        SELECT
+          attempt_id,
+          result,
+          is_correct
         FROM attempts
         WHERE session_item_id = $1
+          AND session_id = $2
+          AND user_id = $3
         LIMIT 1
+        FOR UPDATE
         `,
-        [sessionItemId]
+        [sessionItemId, sessionId, userId]
       );
 
+      const previousAttempt = existingAttemptRes.rows[0] ?? null;
       let attemptRow: AttemptRow;
 
-      if (existingAttempt.rows.length > 0) {
-        const attemptId = existingAttempt.rows[0].attempt_id as string;
-
-        const upd = await client.query(
+      if (previousAttempt) {
+        const updated = await client.query<AttemptRow>(
           `
           UPDATE attempts
           SET
@@ -199,10 +334,22 @@ export async function POST(
             flagged_for_review = COALESCE($6, flagged_for_review),
             answered_at = now()
           WHERE attempt_id = $7
+            AND user_id = $8
+            AND session_id = $9
+            AND session_item_id = $10
           RETURNING
-            attempt_id, user_id, session_id, session_item_id, question_version_id,
-            selected_choice_id, result, is_correct, time_spent_seconds, confidence,
-            flagged_for_review, answered_at
+            attempt_id,
+            user_id,
+            session_id,
+            session_item_id,
+            question_version_id,
+            selected_choice_id,
+            result,
+            is_correct,
+            time_spent_seconds,
+            confidence,
+            flagged_for_review,
+            answered_at
           `,
           [
             selectedChoiceId,
@@ -211,18 +358,35 @@ export async function POST(
             body.time_spent_seconds ?? null,
             body.confidence ?? null,
             body.flagged_for_review ?? null,
-            attemptId,
+            previousAttempt.attempt_id,
+            userId,
+            sessionId,
+            sessionItemId,
           ]
         );
 
-        attemptRow = upd.rows[0] as AttemptRow;
+        if (updated.rows.length === 0) {
+          return {
+            status: 500,
+            payload: { error: "Failed to update attempt" },
+          };
+        }
+
+        attemptRow = updated.rows[0];
       } else {
-        const ins = await client.query(
+        const inserted = await client.query<AttemptRow>(
           `
           INSERT INTO attempts (
-            user_id, session_id, session_item_id, question_version_id,
-            selected_choice_id, result, is_correct,
-            time_spent_seconds, confidence, flagged_for_review
+            user_id,
+            session_id,
+            session_item_id,
+            question_version_id,
+            selected_choice_id,
+            result,
+            is_correct,
+            time_spent_seconds,
+            confidence,
+            flagged_for_review
           )
           VALUES (
             $1, $2, $3, $4,
@@ -230,9 +394,18 @@ export async function POST(
             $8, $9, $10
           )
           RETURNING
-            attempt_id, user_id, session_id, session_item_id, question_version_id,
-            selected_choice_id, result, is_correct, time_spent_seconds, confidence,
-            flagged_for_review, answered_at
+            attempt_id,
+            user_id,
+            session_id,
+            session_item_id,
+            question_version_id,
+            selected_choice_id,
+            result,
+            is_correct,
+            time_spent_seconds,
+            confidence,
+            flagged_for_review,
+            answered_at
           `,
           [
             userId,
@@ -248,11 +421,17 @@ export async function POST(
           ]
         );
 
-        attemptRow = ins.rows[0] as AttemptRow;
+        if (inserted.rows.length === 0) {
+          return {
+            status: 500,
+            payload: { error: "Failed to insert attempt" },
+          };
+        }
+
+        attemptRow = inserted.rows[0];
       }
 
-      // 5) Atualizar user_question_state
-      const qRes = await client.query(
+      const questionRes = await client.query<QuestionIdRow>(
         `
         SELECT question_id
         FROM question_versions
@@ -261,20 +440,36 @@ export async function POST(
         [item.question_version_id]
       );
 
-      if (qRes.rows.length === 0) {
+      if (questionRes.rows.length === 0) {
         return {
-          status: 500 as const,
-          payload: { error: "question_version not found (data integrity)" },
+          status: 500,
+          payload: { error: "question_version not found" },
         };
       }
 
-      const questionId = qRes.rows[0].question_id as string;
+      const questionId = questionRes.rows[0].question_id;
+
+      const newCorrectValue = correctValue(isCorrect);
+      const previousCorrectValue = previousAttempt
+        ? correctValue(previousAttempt.is_correct)
+        : 0;
+
+      const timesSeenDelta = previousAttempt ? 0 : 1;
+      const timesCorrectDelta = previousAttempt
+        ? newCorrectValue - previousCorrectValue
+        : newCorrectValue;
 
       await client.query(
         `
         INSERT INTO user_question_state (
-          user_id, question_id, last_seen_at, last_attempt_id,
-          times_seen, times_correct, last_result, bookmarked
+          user_id,
+          question_id,
+          last_seen_at,
+          last_attempt_id,
+          times_seen,
+          times_correct,
+          last_result,
+          bookmarked
         )
         VALUES (
           $1, $2, now(), $3,
@@ -287,49 +482,45 @@ export async function POST(
         SET
           last_seen_at = now(),
           last_attempt_id = EXCLUDED.last_attempt_id,
-          times_seen = user_question_state.times_seen + 1,
-          times_correct = user_question_state.times_correct + EXCLUDED.times_correct,
+          times_seen = GREATEST(1, user_question_state.times_seen + $6),
+          times_correct = GREATEST(0, user_question_state.times_correct + $7),
           last_result = EXCLUDED.last_result
         `,
         [
           userId,
           questionId,
           attemptRow.attempt_id,
-          isCorrect === true ? 1 : 0,
+          newCorrectValue,
           attemptResult,
+          timesSeenDelta,
+          timesCorrectDelta,
         ]
       );
 
-      /**
-       * 6) Buscar o conteúdo pedagógico da questão para o review imediato
-       */
-      const qvRes = await client.query(
-        `
-        SELECT
-          explanation_short,
-          explanation_long,
-          bibliography
-        FROM question_versions
-        WHERE question_version_id = $1
-        LIMIT 1
-        `,
-        [item.question_version_id]
-      );
+      const questionVersionContentRes =
+        await client.query<QuestionVersionContentRow>(
+          `
+          SELECT
+            explanation_short,
+            explanation_long,
+            bibliography
+          FROM question_versions
+          WHERE question_version_id = $1
+          LIMIT 1
+          `,
+          [item.question_version_id]
+        );
 
-      if (qvRes.rows.length === 0) {
+      if (questionVersionContentRes.rows.length === 0) {
         return {
-          status: 500 as const,
+          status: 500,
           payload: { error: "question_version content not found" },
         };
       }
 
-      const qv = qvRes.rows[0] as {
-        explanation_short: string | null;
-        explanation_long: string | null;
-        bibliography: unknown;
-      };
+      const questionVersionContent = questionVersionContentRes.rows[0];
 
-      const choicesRes = await client.query(
+      const choicesRes = await client.query<FeedbackChoiceRow>(
         `
         SELECT
           choice_id,
@@ -344,32 +535,34 @@ export async function POST(
         [item.question_version_id]
       );
 
-      const feedbackChoices = choicesRes.rows as FeedbackChoiceRow[];
-
-      /**
-       * 7) Retornar payload enriquecido no topo da resposta
-       */
-      const payload = {
+      const payload: AttemptPayload = {
         attempt: attemptRow,
         is_correct: attemptRow.is_correct,
         result: attemptRow.result,
-        explanation_short: qv.explanation_short ?? null,
-        explanation_long: qv.explanation_long ?? null,
-        bibliography: qv.bibliography ?? null,
-        choices: feedbackChoices,
+        explanation_short: questionVersionContent.explanation_short ?? null,
+        explanation_long: questionVersionContent.explanation_long ?? null,
+        bibliography: questionVersionContent.bibliography ?? null,
+        choices: choicesRes.rows,
       };
 
       return {
-        status: existingAttempt.rows.length > 0 ? (200 as const) : (201 as const),
+        status: previousAttempt ? 200 : 201,
         payload,
       };
     });
 
-    return NextResponse.json(result.payload, { status: result.status });
-  } catch (err: any) {
+    return jsonResponse(result);
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 400 }
+      {
+        error: getErrorMessage(error, "Failed to record attempt"),
+      },
+      {
+        status: getErrorStatus(error),
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
     );
   }
 }

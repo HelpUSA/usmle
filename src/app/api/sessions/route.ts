@@ -1,33 +1,55 @@
-/**
- * Sessions Route (GET/POST)
+/*
+ * File: src/app/api/sessions/route.ts
  *
- * 📍 Localização:
- * src/app/api/sessions/route.ts
+ * Responsibility:
+ * - POST: create a new study session for the authenticated API user.
+ * - GET: list recent study sessions for the authenticated API user.
  *
- * Responsabilidades:
- * - POST: criar uma nova sessão de estudo
- * - GET: listar sessões recentes do usuário autenticado
+ * Auth contract:
+ * - User identity is resolved by getUserIdForApi(req).
+ * - That helper may support:
+ *   - development x-user-id override;
+ *   - NextAuth/session-backed user resolution.
+ *
+ * Database contract:
+ * - Ensures users_profile exists before inserting a session.
+ * - Creates sessions with mode-derived behavior:
+ *   - practice: untimed, immediate review;
+ *   - timed_block: timed, deferred review;
+ *   - exam_sim: timed, deferred review.
  */
 
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { query } from "@/lib/db";
-import { getUserIdForApi } from "@/lib/auth"; // ✅ CORRETO
+import { getUserIdForApi } from "@/lib/auth";
 
-const CreateSessionSchema = z.object({
-  mode: z.enum(["practice", "timed_block", "exam_sim"]),
-  exam: z.enum(["step1", "step2ck"]),
-  language: z.string().default("en"),
-});
+const CreateSessionSchema = z
+  .object({
+    mode: z.enum(["practice", "timed_block", "exam_sim"]),
+    exam: z.enum(["step1", "step2ck"]),
+    language: z.string().trim().min(2).max(10).default("en"),
+  })
+  .strict();
 
-type SessionMode = "practice" | "timed_block" | "exam_sim";
+type SessionMode = z.infer<typeof CreateSessionSchema>["mode"];
 
-function deriveSessionBehavior(mode: SessionMode) {
+type DerivedSessionBehavior = {
+  timed: boolean;
+  time_limit_seconds: number | null;
+  settings_json: {
+    review_strategy: "immediate" | "deferred";
+    timer_visible: boolean;
+    mode_semantics: SessionMode;
+  };
+};
+
+function deriveSessionBehavior(mode: SessionMode): DerivedSessionBehavior {
   switch (mode) {
     case "practice":
       return {
         timed: false,
-        time_limit_seconds: null as number | null,
+        time_limit_seconds: null,
         settings_json: {
           review_strategy: "immediate",
           timer_visible: false,
@@ -64,16 +86,57 @@ function deriveSessionBehavior(mode: SessionMode) {
   }
 }
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ZodError) {
+    return error.issues
+      .map((issue) => `${issue.path.join(".") || "body"}: ${issue.message}`)
+      .join("; ");
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error;
+  }
+
+  return fallback;
+}
+
+function isAuthError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+
+  return (
+    message.includes("unauthorized") ||
+    message.includes("not authenticated") ||
+    message.includes("authentication required") ||
+    message.includes("sign in")
+  );
+}
+
+function getErrorStatus(error: unknown): number {
+  if (error instanceof ZodError) {
+    return 400;
+  }
+
+  if (isAuthError(error)) {
+    return 401;
+  }
+
+  return 500;
+}
+
 export async function POST(req: Request) {
   try {
-    // ✅ AGORA FUNCIONA COM:
-    // - header x-user-id
-    // - sessão NextAuth
     const userId = await getUserIdForApi(req);
 
     const bodyJson = await req.json().catch(() => ({}));
     const body = CreateSessionSchema.parse(bodyJson);
-
     const derived = deriveSessionBehavior(body.mode);
 
     await query(
@@ -125,17 +188,21 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json(created.rows[0], { status: 201 });
-  } catch (err: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 400 }
+      {
+        error: getErrorMessage(error, "Failed to create session"),
+      },
+      {
+        status: getErrorStatus(error),
+      }
     );
   }
 }
 
 export async function GET(req: Request) {
   try {
-    const userId = await getUserIdForApi(req); // ✅ CORRETO
+    const userId = await getUserIdForApi(req);
 
     const sessions = await query(
       `
@@ -160,10 +227,14 @@ export async function GET(req: Request) {
     );
 
     return NextResponse.json({ sessions: sessions.rows });
-  } catch (err: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 400 }
+      {
+        error: getErrorMessage(error, "Failed to load sessions"),
+      },
+      {
+        status: getErrorStatus(error),
+      }
     );
   }
 }

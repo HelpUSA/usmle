@@ -1,65 +1,25 @@
-/**
- * RootLayout
+/*
+ * File: src/app/layout.tsx
  *
- * 📍 Localização:
- * src/app/layout.tsx
+ * Responsibility:
+ * - Define the root App Router layout.
+ * - Define global metadata.
+ * - Wrap the application with global client-side Providers.
+ * - Provide the primary responsive navigation shell.
+ * - Keep internal navigation protected through ProtectedNavLink.
+ * - Keep external HelpUS/WhatsApp links as normal anchors.
  *
- * Função:
- * - Layout raiz da aplicação (App Router)
- * - Define metadata global
- * - Aplica estrutura visual global do produto
- * - Envolve a aplicação com Providers globais (ex: NextAuth SessionProvider)
- * - Fornece navegação principal responsiva para desktop e celular
- *
- * Estratégia de navegação:
- * - Desktop:
- *   - exibe links principais no header
- *   - oculta o menu hambúrguer
- * - Mobile:
- *   - exibe menu expansível com <details>/<summary>
- *   - oculta a navegação horizontal do desktop
- *
- * Regras de navegação nesta fase:
- * - Dashboard:
- *   - rota real: /
- * - Study:
- *   - rota real: /study
- *   - concentra o fluxo operacional de estudo
- * - Progress:
- *   - rota real: /progress
- * - Results:
- *   - rota real: /results
- * - Settings:
- *   - rota real: /settings
- *
- * Branding:
- * - A barra superior usa a logo real em /img/helpus-logo.png
- * - Toda referência visual principal à HelpUS aponta para o site institucional
- *
- * Contato:
- * - O item de contato abre o WhatsApp oficial da HelpUS
- *
- * Observações importantes:
- * - Todo hook do NextAuth (useSession, signIn, signOut) exige que
- *   a aplicação esteja envolvida em <SessionProvider />
- * - O wrapper <Providers /> centraliza dependências globais client-side
- *
- * ✅ Atualização (2026-03-17):
- * - Logo real da HelpUS adicionada ao topo
- * - Logo e nome da HelpUS ligados ao site externo da HelpUS
- * - Study aponta para a rota real /study
- * - Settings aponta para a rota real /settings
- * - Contact abre WhatsApp
- * - Menu desktop e mobile preservados
- *
- * ✅ Atualização (2026-03-17 · navegação protegida):
- * - Menu global agora respeita confirmBeforeLeavingSession
- * - Links internos do menu usam ProtectedNavLink
- * - Se houver sessão ativa e a preferência estiver habilitada, mostra confirmação antes de sair
- * - Links externos (site HelpUS / WhatsApp) permanecem sem bloqueio
+ * Important behavior:
+ * - Pages using useSession(), signIn(), or signOut() require the application
+ *   to be wrapped by Providers, which should include NextAuth SessionProvider.
+ * - Internal app links use ProtectedNavLink so navigation can respect the
+ *   confirmBeforeLeavingSession preference.
+ * - External links are not blocked by ProtectedNavLink.
  */
 
+import type { CSSProperties, ReactNode } from "react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Providers from "./providers";
 import ProtectedNavLink from "./ProtectedNavLink";
 
@@ -71,7 +31,7 @@ export const metadata: Metadata = {
 const HELPUS_SITE_URL = "https://helpusbr.com";
 const HELPUS_WHATSAPP_URL = "https://wa.me/5583998721848";
 
-const navLinkStyle: React.CSSProperties = {
+const navLinkStyle: CSSProperties = {
   textDecoration: "none",
   color: "#374151",
   fontSize: 14,
@@ -81,7 +41,7 @@ const navLinkStyle: React.CSSProperties = {
   display: "inline-block",
 };
 
-const mobileMenuLinkStyle: React.CSSProperties = {
+const mobileMenuLinkStyle: CSSProperties = {
   textDecoration: "none",
   color: "#111827",
   fontSize: 15,
@@ -93,11 +53,17 @@ const mobileMenuLinkStyle: React.CSSProperties = {
   border: "1px solid #eceff3",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const externalGreenLinkStyle: CSSProperties = {
+  ...navLinkStyle,
+  color: "#16a34a",
+};
+
+const mobileExternalGreenLinkStyle: CSSProperties = {
+  ...mobileMenuLinkStyle,
+  color: "#16a34a",
+};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body
@@ -132,9 +98,12 @@ export default function RootLayout({
               max-width: 1200px;
               margin: 0 auto;
             }
+
+            .mobile-menu summary::-webkit-details-marker {
+              display: none;
+            }
           `}</style>
 
-          {/* HEADER */}
           <header
             style={{
               position: "sticky",
@@ -153,7 +122,6 @@ export default function RootLayout({
                 gap: 12,
               }}
             >
-              {/* Top row */}
               <div
                 style={{
                   display: "flex",
@@ -162,7 +130,6 @@ export default function RootLayout({
                   gap: 12,
                 }}
               >
-                {/* LEFT: BRAND / EXTERNAL HELPUS LINK */}
                 <a
                   href={HELPUS_SITE_URL}
                   target="_blank"
@@ -177,9 +144,12 @@ export default function RootLayout({
                   }}
                   title="Open HelpUS site"
                 >
-                  <img
+                  <Image
                     src="/img/helpus-logo.png"
                     alt="HelpUS logo"
+                    width={40}
+                    height={40}
+                    priority
                     style={{
                       width: 40,
                       height: 40,
@@ -193,16 +163,28 @@ export default function RootLayout({
                   />
 
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 900, fontSize: 16, lineHeight: 1.1 }}>
+                    <div
+                      style={{
+                        fontWeight: 900,
+                        fontSize: 16,
+                        lineHeight: 1.1,
+                      }}
+                    >
                       HelpUS
                     </div>
-                    <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.2 }}>
+
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: "#6b7280",
+                        lineHeight: 1.2,
+                      }}
+                    >
                       USMLE Platform
                     </div>
                   </div>
                 </a>
 
-                {/* DESKTOP NAV */}
                 <nav
                   className="desktop-nav"
                   aria-label="Primary desktop navigation"
@@ -215,15 +197,19 @@ export default function RootLayout({
                   <ProtectedNavLink href="/" style={navLinkStyle}>
                     Dashboard
                   </ProtectedNavLink>
+
                   <ProtectedNavLink href="/study" style={navLinkStyle}>
                     Study
                   </ProtectedNavLink>
+
                   <ProtectedNavLink href="/results" style={navLinkStyle}>
                     Results
                   </ProtectedNavLink>
+
                   <ProtectedNavLink href="/progress" style={navLinkStyle}>
                     Progress
                   </ProtectedNavLink>
+
                   <ProtectedNavLink href="/settings" style={navLinkStyle}>
                     Settings
                   </ProtectedNavLink>
@@ -232,19 +218,15 @@ export default function RootLayout({
                     href={HELPUS_WHATSAPP_URL}
                     target="_blank"
                     rel="noreferrer"
-                    style={{
-                      ...navLinkStyle,
-                      color: "#16a34a",
-                    }}
+                    style={externalGreenLinkStyle}
                   >
                     WhatsApp
                   </a>
                 </nav>
 
-                {/* MOBILE ICON ONLY */}
                 <div
                   className="mobile-menu"
-                  aria-hidden
+                  aria-hidden="true"
                   style={{
                     fontSize: 20,
                     lineHeight: 1,
@@ -258,7 +240,6 @@ export default function RootLayout({
                 </div>
               </div>
 
-              {/* MOBILE MENU PANEL */}
               <details
                 className="mobile-menu"
                 style={{
@@ -282,12 +263,14 @@ export default function RootLayout({
                   }}
                 >
                   <span>Menu</span>
-                  <span aria-hidden style={{ fontSize: 20, lineHeight: 1 }}>
+
+                  <span aria-hidden="true" style={{ fontSize: 20, lineHeight: 1 }}>
                     ☰
                   </span>
                 </summary>
 
-                <div
+                <nav
+                  aria-label="Primary mobile navigation"
                   style={{
                     padding: "0 12px 12px 12px",
                     display: "grid",
@@ -297,15 +280,19 @@ export default function RootLayout({
                   <ProtectedNavLink href="/" style={mobileMenuLinkStyle}>
                     Dashboard
                   </ProtectedNavLink>
+
                   <ProtectedNavLink href="/study" style={mobileMenuLinkStyle}>
                     Study
                   </ProtectedNavLink>
+
                   <ProtectedNavLink href="/results" style={mobileMenuLinkStyle}>
                     Results
                   </ProtectedNavLink>
+
                   <ProtectedNavLink href="/progress" style={mobileMenuLinkStyle}>
                     Progress
                   </ProtectedNavLink>
+
                   <ProtectedNavLink href="/settings" style={mobileMenuLinkStyle}>
                     Settings
                   </ProtectedNavLink>
@@ -323,19 +310,15 @@ export default function RootLayout({
                     href={HELPUS_WHATSAPP_URL}
                     target="_blank"
                     rel="noreferrer"
-                    style={{
-                      ...mobileMenuLinkStyle,
-                      color: "#16a34a",
-                    }}
+                    style={mobileExternalGreenLinkStyle}
                   >
                     WhatsApp HelpUS
                   </a>
-                </div>
+                </nav>
               </details>
             </div>
           </header>
 
-          {/* MAIN CONTENT */}
           <main
             className="layout-shell"
             style={{
@@ -345,7 +328,6 @@ export default function RootLayout({
             {children}
           </main>
 
-          {/* FOOTER */}
           <footer
             style={{
               marginTop: 40,

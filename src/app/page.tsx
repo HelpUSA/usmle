@@ -1,48 +1,34 @@
-/**
- * HomePage
+/*
+ * File: src/app/page.tsx
  *
- * 📍 Localização:
- * src/app/page.tsx
+ * Responsibility:
+ * - Render the main Home/Dashboard page.
+ * - Before login:
+ *   - act as a public landing page;
+ *   - present HelpUS branding;
+ *   - offer Google sign-in.
+ * - After login:
+ *   - act as a visual dashboard;
+ *   - show session-level summary cards and charts;
+ *   - route users to Study, Results, Progress, and Settings.
  *
- * Objetivo (dashboard principal):
- * - Ser a home principal do produto
- * - Antes do login:
- *   - funcionar como landing page pública
- *   - apresentar a proposta do produto com visual mais forte
- *   - usar branding HelpUS
- *   - oferecer CTA de login de forma amigável
- * - Depois do login:
- *   - funcionar como dashboard visual e de impacto
- *   - mostrar resumo rápido com gráficos
- *   - destacar visão geral da atividade do usuário
- *   - apontar para as áreas operacionais do sistema sem duplicá-las
- *
- * Contrato de API utilizado:
+ * API contract used:
  * - GET /api/sessions
- *   Lista as sessões recentes do usuário autenticado
  *
- * Estratégia de UX:
- * - Mobile-first
- * - Menos blocos textuais longos
- * - Mais leitura visual via cards e gráficos simples
- * - Home focada em visão geral e navegação, não em fluxo operacional detalhado
+ * Important behavior:
+ * - Study has its own operational page at /study.
+ * - Results and Progress have their own dedicated pages.
+ * - This Dashboard focuses on overview and navigation.
  *
- * Observações:
- * - Study agora possui página dedicada em /study
- * - Results e Progress já existem como áreas específicas
- * - O Dashboard evita repetir ações operacionais já tratadas em Study
- *
- * ✅ Atualização (2026-03-17):
- * - Dashboard mantido como visão geral
- * - Removida duplicação com a nova página /study
- * - Inclusão de card de navegação para o Study hub
- * - Uso da logo HelpUS em /img/helpus-logo.png
- * - Gráfico Activity ajustado para priorizar os dias mais recentes
+ * Build/lint notes:
+ * - Uses next/image instead of raw <img> for the HelpUS logo.
+ * - Avoids catch (e: any).
  */
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/apiClient";
 import { signIn, signOut, useSession } from "next-auth/react";
@@ -52,14 +38,14 @@ type SessionMode = "practice" | "timed_block" | "exam_sim";
 type SessionSummary = {
   session_id: string;
   user_id: string;
-  mode: SessionMode;
+  mode: SessionMode | string;
   exam: string;
   language?: string;
   timed?: boolean;
   time_limit_seconds?: number | null;
   status?: "in_progress" | "submitted" | "abandoned" | string;
   settings_json?: Record<string, unknown> | null;
-  started_at?: string;
+  started_at?: string | null;
   submitted_at?: string | null;
 };
 
@@ -69,86 +55,174 @@ type DailyPoint = {
   count: number;
 };
 
-function getDateKey(value?: string | null) {
-  if (!value) return null;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return null;
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+type BarPoint = {
+  x: number;
+  y: number;
+  barWidth: number;
+  barHeight: number;
+  point: DailyPoint;
+};
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error;
+  }
+
+  return fallback;
 }
 
-function buildDailySeries(sessions: SessionSummary[], lastDays = 14): DailyPoint[] {
-  const today = new Date();
-  const map = new Map<string, number>();
+function getDateKey(value?: string | null): string | null {
+  if (!value) return null;
 
-  for (const s of sessions) {
-    const key = getDateKey(s.started_at);
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function buildDailySeries(
+  sessions: SessionSummary[],
+  lastDays = 14
+): DailyPoint[] {
+  const today = new Date();
+  const activityMap = new Map<string, number>();
+
+  for (const sessionItem of sessions) {
+    const key = getDateKey(sessionItem.started_at);
+
     if (!key) continue;
-    map.set(key, (map.get(key) ?? 0) + 1);
+
+    activityMap.set(key, (activityMap.get(key) ?? 0) + 1);
   }
 
   const series: DailyPoint[] = [];
 
-  // mais recente primeiro
-  for (let i = 0; i < lastDays; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
+  for (let index = 0; index < lastDays; index += 1) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - index);
 
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const key = `${y}-${m}-${day}`;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const key = `${year}-${month}-${day}`;
 
     series.push({
       dateKey: key,
-      label: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-      count: map.get(key) ?? 0,
+      label: date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      }),
+      count: activityMap.get(key) ?? 0,
     });
   }
 
   return series;
 }
 
-function buildPolylinePoints(series: DailyPoint[], width: number, height: number, padding = 20) {
+function buildPolylinePoints(
+  series: DailyPoint[],
+  width: number,
+  height: number,
+  padding = 20
+): string {
   if (series.length === 0) return "";
-  const maxValue = Math.max(...series.map((p) => p.count), 1);
-  const innerW = width - padding * 2;
-  const innerH = height - padding * 2;
+
+  const maxValue = Math.max(...series.map((point) => point.count), 1);
+  const innerWidth = width - padding * 2;
+  const innerHeight = height - padding * 2;
 
   return series
     .map((point, index) => {
       const x =
-        padding + (series.length === 1 ? innerW / 2 : (index / (series.length - 1)) * innerW);
-      const y = padding + innerH - (point.count / maxValue) * innerH;
+        padding +
+        (series.length === 1
+          ? innerWidth / 2
+          : (index / (series.length - 1)) * innerWidth);
+
+      const y =
+        padding + innerHeight - (point.count / maxValue) * innerHeight;
+
       return `${x},${y}`;
     })
     .join(" ");
 }
 
-function buildBars(series: DailyPoint[], width: number, height: number, padding = 20) {
-  const maxValue = Math.max(...series.map((p) => p.count), 1);
-  const innerW = width - padding * 2;
-  const innerH = height - padding * 2;
+function buildBars(
+  series: DailyPoint[],
+  width: number,
+  height: number,
+  padding = 20
+): BarPoint[] {
+  const maxValue = Math.max(...series.map((point) => point.count), 1);
+  const innerWidth = width - padding * 2;
+  const innerHeight = height - padding * 2;
   const barGap = 6;
-  const barWidth = Math.max(8, (innerW - barGap * (series.length - 1)) / series.length);
+  const barWidth = Math.max(
+    8,
+    (innerWidth - barGap * Math.max(series.length - 1, 0)) /
+      Math.max(series.length, 1)
+  );
 
   return series.map((point, index) => {
     const x = padding + index * (barWidth + barGap);
-    const barHeight = (point.count / maxValue) * innerH;
-    const y = padding + innerH - barHeight;
-    return { x, y, barWidth, barHeight, point };
+    const barHeight = (point.count / maxValue) * innerHeight;
+    const y = padding + innerHeight - barHeight;
+
+    return {
+      x,
+      y,
+      barWidth,
+      barHeight,
+      point,
+    };
   });
 }
 
-function buildDonutSegments(values: number[]) {
-  const total = values.reduce((sum, v) => sum + v, 0);
-  if (total <= 0) return values.map(() => 0);
-  return values.map((v) => (v / total) * 100);
+function getPointCoordinates(
+  series: DailyPoint[],
+  point: DailyPoint,
+  index: number,
+  width: number,
+  height: number,
+  padding = 20
+): { x: number; y: number } {
+  const maxValue = Math.max(...series.map((item) => item.count), 1);
+  const innerWidth = width - padding * 2;
+  const innerHeight = height - padding * 2;
+
+  const x =
+    padding +
+    (series.length === 1
+      ? innerWidth / 2
+      : (index / (series.length - 1)) * innerWidth);
+
+  const y = padding + innerHeight - (point.count / maxValue) * innerHeight;
+
+  return { x, y };
 }
 
-function getStrokeDasharray(percent: number, circumference: number) {
+function buildDonutSegments(values: number[]): number[] {
+  const total = values.reduce((sum, value) => sum + value, 0);
+
+  if (total <= 0) {
+    return values.map(() => 0);
+  }
+
+  return values.map((value) => (value / total) * 100);
+}
+
+function getStrokeDasharray(percent: number, circumference: number): string {
   const filled = (percent / 100) * circumference;
   return `${filled} ${circumference - filled}`;
 }
@@ -163,8 +237,13 @@ function getMostUsedMode(
     { label: "Timed block", value: timedBlockSessions },
     { label: "Exam simulation", value: examSimSessions },
   ];
+
   entries.sort((a, b) => b.value - a.value);
-  if (entries[0].value === 0) return "—";
+
+  if (entries[0].value === 0) {
+    return "—";
+  }
+
   return entries[0].label;
 }
 
@@ -176,49 +255,80 @@ export default function HomePage() {
   const [err, setErr] = useState<string | null>(null);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
 
-  const isSignedIn = !!session?.user?.email;
+  const isAuthLoading = sessionStatus === "loading";
+  const isSignedIn =
+    sessionStatus === "authenticated" && Boolean(session?.user?.email);
+
   const userName =
     session?.user?.name?.trim() ||
     session?.user?.email?.split("@")[0] ||
     "there";
 
-  useEffect(() => {
-    if (!isSignedIn) {
-      setSessions([]);
+  const loadSessions = useCallback(async () => {
+    if (isAuthLoading) {
       return;
     }
 
-    (async () => {
-      setLoadingSessions(true);
+    if (!isSignedIn) {
+      setSessions([]);
+      setLoadingSessions(false);
       setErr(null);
+      return;
+    }
 
-      try {
-        const res = await apiFetch<{ sessions: SessionSummary[] }>("/api/sessions");
-        setSessions(res.sessions ?? []);
-      } catch (e: any) {
-        setErr(e?.message ?? "Failed to load sessions");
-      } finally {
-        setLoadingSessions(false);
-      }
-    })();
-  }, [isSignedIn]);
+    setLoadingSessions(true);
+    setErr(null);
+
+    try {
+      const res = await apiFetch<{ sessions: SessionSummary[] }>(
+        "/api/sessions"
+      );
+
+      setSessions(Array.isArray(res.sessions) ? res.sessions : []);
+    } catch (error: unknown) {
+      setErr(getErrorMessage(error, "Failed to load sessions"));
+      setSessions([]);
+    } finally {
+      setLoadingSessions(false);
+    }
+  }, [isAuthLoading, isSignedIn]);
+
+  useEffect(() => {
+    void loadSessions();
+  }, [loadSessions]);
 
   const activeSession = useMemo(
-    () => sessions.find((s) => s.status === "in_progress") ?? null,
+    () =>
+      sessions.find((sessionItem) => sessionItem.status === "in_progress") ??
+      null,
     [sessions]
   );
 
   const totalSessions = sessions.length;
-  const completedSessions = sessions.filter((s) => s.status === "submitted").length;
-  const inProgressSessions = sessions.filter((s) => s.status === "in_progress").length;
-  const abandonedSessions = sessions.filter((s) => s.status === "abandoned").length;
+  const completedSessions = sessions.filter(
+    (sessionItem) => sessionItem.status === "submitted"
+  ).length;
+  const inProgressSessions = sessions.filter(
+    (sessionItem) => sessionItem.status === "in_progress"
+  ).length;
+  const abandonedSessions = sessions.filter(
+    (sessionItem) => sessionItem.status === "abandoned"
+  ).length;
 
-  const practiceSessions = sessions.filter((s) => s.mode === "practice").length;
-  const timedBlockSessions = sessions.filter((s) => s.mode === "timed_block").length;
-  const examSimSessions = sessions.filter((s) => s.mode === "exam_sim").length;
+  const practiceSessions = sessions.filter(
+    (sessionItem) => sessionItem.mode === "practice"
+  ).length;
+  const timedBlockSessions = sessions.filter(
+    (sessionItem) => sessionItem.mode === "timed_block"
+  ).length;
+  const examSimSessions = sessions.filter(
+    (sessionItem) => sessionItem.mode === "exam_sim"
+  ).length;
 
   const completionRate =
-    totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0;
+    totalSessions > 0
+      ? Math.round((completedSessions / totalSessions) * 100)
+      : 0;
 
   const mostUsedMode = getMostUsedMode(
     practiceSessions,
@@ -226,15 +336,27 @@ export default function HomePage() {
     examSimSessions
   );
 
-  const dailySeries = useMemo(() => buildDailySeries(sessions, 14), [sessions]);
-  const peakDay = dailySeries.reduce(
+  const dailySeries = useMemo(
+    () => buildDailySeries(sessions, 14),
+    [sessions]
+  );
+
+  const peakDay = dailySeries.reduce<DailyPoint>(
     (best, current) => (current.count > best.count ? current : best),
-    { dateKey: "", label: "—", count: 0 }
+    {
+      dateKey: "",
+      label: "—",
+      count: 0,
+    }
   );
 
   const chartWidth = 640;
   const chartHeight = 220;
-  const polylinePoints = buildPolylinePoints(dailySeries, chartWidth, chartHeight);
+  const polylinePoints = buildPolylinePoints(
+    dailySeries,
+    chartWidth,
+    chartHeight
+  );
   const bars = buildBars(dailySeries, chartWidth, chartHeight);
 
   const modePercents = buildDonutSegments([
@@ -265,12 +387,11 @@ export default function HomePage() {
     await signOut({ callbackUrl: "/" });
   }
 
-  const userLabel =
-    sessionStatus === "loading"
-      ? "Loading session…"
-      : session?.user?.email
-      ? `Signed in as ${session.user.email}`
-      : "Not signed in";
+  const userLabel = isAuthLoading
+    ? "Loading session…"
+    : session?.user?.email
+    ? `Signed in as ${session.user.email}`
+    : "Not signed in";
 
   return (
     <main
@@ -279,9 +400,19 @@ export default function HomePage() {
         gap: 16,
       }}
     >
-      {!isSignedIn ? (
+      {isAuthLoading ? (
+        <section
+          style={{
+            padding: 18,
+            borderRadius: 20,
+            border: "1px solid #e5e7eb",
+            background: "white",
+          }}
+        >
+          Loading your account…
+        </section>
+      ) : !isSignedIn ? (
         <>
-          {/* Public landing */}
           <section
             style={{
               position: "relative",
@@ -305,6 +436,7 @@ export default function HomePage() {
                 background: "rgba(255,255,255,0.10)",
               }}
             />
+
             <div
               style={{
                 position: "relative",
@@ -321,9 +453,12 @@ export default function HomePage() {
                   flexWrap: "wrap",
                 }}
               >
-                <img
+                <Image
                   src="/img/helpus-logo.png"
                   alt="HelpUS logo"
+                  width={64}
+                  height={64}
+                  priority
                   style={{
                     width: 64,
                     height: 64,
@@ -335,7 +470,10 @@ export default function HomePage() {
                 />
 
                 <div>
-                  <div style={{ fontSize: 13, opacity: 0.9 }}>Built by HelpUS</div>
+                  <div style={{ fontSize: 13, opacity: 0.9 }}>
+                    Built by HelpUS
+                  </div>
+
                   <h1
                     style={{
                       margin: "4px 0 0 0",
@@ -359,9 +497,18 @@ export default function HomePage() {
                 }}
               >
                 {[
-                  { title: "Practice", text: "Untimed learning with immediate feedback." },
-                  { title: "Timed blocks", text: "Pacing-focused study without mid-session answers." },
-                  { title: "Simulation", text: "Longer exam-style flows with deferred review." },
+                  {
+                    title: "Practice",
+                    text: "Untimed learning with immediate feedback.",
+                  },
+                  {
+                    title: "Timed blocks",
+                    text: "Pacing-focused study without mid-session answers.",
+                  },
+                  {
+                    title: "Simulation",
+                    text: "Longer exam-style flows with deferred review.",
+                  },
                 ].map((item) => (
                   <div
                     key={item.title}
@@ -373,7 +520,14 @@ export default function HomePage() {
                     }}
                   >
                     <div style={{ fontWeight: 900 }}>{item.title}</div>
-                    <div style={{ marginTop: 6, fontSize: 13, lineHeight: 1.5 }}>
+
+                    <div
+                      style={{
+                        marginTop: 6,
+                        fontSize: 13,
+                        lineHeight: 1.5,
+                      }}
+                    >
                       {item.text}
                     </div>
                   </div>
@@ -382,7 +536,6 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Sign-in panel */}
           <section
             style={{
               display: "grid",
@@ -398,10 +551,13 @@ export default function HomePage() {
                 background: "white",
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 22 }}>Continue with your account</div>
+              <div style={{ fontWeight: 900, fontSize: 22 }}>
+                Continue with your account
+              </div>
+
               <button
-                onClick={handleGoogleSignIn}
-                disabled={sessionStatus === "loading"}
+                type="button"
+                onClick={() => void handleGoogleSignIn()}
                 style={{
                   marginTop: 16,
                   width: "100%",
@@ -410,12 +566,12 @@ export default function HomePage() {
                   border: "1px solid #d1d5db",
                   background: "#111827",
                   color: "white",
-                  cursor: sessionStatus === "loading" ? "not-allowed" : "pointer",
+                  cursor: "pointer",
                   fontWeight: 900,
                   fontSize: 15,
                 }}
               >
-                {sessionStatus === "loading" ? "Loading…" : "Continue with Google"}
+                Continue with Google
               </button>
             </div>
 
@@ -429,7 +585,9 @@ export default function HomePage() {
                 gap: 12,
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 22 }}>What happens after login</div>
+              <div style={{ fontWeight: 900, fontSize: 22 }}>
+                What happens after login
+              </div>
 
               {[
                 "Visual dashboard with study momentum",
@@ -463,7 +621,10 @@ export default function HomePage() {
                   >
                     ✓
                   </span>
-                  <span style={{ color: "#555", lineHeight: 1.5 }}>{text}</span>
+
+                  <span style={{ color: "#555", lineHeight: 1.5 }}>
+                    {text}
+                  </span>
                 </div>
               ))}
             </div>
@@ -471,7 +632,6 @@ export default function HomePage() {
         </>
       ) : (
         <>
-          {/* Signed-in hero */}
           <section
             style={{
               padding: 18,
@@ -500,9 +660,12 @@ export default function HomePage() {
                   alignItems: "center",
                 }}
               >
-                <img
+                <Image
                   src="/img/helpus-logo.png"
                   alt="HelpUS logo"
+                  width={58}
+                  height={58}
+                  priority
                   style={{
                     width: 58,
                     height: 58,
@@ -516,7 +679,10 @@ export default function HomePage() {
                 />
 
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 12, color: "#6b7280" }}>{userLabel}</div>
+                  <div style={{ fontSize: 12, color: "#6b7280" }}>
+                    {userLabel}
+                  </div>
+
                   <h1
                     style={{
                       margin: "6px 0 0 0",
@@ -538,7 +704,8 @@ export default function HomePage() {
                 }}
               >
                 <button
-                  onClick={handleSignOut}
+                  type="button"
+                  onClick={() => void handleSignOut()}
                   style={{
                     width: "100%",
                     padding: "12px 14px",
@@ -554,7 +721,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Visual KPI row */}
             <div
               style={{
                 display: "grid",
@@ -577,7 +743,10 @@ export default function HomePage() {
                     background: "white",
                   }}
                 >
-                  <div style={{ fontSize: 12, color: "#6b7280" }}>{card.label}</div>
+                  <div style={{ fontSize: 12, color: "#6b7280" }}>
+                    {card.label}
+                  </div>
+
                   <div
                     style={{
                       marginTop: 8,
@@ -593,7 +762,6 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Dashboard charts */}
           <section
             style={{
               display: "grid",
@@ -601,7 +769,6 @@ export default function HomePage() {
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
             }}
           >
-            {/* Activity chart */}
             <div
               style={{
                 padding: 18,
@@ -623,7 +790,14 @@ export default function HomePage() {
               >
                 <div>
                   <div style={{ fontWeight: 900, fontSize: 20 }}>Activity</div>
-                  <div style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: 13,
+                      color: "#6b7280",
+                    }}
+                  >
                     Last 14 days
                   </div>
                 </div>
@@ -703,23 +877,25 @@ export default function HomePage() {
                     />
 
                     {dailySeries.map((point, index) => {
-                      const maxValue = Math.max(...dailySeries.map((p) => p.count), 1);
-                      const padding = 20;
-                      const innerW = chartWidth - padding * 2;
-                      const innerH = chartHeight - padding * 2;
-
-                      const x =
-                        padding +
-                        (dailySeries.length === 1
-                          ? innerW / 2
-                          : (index / (dailySeries.length - 1)) * innerW);
-                      const y = padding + innerH - (point.count / maxValue) * innerH;
+                      const coordinates = getPointCoordinates(
+                        dailySeries,
+                        point,
+                        index,
+                        chartWidth,
+                        chartHeight
+                      );
 
                       return (
                         <g key={point.dateKey}>
-                          <circle cx={x} cy={y} r="4" fill="#1d4ed8" />
+                          <circle
+                            cx={coordinates.x}
+                            cy={coordinates.y}
+                            r="4"
+                            fill="#1d4ed8"
+                          />
+
                           <text
-                            x={x}
+                            x={coordinates.x}
                             y={chartHeight - 6}
                             textAnchor="middle"
                             fontSize="10"
@@ -735,7 +911,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Donut charts */}
             <div
               style={{
                 display: "grid",
@@ -753,8 +928,17 @@ export default function HomePage() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 900, fontSize: 20 }}>Mode mix</div>
-                  <div style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+                  <div style={{ fontWeight: 900, fontSize: 20 }}>
+                    Mode mix
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: 13,
+                      color: "#6b7280",
+                    }}
+                  >
                     How you study
                   </div>
                 </div>
@@ -784,24 +968,31 @@ export default function HomePage() {
                       strokeWidth={donutStroke}
                     />
 
-                    {modePercents.map((percent, idx) => {
+                    {modePercents.map((percent, index) => {
                       const previous = modePercents
-                        .slice(0, idx)
+                        .slice(0, index)
                         .reduce((sum, value) => sum + value, 0);
-                      const offset = circumference - (previous / 100) * circumference;
+
+                      const offset =
+                        circumference - (previous / 100) * circumference;
 
                       return (
                         <circle
-                          key={idx}
+                          key={`mode-${index}`}
                           cx={donutSize / 2}
                           cy={donutSize / 2}
                           r={radius}
                           fill="none"
-                          stroke={modeColors[idx]}
+                          stroke={modeColors[index]}
                           strokeWidth={donutStroke}
-                          strokeDasharray={getStrokeDasharray(percent, circumference)}
+                          strokeDasharray={getStrokeDasharray(
+                            percent,
+                            circumference
+                          )}
                           strokeDashoffset={offset}
-                          transform={`rotate(-90 ${donutSize / 2} ${donutSize / 2})`}
+                          transform={`rotate(-90 ${donutSize / 2} ${
+                            donutSize / 2
+                          })`}
                         />
                       );
                     })}
@@ -816,6 +1007,7 @@ export default function HomePage() {
                     >
                       {totalSessions}
                     </text>
+
                     <text
                       x="50%"
                       y="63%"
@@ -829,9 +1021,21 @@ export default function HomePage() {
 
                   <div style={{ display: "grid", gap: 10, minWidth: 170 }}>
                     {[
-                      { label: "Practice", value: practiceSessions, color: modeColors[0] },
-                      { label: "Timed block", value: timedBlockSessions, color: modeColors[1] },
-                      { label: "Exam sim", value: examSimSessions, color: modeColors[2] },
+                      {
+                        label: "Practice",
+                        value: practiceSessions,
+                        color: modeColors[0],
+                      },
+                      {
+                        label: "Timed block",
+                        value: timedBlockSessions,
+                        color: modeColors[1],
+                      },
+                      {
+                        label: "Exam sim",
+                        value: examSimSessions,
+                        color: modeColors[2],
+                      },
                     ].map((item) => (
                       <div
                         key={item.label}
@@ -842,7 +1046,13 @@ export default function HomePage() {
                           gap: 10,
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
                           <span
                             aria-hidden
                             style={{
@@ -854,8 +1064,12 @@ export default function HomePage() {
                               flexShrink: 0,
                             }}
                           />
-                          <span style={{ fontSize: 14, color: "#374151" }}>{item.label}</span>
+
+                          <span style={{ fontSize: 14, color: "#374151" }}>
+                            {item.label}
+                          </span>
                         </div>
+
                         <strong style={{ fontSize: 14 }}>{item.value}</strong>
                       </div>
                     ))}
@@ -874,8 +1088,17 @@ export default function HomePage() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 900, fontSize: 20 }}>Status mix</div>
-                  <div style={{ marginTop: 4, fontSize: 13, color: "#6b7280" }}>
+                  <div style={{ fontWeight: 900, fontSize: 20 }}>
+                    Status mix
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: 13,
+                      color: "#6b7280",
+                    }}
+                  >
                     Completion profile
                   </div>
                 </div>
@@ -905,24 +1128,31 @@ export default function HomePage() {
                       strokeWidth={donutStroke}
                     />
 
-                    {statusPercents.map((percent, idx) => {
+                    {statusPercents.map((percent, index) => {
                       const previous = statusPercents
-                        .slice(0, idx)
+                        .slice(0, index)
                         .reduce((sum, value) => sum + value, 0);
-                      const offset = circumference - (previous / 100) * circumference;
+
+                      const offset =
+                        circumference - (previous / 100) * circumference;
 
                       return (
                         <circle
-                          key={idx}
+                          key={`status-${index}`}
                           cx={donutSize / 2}
                           cy={donutSize / 2}
                           r={radius}
                           fill="none"
-                          stroke={statusColors[idx]}
+                          stroke={statusColors[index]}
                           strokeWidth={donutStroke}
-                          strokeDasharray={getStrokeDasharray(percent, circumference)}
+                          strokeDasharray={getStrokeDasharray(
+                            percent,
+                            circumference
+                          )}
                           strokeDashoffset={offset}
-                          transform={`rotate(-90 ${donutSize / 2} ${donutSize / 2})`}
+                          transform={`rotate(-90 ${donutSize / 2} ${
+                            donutSize / 2
+                          })`}
                         />
                       );
                     })}
@@ -937,6 +1167,7 @@ export default function HomePage() {
                     >
                       {completionRate}%
                     </text>
+
                     <text
                       x="50%"
                       y="63%"
@@ -950,9 +1181,21 @@ export default function HomePage() {
 
                   <div style={{ display: "grid", gap: 10, minWidth: 170 }}>
                     {[
-                      { label: "Completed", value: completedSessions, color: statusColors[0] },
-                      { label: "Open", value: inProgressSessions, color: statusColors[1] },
-                      { label: "Abandoned", value: abandonedSessions, color: statusColors[2] },
+                      {
+                        label: "Completed",
+                        value: completedSessions,
+                        color: statusColors[0],
+                      },
+                      {
+                        label: "Open",
+                        value: inProgressSessions,
+                        color: statusColors[1],
+                      },
+                      {
+                        label: "Abandoned",
+                        value: abandonedSessions,
+                        color: statusColors[2],
+                      },
                     ].map((item) => (
                       <div
                         key={item.label}
@@ -963,7 +1206,13 @@ export default function HomePage() {
                           gap: 10,
                         }}
                       >
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
                           <span
                             aria-hidden
                             style={{
@@ -975,8 +1224,12 @@ export default function HomePage() {
                               flexShrink: 0,
                             }}
                           />
-                          <span style={{ fontSize: 14, color: "#374151" }}>{item.label}</span>
+
+                          <span style={{ fontSize: 14, color: "#374151" }}>
+                            {item.label}
+                          </span>
                         </div>
+
                         <strong style={{ fontSize: 14 }}>{item.value}</strong>
                       </div>
                     ))}
@@ -986,7 +1239,6 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Study hub card */}
           <section
             style={{
               display: "grid",
@@ -1011,7 +1263,9 @@ export default function HomePage() {
                   padding: 14,
                   borderRadius: 16,
                   background: activeSession ? "#f8fbff" : "#f9fafb",
-                  border: activeSession ? "1px solid #dbeafe" : "1px solid #eef2f7",
+                  border: activeSession
+                    ? "1px solid #dbeafe"
+                    : "1px solid #eef2f7",
                   color: "#4b5563",
                   lineHeight: 1.55,
                 }}
@@ -1024,6 +1278,7 @@ export default function HomePage() {
               </div>
 
               <button
+                type="button"
                 onClick={() => router.push("/study")}
                 style={{
                   width: "100%",
@@ -1049,7 +1304,9 @@ export default function HomePage() {
                 gap: 12,
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 20 }}>Quick navigation</div>
+              <div style={{ fontWeight: 900, fontSize: 20 }}>
+                Quick navigation
+              </div>
 
               {[
                 { label: "Study", href: "/study" },
@@ -1059,6 +1316,7 @@ export default function HomePage() {
               ].map((item) => (
                 <button
                   key={item.label}
+                  type="button"
                   onClick={() => router.push(item.href)}
                   style={{
                     width: "100%",

@@ -1,130 +1,258 @@
-/**
- * Session Items Route (GET/POST)
+/*
+ * File: src/app/api/sessions/[sessionId]/items/route.ts
  *
- * 📍 Localização:
- * src/app/api/sessions/[sessionId]/items/route.ts
+ * Responsibility:
+ * - GET: list generated items for one authenticated user's study session.
+ * - POST: generate session items idempotently for one authenticated user's session.
  *
- * Responsabilidades:
- * - GET: listar itens já gerados da sessão (ordenados por position)
- * - POST: gerar itens da sessão de forma idempotente
- *
- * Contrato:
+ * API contract:
  * - GET  /api/sessions/:sessionId/items
  * - POST /api/sessions/:sessionId/items
- *   Body: { count?: number, include_seed?: boolean } (default count=10, include_seed=false)
+ *   Body: { count?: number, include_seed?: boolean }
  *
- * Regras importantes:
- * - Requer autenticação (NextAuth) ou header dev x-user-id
- * - Só permite gerar itens quando a sessão estiver em status "in_progress"
- * - POST é idempotente: se já existem itens, retorna os existentes e não recria
+ * Auth contract:
+ * - User identity is resolved by getUserIdForApi(req).
+ * - The route must never return or generate items for a session owned by
+ *   another user.
  *
- * Observação (build/TS):
- * - Em alguns typings do driver `pg`, `rowCount` pode ser `number | null`.
- *   Para evitar falha no build (Vercel), usamos `rows.length` em vez de `rowCount`.
+ * Product behavior:
+ * - Only in_progress sessions can generate new items.
+ * - POST is idempotent:
+ *   - if items already exist, it returns the existing items;
+ *   - it does not recreate or reshuffle the session.
+ * - Question selection:
+ *   - balances by difficulty: 30% easy, 50% medium, 20% hard;
+ *   - prioritizes unseen and less-seen questions;
+ *   - excludes seed_dev by default, except when include_seed=true or when
+ *     no non-seed published content exists.
  *
- * Patch (DEV seed isolation - Opção B):
- * - Evita misturar seed DEV com produção real por padrão.
- * - Por padrão: exclui questions.source = 'seed_dev'
- * - Se body.include_seed = true: permite seed_dev.
- *
- * Patch adicional (fallback automático):
- * - Se NÃO existir nenhuma questão publicada fora do seed_dev,
- *   liberamos seed_dev automaticamente para não travar o produto em ambiente seed-only.
- *
- * ✅ Atualização (2026-03-17):
- * - Troca de getUserIdFromRequest por getUserIdForApi
- * - Agora a rota funciona tanto com header dev quanto com sessão autenticada do browser
+ * Database notes:
+ * - Uses rows.length instead of rowCount because pg rowCount can be number | null.
  */
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { withTx } from "@/lib/db";
 import { getUserIdForApi } from "@/lib/auth";
 
-const BodySchema = z.object({
-  count: z.number().int().min(1).max(200).default(10),
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-  // ✅ Opção B: seed só entra se explicitamente pedido (ou fallback automático)
-  include_seed: z.boolean().optional().default(false),
+const ParamsSchema = z.object({
+  sessionId: z.string().regex(UUID_RE, "Invalid sessionId"),
 });
+
+const BodySchema = z
+  .object({
+    count: z.coerce.number().int().min(1).max(200).default(10),
+    include_seed: z.boolean().optional().default(false),
+  })
+  .strict();
+
+type RouteParams = {
+  params: {
+    sessionId: string;
+  };
+};
 
 type Difficulty = "easy" | "medium" | "hard";
 
-function splitByDifficulty(count: number) {
-  // alvo: 30% easy, 50% medium, 20% hard (arredondando)
+type SessionRow = {
+  session_id: string;
+  user_id: string;
+  exam: string;
+  language: string;
+  status: string;
+};
+
+type SessionItemRow = {
+  session_item_id: string;
+  session_id: string;
+  position: number;
+  question_version_id: string;
+  presented_at: string;
+};
+
+type QuestionVersionRow = {
+  question_version_id: string;
+};
+
+type RouteResult =
+  | {
+      status: 200 | 201;
+      payload: {
+        items: SessionItemRow[];
+      };
+    }
+  | {
+      status: 400 | 403 | 404 | 409;
+      payload: {
+        error: string;
+        debug?: Record<string, unknown>;
+      };
+    };
+
+function splitByDifficulty(count: number): Record<Difficulty, number> {
   const easy = Math.max(0, Math.round(count * 0.3));
   const hard = Math.max(0, Math.round(count * 0.2));
-  let medium = count - easy - hard;
-  if (medium < 0) medium = 0;
+  const medium = Math.max(0, count - easy - hard);
+
   return { easy, medium, hard };
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: { sessionId: string } }
-) {
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ZodError) {
+    return error.issues
+      .map((issue) => `${issue.path.join(".") || "request"}: ${issue.message}`)
+      .join("; ");
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error;
+  }
+
+  return fallback;
+}
+
+function isAuthError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+
+  return (
+    message.includes("unauthorized") ||
+    message.includes("not authenticated") ||
+    message.includes("authentication required") ||
+    message.includes("sign in")
+  );
+}
+
+function getErrorStatus(error: unknown): number {
+  if (error instanceof ZodError) {
+    return 400;
+  }
+
+  if (isAuthError(error)) {
+    return 401;
+  }
+
+  return 500;
+}
+
+function jsonResponse(result: RouteResult) {
+  return NextResponse.json(result.payload, {
+    status: result.status,
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+async function readSessionItems(
+  client: Parameters<Parameters<typeof withTx>[0]>[0],
+  sessionId: string
+): Promise<SessionItemRow[]> {
+  const items = await client.query<SessionItemRow>(
+    `
+    SELECT
+      session_item_id,
+      session_id,
+      position,
+      question_version_id,
+      presented_at
+    FROM session_items
+    WHERE session_id = $1
+    ORDER BY position ASC
+    `,
+    [sessionId]
+  );
+
+  return items.rows;
+}
+
+export async function GET(req: Request, { params }: RouteParams) {
   try {
     const userId = await getUserIdForApi(req);
-    const { sessionId } = params;
+    const { sessionId } = ParamsSchema.parse(params);
 
-    const result = await withTx(async (client) => {
-      const s = await client.query(
+    const result = await withTx<RouteResult>(async (client) => {
+      const sessionRes = await client.query<Pick<SessionRow, "session_id" | "user_id">>(
         `
-        SELECT session_id, user_id
+        SELECT
+          session_id,
+          user_id
         FROM sessions
         WHERE session_id = $1
         `,
         [sessionId]
       );
 
-      if (s.rows.length === 0) {
-        return { status: 404 as const, payload: { error: "Session not found" } };
+      if (sessionRes.rows.length === 0) {
+        return {
+          status: 404,
+          payload: { error: "Session not found" },
+        };
       }
 
-      if (s.rows[0].user_id !== userId) {
-        return { status: 403 as const, payload: { error: "Forbidden" } };
+      const session = sessionRes.rows[0];
+
+      if (session.user_id !== userId) {
+        return {
+          status: 403,
+          payload: { error: "Forbidden" },
+        };
       }
 
-      const items = await client.query(
-        `
-        SELECT session_item_id, session_id, position, question_version_id, presented_at
-        FROM session_items
-        WHERE session_id = $1
-        ORDER BY position ASC
-        `,
-        [sessionId]
-      );
+      const items = await readSessionItems(client, sessionId);
 
-      return { status: 200 as const, payload: { items: items.rows } };
+      return {
+        status: 200,
+        payload: { items },
+      };
     });
 
-    return NextResponse.json(result.payload, { status: result.status });
-  } catch (err: any) {
+    return jsonResponse(result);
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 400 }
+      {
+        error: getErrorMessage(error, "Failed to load session items"),
+      },
+      {
+        status: getErrorStatus(error),
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
     );
   }
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: { sessionId: string } }
-) {
+export async function POST(req: Request, { params }: RouteParams) {
   try {
     const userId = await getUserIdForApi(req);
-    const { sessionId } = params;
+    const { sessionId } = ParamsSchema.parse(params);
 
     const bodyJson = await req.json().catch(() => ({}));
     const body = BodySchema.parse(bodyJson);
 
-    const result = await withTx(async (client) => {
-      // 1) trava a sessão (evita duas requisições concorrentes criarem itens)
-      const sessionRes = await client.query(
+    const result = await withTx<RouteResult>(async (client) => {
+      const sessionRes = await client.query<SessionRow>(
         `
-        SELECT session_id, user_id, exam, language, status
+        SELECT
+          session_id,
+          user_id,
+          exam,
+          language,
+          status
         FROM sessions
         WHERE session_id = $1
         FOR UPDATE
@@ -133,51 +261,42 @@ export async function POST(
       );
 
       if (sessionRes.rows.length === 0) {
-        return { status: 404 as const, payload: { error: "Session not found" } };
+        return {
+          status: 404,
+          payload: { error: "Session not found" },
+        };
       }
 
-      const session = sessionRes.rows[0] as {
-        session_id: string;
-        user_id: string;
-        exam: string;
-        language: string;
-        status: string;
-      };
+      const session = sessionRes.rows[0];
 
       if (session.user_id !== userId) {
-        return { status: 403 as const, payload: { error: "Forbidden" } };
+        return {
+          status: 403,
+          payload: { error: "Forbidden" },
+        };
       }
 
       if (session.status !== "in_progress") {
         return {
-          status: 409 as const,
+          status: 409,
           payload: { error: "Session is not in_progress" },
         };
       }
 
-      // 2) idempotência: se já existem itens, retorna e não recria
-      const existing = await client.query(
-        `
-        SELECT session_item_id, session_id, position, question_version_id, presented_at
-        FROM session_items
-        WHERE session_id = $1
-        ORDER BY position ASC
-        `,
-        [sessionId]
-      );
+      const existingItems = await readSessionItems(client, sessionId);
 
-      if (existing.rows.length > 0) {
-        return { status: 200 as const, payload: { items: existing.rows } };
+      if (existingItems.length > 0) {
+        return {
+          status: 200,
+          payload: { items: existingItems },
+        };
       }
 
-      // 2.1) define se seed pode entrar
-      // - include_seed do body libera
-      // - fallback automático: se NÃO existir nenhum conteúdo publicado fora do seed_dev, libera seed_dev
-      const includeSeedRequested = body.include_seed ?? false;
+      const includeSeedRequested = body.include_seed;
 
-      const nonSeedPublished = await client.query(
+      const nonSeedPublished = await client.query<{ exists: number }>(
         `
-        SELECT 1
+        SELECT 1 AS exists
         FROM questions q
         WHERE q.status = 'published'
           AND q.source <> 'seed_dev'
@@ -185,24 +304,27 @@ export async function POST(
         `
       );
 
-      const allowSeed = includeSeedRequested || nonSeedPublished.rows.length === 0;
+      const allowSeed =
+        includeSeedRequested || nonSeedPublished.rows.length === 0;
 
-      // 3) Seleção "melhor para o usuário"
-      // - prioriza questões não vistas (user_question_state ausente -> aparece primeiro)
-      // - depois as menos vistas (times_seen ASC)
-      // - balanceia por dificuldade
       const target = splitByDifficulty(body.count);
 
-      async function pickByDifficulty(diff: Difficulty, limit: number) {
-        if (limit <= 0) return [] as string[];
+      async function pickByDifficulty(
+        difficulty: Difficulty,
+        limit: number
+      ): Promise<string[]> {
+        if (limit <= 0) {
+          return [];
+        }
 
-        const res = await client.query(
+        const res = await client.query<QuestionVersionRow>(
           `
           SELECT qv.question_version_id
           FROM question_versions qv
           JOIN questions q ON q.question_id = qv.question_id
           LEFT JOIN user_question_state uqs
-            ON uqs.user_id = $5 AND uqs.question_id = q.question_id
+            ON uqs.user_id = $5
+           AND uqs.question_id = q.question_id
           WHERE qv.exam = $1
             AND qv.language = $2
             AND qv.is_active = true
@@ -224,28 +346,37 @@ export async function POST(
             random()
           LIMIT $4
           `,
-          [session.exam, session.language, sessionId, limit, userId, diff, allowSeed]
+          [
+            session.exam,
+            session.language,
+            sessionId,
+            limit,
+            userId,
+            difficulty,
+            allowSeed,
+          ]
         );
 
-        return res.rows.map((r: any) => r.question_version_id as string);
+        return res.rows.map((row) => row.question_version_id);
       }
 
-      const picked: string[] = [];
-      picked.push(...(await pickByDifficulty("easy", target.easy)));
-      picked.push(...(await pickByDifficulty("medium", target.medium)));
-      picked.push(...(await pickByDifficulty("hard", target.hard)));
+      const picked: string[] = [
+        ...(await pickByDifficulty("easy", target.easy)),
+        ...(await pickByDifficulty("medium", target.medium)),
+        ...(await pickByDifficulty("hard", target.hard)),
+      ];
 
-      // Completar se faltar
       if (picked.length < body.count) {
         const remaining = body.count - picked.length;
 
-        const fillRes = await client.query(
+        const fillRes = await client.query<QuestionVersionRow>(
           `
           SELECT qv.question_version_id
           FROM question_versions qv
           JOIN questions q ON q.question_id = qv.question_id
           LEFT JOIN user_question_state uqs
-            ON uqs.user_id = $5 AND uqs.question_id = q.question_id
+            ON uqs.user_id = $5
+           AND uqs.question_id = q.question_id
           WHERE qv.exam = $1
             AND qv.language = $2
             AND qv.is_active = true
@@ -267,15 +398,23 @@ export async function POST(
             random()
           LIMIT $4
           `,
-          [session.exam, session.language, sessionId, remaining, userId, picked, allowSeed]
+          [
+            session.exam,
+            session.language,
+            sessionId,
+            remaining,
+            userId,
+            picked,
+            allowSeed,
+          ]
         );
 
-        picked.push(...fillRes.rows.map((r: any) => r.question_version_id as string));
+        picked.push(...fillRes.rows.map((row) => row.question_version_id));
       }
 
       if (picked.length === 0) {
         return {
-          status: 400 as const,
+          status: 400,
           payload: {
             error: "No active question_versions available for this exam/language",
             debug: {
@@ -290,33 +429,63 @@ export async function POST(
         };
       }
 
-      // 4) Inserção ordenada (position 1..N)
-      const insertValues: any[] = [];
+      const insertValues: Array<string | number> = [];
       const placeholders: string[] = [];
 
-      picked.forEach((qvId, idx) => {
-        const position = idx + 1;
-        placeholders.push(`($${idx * 3 + 1}, $${idx * 3 + 2}, $${idx * 3 + 3})`);
-        insertValues.push(sessionId, position, qvId);
+      picked.forEach((questionVersionId, index) => {
+        const position = index + 1;
+        const base = index * 3;
+
+        placeholders.push(`($${base + 1}, $${base + 2}, $${base + 3})`);
+        insertValues.push(sessionId, position, questionVersionId);
       });
 
-      const inserted = await client.query(
+      const inserted = await client.query<SessionItemRow>(
         `
-        INSERT INTO session_items (session_id, position, question_version_id)
-        VALUES ${placeholders.join(", ")}
-        RETURNING session_item_id, session_id, position, question_version_id, presented_at
+        WITH inserted AS (
+          INSERT INTO session_items (
+            session_id,
+            position,
+            question_version_id
+          )
+          VALUES ${placeholders.join(", ")}
+          RETURNING
+            session_item_id,
+            session_id,
+            position,
+            question_version_id,
+            presented_at
+        )
+        SELECT
+          session_item_id,
+          session_id,
+          position,
+          question_version_id,
+          presented_at
+        FROM inserted
+        ORDER BY position ASC
         `,
         insertValues
       );
 
-      return { status: 201 as const, payload: { items: inserted.rows } };
+      return {
+        status: 201,
+        payload: { items: inserted.rows },
+      };
     });
 
-    return NextResponse.json(result.payload, { status: result.status });
-  } catch (err: any) {
+    return jsonResponse(result);
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: err?.message ?? "Unknown error" },
-      { status: 400 }
+      {
+        error: getErrorMessage(error, "Failed to generate session items"),
+      },
+      {
+        status: getErrorStatus(error),
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
     );
   }
 }
