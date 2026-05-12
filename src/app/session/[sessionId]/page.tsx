@@ -16,7 +16,7 @@
  * - GET    /api/sessions
  *   Used to obtain session metadata: mode, timed, time_limit_seconds, started_at.
  * - POST   /api/sessions/:sessionId/items
- *   Generates session items idempotently.
+ *   Generates session items idempotently, only while the session is in_progress.
  * - GET    /api/sessions/:sessionId/items
  *   Fallback read for already-generated session items.
  * - GET    /api/session-items/:sessionItemId/question
@@ -30,6 +30,8 @@
  * - Never reveals the correct answer before the question is submitted.
  * - Session mode is authoritative.
  * - The final session submit must happen before opening review.
+ * - If a submitted session is opened through browser back/history, redirect to review.
+ * - Do not load items/questions for sessions that are not in_progress.
  * - The route is singular: /session/[sessionId].
  */
 
@@ -49,6 +51,7 @@ type SessionItem = {
 };
 
 type SessionMode = "practice" | "timed_block" | "exam_sim";
+type SessionStatus = "in_progress" | "submitted" | "abandoned" | string;
 
 type SessionSummary = {
   session_id: string;
@@ -58,7 +61,7 @@ type SessionSummary = {
   language?: string;
   timed?: boolean;
   time_limit_seconds?: number | null;
-  status?: string;
+  status?: SessionStatus;
   settings_json?: {
     review_strategy?: "immediate" | "deferred";
     timer_visible?: boolean;
@@ -214,6 +217,10 @@ function normalizeIsCorrect(feedback: AttemptResponse | null): boolean | null {
   return null;
 }
 
+function isPlayableStatus(status?: SessionStatus | null): boolean {
+  return status === "in_progress";
+}
+
 export default function SessionPage({
   params,
 }: {
@@ -249,6 +256,12 @@ export default function SessionPage({
   const current = useMemo(() => items[idx] ?? null, [items, idx]);
   const currentSessionItemId = current?.session_item_id ?? null;
 
+  const sessionStatus = sessionMeta?.status ?? null;
+  const sessionIsInProgress = isPlayableStatus(sessionStatus);
+  const sessionIsSubmitted = sessionStatus === "submitted";
+  const sessionIsClosed =
+    Boolean(sessionMeta) && Boolean(sessionStatus) && !sessionIsInProgress;
+
   const isTimedMode = Boolean(sessionMeta?.timed);
   const reviewStrategy =
     sessionMeta?.settings_json?.review_strategy ??
@@ -280,7 +293,14 @@ export default function SessionPage({
 
         router.push(getPostSubmitDestination());
       } catch (error) {
-        setErr(getErrorMessage(error, "Failed to submit session"));
+        const message = getErrorMessage(error, "Failed to submit session");
+
+        if (message.includes("Session is not in_progress")) {
+          router.replace(`/session/${sessionId}/review`);
+          return;
+        }
+
+        setErr(message);
         autoSubmitTriggeredRef.current = false;
       } finally {
         if (fromTimer) {
@@ -290,13 +310,7 @@ export default function SessionPage({
         }
       }
     },
-    [
-      autoSubmitting,
-      getPostSubmitDestination,
-      router,
-      saving,
-      sessionId,
-    ]
+    [autoSubmitting, getPostSubmitDestination, router, saving, sessionId]
   );
 
   useEffect(() => {
@@ -348,6 +362,30 @@ export default function SessionPage({
   }, [loadSessionMeta]);
 
   useEffect(() => {
+    if (!sessionMeta) return;
+
+    if (sessionMeta.status === "submitted") {
+      setItems([]);
+      setQ(null);
+      setSelected(null);
+      setSubmitted(false);
+      setFeedback(null);
+      setRemainingSeconds(null);
+      router.replace(`/session/${sessionId}/review`);
+      return;
+    }
+
+    if (sessionMeta.status && sessionMeta.status !== "in_progress") {
+      setItems([]);
+      setQ(null);
+      setSelected(null);
+      setSubmitted(false);
+      setFeedback(null);
+      setRemainingSeconds(null);
+    }
+  }, [router, sessionId, sessionMeta]);
+
+  useEffect(() => {
     if (!userSettings.confirmBeforeLeavingSession) return;
     if (!sessionMeta) return;
     if (sessionMeta.status !== "in_progress") return;
@@ -370,7 +408,7 @@ export default function SessionPage({
       return;
     }
 
-    if (sessionMeta.status && sessionMeta.status !== "in_progress") {
+    if (sessionMeta.status !== "in_progress") {
       setRemainingSeconds(null);
       return;
     }
@@ -445,11 +483,16 @@ export default function SessionPage({
   }, [sessionId]);
 
   useEffect(() => {
+    if (loadingSessionMeta) return;
+    if (!sessionMeta) return;
+    if (sessionMeta.status !== "in_progress") return;
+
     void loadItems();
-  }, [loadItems]);
+  }, [loadItems, loadingSessionMeta, sessionMeta]);
 
   useEffect(() => {
     if (!currentSessionItemId) return;
+    if (sessionMeta?.status !== "in_progress") return;
 
     let cancelled = false;
 
@@ -472,7 +515,14 @@ export default function SessionPage({
         }
       } catch (error) {
         if (!cancelled) {
-          setErr(getErrorMessage(error, "Failed to load question"));
+          const message = getErrorMessage(error, "Failed to load question");
+
+          if (message.includes("Session is not in_progress")) {
+            router.replace(`/session/${sessionId}/review`);
+            return;
+          }
+
+          setErr(message);
         }
       }
     }
@@ -482,9 +532,19 @@ export default function SessionPage({
     return () => {
       cancelled = true;
     };
-  }, [currentSessionItemId]);
+  }, [currentSessionItemId, router, sessionId, sessionMeta?.status]);
 
   async function finish() {
+    if (sessionMeta?.status === "submitted") {
+      router.replace(`/session/${sessionId}/review`);
+      return;
+    }
+
+    if (sessionMeta?.status && sessionMeta.status !== "in_progress") {
+      router.replace("/study");
+      return;
+    }
+
     if (
       userSettings.confirmBeforeLeavingSession &&
       sessionMeta?.status === "in_progress" &&
@@ -502,6 +562,7 @@ export default function SessionPage({
 
   async function submitOrNext() {
     if (!current) return;
+    if (sessionMeta?.status !== "in_progress") return;
 
     if (showImmediateFeedback && submitted) {
       if (idx < items.length - 1) {
@@ -545,7 +606,14 @@ export default function SessionPage({
         await submitSessionAndRedirect(false, true);
       }
     } catch (error) {
-      setErr(getErrorMessage(error, "Failed to submit answer"));
+      const message = getErrorMessage(error, "Failed to submit answer");
+
+      if (message.includes("Session is not in_progress")) {
+        router.replace(`/session/${sessionId}/review`);
+        return;
+      }
+
+      setErr(message);
     } finally {
       setSaving(false);
     }
@@ -624,7 +692,8 @@ export default function SessionPage({
   const isBusy = saving || autoSubmitting;
   const hasItems = items.length > 0;
   const canSubmitChoice =
-    Boolean(selected) || (showImmediateFeedback && submitted);
+    sessionIsInProgress &&
+    (Boolean(selected) || (showImmediateFeedback && submitted));
 
   return (
     <main
@@ -700,6 +769,20 @@ export default function SessionPage({
             >
               Review: {showImmediateFeedback ? "Immediate" : "Deferred"}
             </span>
+
+            {sessionStatus ? (
+              <span
+                style={{
+                  fontSize: 12,
+                  padding: "4px 8px",
+                  borderRadius: 999,
+                  border: "1px solid #ddd",
+                  background: sessionIsInProgress ? "#eefaf0" : "#f3f4f6",
+                }}
+              >
+                Status: {sessionStatus}
+              </span>
+            ) : null}
           </div>
         </div>
 
@@ -720,13 +803,17 @@ export default function SessionPage({
 
           <button
             onClick={() => void finish()}
-            disabled={isBusy || loadingItems || !hasItems}
+            disabled={
+              isBusy || loadingItems || !hasItems || !sessionIsInProgress
+            }
             style={{
               padding: "10px 12px",
               borderRadius: 12,
               border: "1px solid #ccc",
               cursor:
-                isBusy || loadingItems || !hasItems ? "not-allowed" : "pointer",
+                isBusy || loadingItems || !hasItems || !sessionIsInProgress
+                  ? "not-allowed"
+                  : "pointer",
               width: "100%",
               maxWidth: 240,
               flex: "0 1 240px",
@@ -743,7 +830,78 @@ export default function SessionPage({
 
       {err && <p style={{ color: "crimson", marginTop: 12 }}>Error: {err}</p>}
 
-      {loadingItems || loadingSessionMeta ? (
+      {sessionIsSubmitted ? (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 16,
+            borderRadius: 14,
+            border: "1px solid #dbeafe",
+            background: "#eff6ff",
+            display: "grid",
+            gap: 10,
+          }}
+        >
+          <div style={{ fontWeight: 900 }}>Session completed</div>
+
+          <div style={{ color: "#374151", lineHeight: 1.5 }}>
+            This session has already been submitted. Opening review…
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.replace(`/session/${sessionId}/review`)}
+            style={{
+              padding: "10px 12px",
+              borderRadius: 12,
+              border: "1px solid #bfdbfe",
+              background: "white",
+              cursor: "pointer",
+              width: "100%",
+              maxWidth: 220,
+              fontWeight: 800,
+            }}
+          >
+            Open Review
+          </button>
+        </div>
+      ) : sessionIsClosed ? (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 16,
+            borderRadius: 14,
+            border: "1px solid #e5e7eb",
+            background: "#f9fafb",
+            display: "grid",
+            gap: 10,
+          }}
+        >
+          <div style={{ fontWeight: 900 }}>Session unavailable</div>
+
+          <div style={{ color: "#374151", lineHeight: 1.5 }}>
+            This session is no longer active. Current status:{" "}
+            <strong>{sessionStatus}</strong>.
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.replace("/study")}
+            style={{
+              padding: "10px 12px",
+              borderRadius: 12,
+              border: "1px solid #d1d5db",
+              background: "white",
+              cursor: "pointer",
+              width: "100%",
+              maxWidth: 220,
+              fontWeight: 800,
+            }}
+          >
+            Back to Study
+          </button>
+        </div>
+      ) : loadingItems || loadingSessionMeta ? (
         <p style={{ marginTop: 16 }}>
           {loadingSessionMeta ? "Loading session…" : "Loading session items…"}
         </p>
