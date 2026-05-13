@@ -1,0 +1,499 @@
+{
+  "source": "step1_curated_batch_002",
+  "questions": [
+    {
+      "stem": "A 9-year-old boy is brought to the emergency department because of dark urine, fatigue, and yellowing of the eyes two days after starting trimethoprim-sulfamethoxazole for a skin infection. He has had similar but milder episodes after febrile illnesses. Temperature is 37.8 C, heart rate is 116/min, and scleral icterus is present. Laboratory studies show hemoglobin 8.7 g/dL, indirect bilirubin 3.4 mg/dL, elevated lactate dehydrogenase, and a low haptoglobin level. A peripheral blood smear shows erythrocytes with irregular membrane defects after splenic macrophage removal of denatured hemoglobin. Which biochemical defect best explains this patient's hemolysis?",
+      "difficulty": "easy",
+      "prompt": "Which of the following mechanisms best explains this patient's acute hemolytic anemia?",
+      "explanation_short": "Glucose-6-phosphate dehydrogenase deficiency decreases NADPH production in red blood cells, impairing regeneration of reduced glutathione and making erythrocytes vulnerable to oxidant-induced hemolysis.",
+      "explanation_long": "This patient has oxidant-triggered hemolysis with jaundice, dark urine, low haptoglobin, and bite cells after exposure to a sulfonamide antibiotic. Red blood cells rely on the pentose phosphate pathway to generate NADPH because they have no mitochondria. NADPH keeps glutathione in the reduced state, allowing detoxification of reactive oxygen species. In G6PD deficiency, oxidative stress denatures hemoglobin into Heinz bodies, and splenic macrophages remove the damaged portions of the cell membrane, producing bite cells. The acute fall in hemoglobin is therefore due to impaired antioxidant defense rather than a defect in heme synthesis, membrane cytoskeleton structure, globin chain production, or iron availability.",
+      "bibliography": [
+        {
+          "title": "Glucose-6-Phosphate Dehydrogenase Deficiency",
+          "source": "NCBI Bookshelf",
+          "year": 2025,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK470315/",
+          "note": "Supports the role of G6PD in protecting erythrocytes against reactive oxygen species and oxidant-triggered hemolysis."
+        },
+        {
+          "title": "Caring for Glucose-6-Phosphate Dehydrogenase (G6PD)-Deficient Patients",
+          "source": "PubMed Central",
+          "year": 2015,
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4571844/",
+          "note": "Discusses impaired glutathione regeneration and red-cell vulnerability to oxidative damage."
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Decreased NADPH generation impairing regeneration of reduced glutathione",
+          "correct": true,
+          "explanation": "This is correct. G6PD is the rate-limiting enzyme of the pentose phosphate pathway, and reduced NADPH prevents oxidant damage by maintaining glutathione in its reduced form."
+        },
+        {
+          "label": "B",
+          "text": "Defective ankyrin-spectrin attachment causing loss of red cell membrane surface area",
+          "correct": false,
+          "explanation": "This describes hereditary spherocytosis, which causes extravascular hemolysis with spherocytes and increased mean corpuscular hemoglobin concentration rather than oxidant-induced bite cells."
+        },
+        {
+          "label": "C",
+          "text": "Impaired conversion of uroporphyrinogen III to coproporphyrinogen III",
+          "correct": false,
+          "explanation": "This is a heme synthesis pathway problem and would not explain episodic hemolysis after oxidative medications with bite cells and dark urine."
+        },
+        {
+          "label": "D",
+          "text": "Reduced beta-globin synthesis causing excess unpaired alpha-globin chains",
+          "correct": false,
+          "explanation": "This describes beta-thalassemia, which causes chronic microcytic anemia and ineffective erythropoiesis rather than acute oxidant-triggered intravascular hemolysis."
+        }
+      ]
+    },
+    {
+      "stem": "A 23-year-old graduate student reports crampy abdominal pain, bloating, flatulence, and watery diarrhea that begins about one hour after drinking milkshakes or eating ice cream. He has no blood in the stool, fever, weight loss, or nocturnal symptoms. Symptoms improve when he avoids dairy products and recur when he drinks regular milk during a dietary challenge. Physical examination is normal. Stool studies during an episode show an acidic pH and no leukocytes. Which mechanism most directly accounts for this patient's diarrhea?",
+      "difficulty": "easy",
+      "prompt": "Which of the following mechanisms best explains the watery diarrhea after dairy ingestion?",
+      "explanation_short": "Lactase deficiency leaves lactose unabsorbed in the intestinal lumen, increasing luminal osmolality and drawing water into the bowel, which causes bloating, gas, and osmotic watery diarrhea after dairy ingestion.",
+      "explanation_long": "The presentation is classic for lactose intolerance. Lactase at the small-intestinal brush border normally hydrolyzes lactose into glucose and galactose for absorption. When lactase activity is low, lactose remains in the lumen, where it acts as an osmotic solute and is fermented by colonic bacteria. The result is watery diarrhea, bloating, abdominal cramps, and gas after lactose exposure. The absence of fever, blood, leukocytes, and nocturnal symptoms supports a noninflammatory osmotic process rather than invasive infection or inflammatory bowel disease. Removing lactose from the diet reduces the osmotic load and improves symptoms.",
+      "bibliography": [
+        {
+          "title": "Lactose Intolerance",
+          "source": "NCBI Bookshelf",
+          "year": 2025,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK532285/",
+          "note": "Summarizes symptoms after lactose ingestion and the relationship to lactase deficiency."
+        },
+        {
+          "title": "Diarrhea",
+          "source": "NCBI Bookshelf",
+          "year": 2022,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK448082/",
+          "note": "Explains lactose as an osmotically active luminal carbohydrate that causes watery diarrhea when not absorbed."
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Enterotoxin-mediated activation of adenylate cyclase causing chloride secretion",
+          "correct": false,
+          "explanation": "This mechanism describes secretory diarrhea such as cholera or enterotoxigenic Escherichia coli; it would not specifically recur after lactose exposure and improve with dairy avoidance."
+        },
+        {
+          "label": "B",
+          "text": "Autoimmune destruction of villi after T-cell recognition of deamidated gliadin",
+          "correct": false,
+          "explanation": "This is the mechanism of celiac disease, which can cause malabsorption but is not limited to immediate symptoms after lactose-containing foods."
+        },
+        {
+          "label": "C",
+          "text": "Inflammatory invasion of colonic mucosa causing neutrophils and blood in stool",
+          "correct": false,
+          "explanation": "This would produce inflammatory diarrhea with fecal leukocytes, fever, and often blood; the patient's pattern is postprandial, osmotic, and noninflammatory."
+        },
+        {
+          "label": "D",
+          "text": "Retention of unabsorbed lactose in the intestinal lumen increasing osmotic water movement",
+          "correct": true,
+          "explanation": "This is correct. Lactase deficiency prevents lactose hydrolysis and absorption, leaving an osmotically active carbohydrate in the lumen that draws water into the bowel."
+        }
+      ]
+    },
+    {
+      "stem": "A 17-year-old boy with a lifelong history of anemia develops severe pain in his lower back and thighs after spending the afternoon playing soccer in hot weather. He appears uncomfortable and mildly dehydrated. Laboratory studies show hemoglobin 8.9 g/dL, reticulocytosis, indirect hyperbilirubinemia, and leukocytosis. Peripheral smear shows elongated erythrocytes. His father says the patient has had prior hospitalizations for similar pain episodes and one episode of acute chest syndrome. Which molecular event initiates the red-cell change responsible for this patient's vaso-occlusive pain?",
+      "difficulty": "medium",
+      "prompt": "Which of the following mechanisms best explains the initiating molecular event in this patient's painful crisis?",
+      "explanation_short": "Sickle cell disease is caused by a beta-globin mutation that promotes deoxygenated hemoglobin S polymerization, deforming erythrocytes and promoting microvascular vaso-occlusion.",
+      "explanation_long": "This patient has a vaso-occlusive pain crisis due to sickle cell disease. Dehydration, exertion, acidosis, infection, or hypoxemia can promote deoxygenation of hemoglobin S. Deoxygenated HbS polymerizes into rigid fibers that distort erythrocytes, increase cellular adhesion, and contribute to obstruction of small vessels. The pain reflects tissue ischemia from vaso-occlusion and reperfusion injury. Chronic hemolysis explains reticulocytosis and indirect hyperbilirubinemia. The key initiating event is polymerization of deoxygenated HbS, not an immune attack on red cells, a membrane cytoskeleton defect, impaired heme synthesis, or iron-restricted erythropoiesis.",
+      "bibliography": [
+        {
+          "title": "Sickle Cell Anemia",
+          "source": "NCBI Bookshelf",
+          "year": 2023,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK482164/",
+          "note": "Describes HbS polymerization and vaso-occlusion in sickle cell disease."
+        },
+        {
+          "title": "Sickle Cell Disease",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "year": 2025,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK1377/",
+          "note": "Discusses vaso-occlusion, tissue ischemia, and clinical complications."
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "IgG binding to erythrocyte membrane antigens with splenic macrophage clearance",
+          "correct": false,
+          "explanation": "This describes warm autoimmune hemolytic anemia and does not explain exertion- or dehydration-triggered vaso-occlusive pain with sickled erythrocytes."
+        },
+        {
+          "label": "B",
+          "text": "Polymerization of deoxygenated hemoglobin S into rigid intracellular fibers",
+          "correct": true,
+          "explanation": "This is correct. Deoxygenated HbS polymerizes, causing red-cell sickling, increased adhesion, hemolysis, and microvascular obstruction."
+        },
+        {
+          "label": "C",
+          "text": "Reduced synthesis of alpha-globin chains causing excess unpaired beta-globin tetramers",
+          "correct": false,
+          "explanation": "Alpha-thalassemia causes microcytosis and variable anemia, but it does not cause recurrent vaso-occlusive pain crises triggered by HbS polymerization."
+        },
+        {
+          "label": "D",
+          "text": "Defective spectrin causing spherical erythrocytes with reduced deformability",
+          "correct": false,
+          "explanation": "Hereditary spherocytosis produces spherocytes and extravascular hemolysis, often with splenomegaly, but it does not cause deoxygenation-dependent sickling."
+        }
+      ]
+    },
+    {
+      "stem": "A 31-year-old woman presents with palpitations, heat intolerance, anxiety, and unintentional weight loss despite increased appetite. Examination shows a diffusely enlarged thyroid gland, a fine tremor, warm moist skin, and bilateral lid retraction. Her heart rate is 118/min. Laboratory studies show suppressed TSH and elevated free thyroxine. Radioiodine uptake is diffusely increased throughout the gland rather than focal. Which immune mechanism most directly explains the thyroid hormone excess in this patient?",
+      "difficulty": "medium",
+      "prompt": "Which of the following mechanisms best explains this patient's hyperthyroidism?",
+      "explanation_short": "Graves disease is caused by thyroid-stimulating immunoglobulins that bind and activate the TSH receptor, increasing thyroid hormone synthesis, secretion, and diffuse gland growth.",
+      "explanation_long": "The patient has Graves disease, the most common cause of hyperthyroidism in many populations. The combination of diffuse goiter, ophthalmic findings, low TSH, high free T4, and diffuse radioactive iodine uptake indicates antibody-mediated stimulation of the entire thyroid gland. Thyroid-stimulating immunoglobulins bind the TSH receptor and mimic TSH signaling, driving hormone synthesis and thyroid follicular cell growth. This is a functional receptor-stimulating autoantibody process rather than destructive thyroiditis, iodine-induced hormone synthesis, TSH-secreting pituitary disease, or an antibody that blocks hormone production.",
+      "bibliography": [
+        {
+          "title": "Graves Disease",
+          "source": "NCBI Bookshelf",
+          "year": 2023,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK448195/",
+          "note": "Reviews Graves disease and TSH receptor antibody testing."
+        },
+        {
+          "title": "Graves' Disease and the Manifestations of Thyrotoxicosis",
+          "source": "Endotext, NCBI Bookshelf",
+          "year": 2024,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK285567/",
+          "note": "Explains thyroid-stimulating antibodies interacting with the TSH receptor and stimulating thyroid hormone synthesis."
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Cytotoxic destruction of thyroid follicles with release of preformed hormone",
+          "correct": false,
+          "explanation": "This mechanism causes thyroiditis, which typically has low radioactive iodine uptake because new hormone synthesis is not increased."
+        },
+        {
+          "label": "B",
+          "text": "Autonomous pituitary secretion of TSH from a thyrotroph adenoma",
+          "correct": false,
+          "explanation": "A TSH-secreting pituitary adenoma would generally have an inappropriately normal or elevated TSH rather than a suppressed TSH."
+        },
+        {
+          "label": "C",
+          "text": "IgG autoantibodies activating the TSH receptor on thyroid follicular cells",
+          "correct": true,
+          "explanation": "This is correct. Thyroid-stimulating immunoglobulins activate TSH receptors, causing diffuse thyroid growth and increased hormone synthesis and secretion."
+        },
+        {
+          "label": "D",
+          "text": "Autoantibodies blocking thyroid peroxidase-mediated iodination of thyroglobulin",
+          "correct": false,
+          "explanation": "Blocking thyroid hormone synthesis would tend to cause hypothyroidism, not diffuse hyperthyroidism with increased uptake."
+        }
+      ]
+    },
+    {
+      "stem": "A 44-year-old woman reports fluctuating double vision and eyelid drooping that worsens in the evening and improves after rest. She also has difficulty chewing toward the end of meals. Neurologic examination shows bilateral ptosis after sustained upward gaze and normal pupillary responses. Sensation and deep tendon reflexes are normal. Repetitive nerve stimulation produces a decremental compound muscle action potential response. CT of the chest later shows thymic hyperplasia. Which pathophysiologic mechanism best explains her weakness?",
+      "difficulty": "medium",
+      "prompt": "Which of the following mechanisms most directly causes this patient's fatigable weakness?",
+      "explanation_short": "Myasthenia gravis most commonly results from autoantibodies against postsynaptic nicotinic acetylcholine receptors at the neuromuscular junction, reducing effective end-plate transmission.",
+      "explanation_long": "This patient's fatigable ocular and bulbar weakness with normal pupils and decremental response on repetitive stimulation is typical of myasthenia gravis. In most cases, IgG autoantibodies target postsynaptic nicotinic acetylcholine receptors at the motor end plate. These antibodies can block receptor function, accelerate receptor internalization, and activate complement, reducing the safety factor for neuromuscular transmission. Repeated activity then causes progressively less effective depolarization and fatigable weakness. The lesion is postsynaptic, not presynaptic, and it does not involve demyelination, sensory nerves, or autonomic pupillary pathways.",
+      "bibliography": [
+        {
+          "title": "Myasthenia Gravis",
+          "source": "NCBI Bookshelf",
+          "year": 2025,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK559331/",
+          "note": "Summarizes myasthenia gravis as an autoimmune neuromuscular junction disorder."
+        },
+        {
+          "title": "Physiology, Neuromuscular Junction",
+          "source": "NCBI Bookshelf",
+          "year": 2025,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK470413/",
+          "note": "Describes anti-acetylcholine receptor antibodies targeting the motor end plate."
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "IgG-mediated reduction of postsynaptic nicotinic acetylcholine receptor function",
+          "correct": true,
+          "explanation": "This is correct. Anti-acetylcholine receptor antibodies reduce functional postsynaptic receptors and impair neuromuscular transmission, especially with repeated use."
+        },
+        {
+          "label": "B",
+          "text": "Antibody-mediated blockade of presynaptic voltage-gated calcium channels",
+          "correct": false,
+          "explanation": "This describes Lambert-Eaton myasthenic syndrome, which often improves with repeated use and is associated with autonomic symptoms and malignancy."
+        },
+        {
+          "label": "C",
+          "text": "Autoimmune demyelination of peripheral motor and sensory nerves",
+          "correct": false,
+          "explanation": "Demyelinating polyneuropathy would produce weakness with sensory findings and reflex changes, not isolated fatigable ocular and bulbar weakness."
+        },
+        {
+          "label": "D",
+          "text": "Failure of acetylcholinesterase synthesis causing persistent end-plate depolarization",
+          "correct": false,
+          "explanation": "Reduced acetylcholinesterase activity would prolong acetylcholine signaling and is not the autoimmune mechanism responsible for myasthenia gravis."
+        }
+      ]
+    },
+    {
+      "stem": "A 19-year-old man with type 1 diabetes mellitus is brought to the emergency department with abdominal pain, vomiting, polyuria, and progressive confusion after missing insulin doses during an influenza-like illness. He is tachycardic and has deep, rapid respirations. Laboratory studies show serum glucose 520 mg/dL, sodium 130 mEq/L, potassium 5.5 mEq/L, bicarbonate 9 mEq/L, anion gap 28 mEq/L, and positive serum beta-hydroxybutyrate. Which metabolic change is the most direct cause of the acidemia?",
+      "difficulty": "medium",
+      "prompt": "Which of the following mechanisms most directly explains this patient's high-anion-gap metabolic acidosis?",
+      "explanation_short": "In diabetic ketoacidosis, insulin deficiency with increased counterregulatory hormones promotes adipose lipolysis and hepatic conversion of free fatty acids into acidic ketone bodies.",
+      "explanation_long": "The patient has diabetic ketoacidosis, suggested by type 1 diabetes, missed insulin, infection stress, hyperglycemia, ketonemia, high anion gap metabolic acidosis, and Kussmaul respirations. Insulin normally suppresses hormone-sensitive lipase in adipose tissue and limits hepatic ketogenesis. When insulin is deficient and counterregulatory hormones are elevated, free fatty acids are released from adipose tissue and delivered to the liver, where beta-oxidation and ketogenesis generate acetoacetate and beta-hydroxybutyrate. These organic acids lower serum bicarbonate and increase the anion gap. The acidemia is not primarily from lactic acid production, renal bicarbonate wasting, or impaired pulmonary ventilation.",
+      "bibliography": [
+        {
+          "title": "Biochemistry, Ketogenesis",
+          "source": "NCBI Bookshelf",
+          "year": 2023,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK493179/",
+          "note": "Explains how insulin deficiency promotes lipolysis and hepatic ketogenesis."
+        },
+        {
+          "title": "Hyperglycemic Crises",
+          "source": "Endotext, NCBI Bookshelf",
+          "year": 2025,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK279052/",
+          "note": "Discusses insulin deficiency, counterregulatory hormones, free fatty acids, ketone production, and metabolic acidosis."
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Increased renal bicarbonate loss due to impaired proximal tubular reabsorption",
+          "correct": false,
+          "explanation": "Renal bicarbonate wasting can cause metabolic acidosis but would typically produce a non-anion-gap acidosis rather than marked ketonemia with hyperglycemia."
+        },
+        {
+          "label": "B",
+          "text": "Increased anaerobic glycolysis from systemic tissue hypoperfusion alone",
+          "correct": false,
+          "explanation": "Lactic acidosis can increase the anion gap, but the defining mechanism in this presentation is ketone body production from insulin deficiency."
+        },
+        {
+          "label": "C",
+          "text": "Hypoventilation causing carbon dioxide retention and respiratory acidosis",
+          "correct": false,
+          "explanation": "This patient has deep rapid respirations as compensation for metabolic acidosis; carbon dioxide retention is not the primary cause."
+        },
+        {
+          "label": "D",
+          "text": "Unrestrained lipolysis with hepatic production of acetoacetate and beta-hydroxybutyrate",
+          "correct": true,
+          "explanation": "This is correct. Insulin deficiency permits adipose lipolysis, and the liver converts free fatty acids to acidic ketone bodies."
+        }
+      ]
+    },
+    {
+      "stem": "A 32-year-old woman has chronic bloating, foul-smelling stools, fatigue, and a 6-kg weight loss over eight months. She also has an intensely pruritic vesicular rash on the extensor surfaces of both elbows. Laboratory studies show iron deficiency anemia. Serum anti-tissue transglutaminase IgA is positive, and total IgA is normal. Duodenal biopsy shows villous atrophy, crypt hyperplasia, and increased intraepithelial lymphocytes. Which immune process is most responsible for the small-intestinal mucosal injury?",
+      "difficulty": "medium",
+      "prompt": "Which of the following mechanisms best explains this patient's malabsorptive disease?",
+      "explanation_short": "Celiac disease is an immune-mediated response to gluten in genetically susceptible patients, involving deamidated gliadin peptides, tissue transglutaminase, T-cell activation, and villous atrophy.",
+      "explanation_long": "The patient has celiac disease with malabsorption, iron deficiency, dermatitis herpetiformis, positive anti-tissue transglutaminase IgA, and villous atrophy. Tissue transglutaminase modifies gliadin peptides, increasing their immunogenicity. In genetically susceptible individuals, especially those with HLA-DQ2 or HLA-DQ8, antigen presentation promotes T-cell mediated mucosal inflammation, crypt hyperplasia, and villous atrophy. Loss of villous surface area causes malabsorption and nutrient deficiencies. This is not primarily an IgE food allergy, pancreatic enzyme deficiency, bacterial toxin effect, or isolated lactase deficiency.",
+      "bibliography": [
+        {
+          "title": "Celiac Disease",
+          "source": "NCBI Bookshelf",
+          "year": 2025,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK441900/",
+          "note": "Describes malabsorption due to villous atrophy and clinical features of celiac disease."
+        },
+        {
+          "title": "Diagnosis of Celiac Disease",
+          "source": "NCBI Bookshelf",
+          "year": 2016,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK344442/",
+          "note": "Discusses celiac disease as an immune-mediated disorder triggered by gluten in genetically susceptible individuals."
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "IgE-mediated mast-cell degranulation immediately after wheat ingestion",
+          "correct": false,
+          "explanation": "This describes an immediate food allergy, which causes urticaria, angioedema, wheezing, or anaphylaxis rather than chronic villous atrophy and malabsorption."
+        },
+        {
+          "label": "B",
+          "text": "T-cell mediated response to modified gliadin peptides causing villous atrophy",
+          "correct": true,
+          "explanation": "This is correct. Deamidated gliadin peptides drive an immune response that injures small-intestinal mucosa and reduces absorptive surface area."
+        },
+        {
+          "label": "C",
+          "text": "Failure of pancreatic acinar cells to secrete lipase into the duodenum",
+          "correct": false,
+          "explanation": "Pancreatic exocrine insufficiency can cause steatorrhea but does not explain anti-tissue transglutaminase IgA positivity or villous atrophy with intraepithelial lymphocytes."
+        },
+        {
+          "label": "D",
+          "text": "Osmotic retention of lactose due to isolated brush-border lactase deficiency",
+          "correct": false,
+          "explanation": "Lactase deficiency causes dairy-triggered osmotic diarrhea but does not cause dermatitis herpetiformis, anti-tTG antibodies, or diffuse villous atrophy."
+        }
+      ]
+    },
+    {
+      "stem": "A 2-year-old boy is evaluated for developmental delay, dystonic movements, and repeated episodes of biting his lips and fingers. His parents also noticed orange crystalline material in his diapers during infancy. Laboratory testing shows hyperuricemia, and urine studies show increased uric acid excretion. Genetic testing identifies a pathogenic variant affecting an enzyme required to recycle hypoxanthine and guanine into nucleotides. Which metabolic consequence best explains the hyperuricemia in this child?",
+      "difficulty": "hard",
+      "prompt": "Which of the following mechanisms most directly links the enzyme deficiency to excess uric acid production?",
+      "explanation_short": "Lesch-Nyhan syndrome is caused by HGPRT deficiency, which impairs purine salvage; hypoxanthine and guanine are degraded to uric acid while PRPP accumulation drives de novo purine synthesis.",
+      "explanation_long": "This child has Lesch-Nyhan syndrome, suggested by severe neurologic dysfunction, self-injurious behavior, orange urate crystals, and hyperuricemia in a boy. Hypoxanthine-guanine phosphoribosyltransferase normally salvages hypoxanthine and guanine by converting them to IMP and GMP. When HGPRT is deficient, these bases cannot be efficiently recycled and are instead degraded to uric acid. In addition, reduced salvage increases PRPP availability and decreases feedback inhibition, stimulating de novo purine synthesis and further increasing purine degradation. The result is overproduction of uric acid, not impaired renal urate excretion alone.",
+      "bibliography": [
+        {
+          "title": "Lesch-Nyhan Syndrome",
+          "source": "NCBI Bookshelf",
+          "year": 2023,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK556079/",
+          "note": "Identifies HGPRT deficiency in purine salvage and increased conversion of purines to uric acid."
+        },
+        {
+          "title": "HPRT1 Disorders",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "year": 2020,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK1149/",
+          "note": "Describes Lesch-Nyhan disease with uric acid overproduction, neurologic dysfunction, and self-injurious behavior."
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Defective degradation of branched-chain amino acids leading to accumulation of organic acids",
+          "correct": false,
+          "explanation": "This describes disorders such as maple syrup urine disease or organic acidemias, not a purine salvage defect with self-injury and hyperuricemia."
+        },
+        {
+          "label": "B",
+          "text": "Reduced renal tubular secretion of urate due to inhibition of organic anion transporters",
+          "correct": false,
+          "explanation": "Reduced urate excretion can cause hyperuricemia, but Lesch-Nyhan syndrome primarily causes uric acid overproduction from impaired purine salvage."
+        },
+        {
+          "label": "C",
+          "text": "Failure to salvage hypoxanthine and guanine with increased purine degradation",
+          "correct": true,
+          "explanation": "This is correct. HGPRT deficiency prevents salvage of hypoxanthine and guanine, increasing their degradation to uric acid and stimulating de novo purine synthesis."
+        },
+        {
+          "label": "D",
+          "text": "Increased conversion of phenylalanine to tyrosine due to excess phenylalanine hydroxylase activity",
+          "correct": false,
+          "explanation": "This pathway is unrelated to purine metabolism and would not explain urate crystals, hyperuricemia, dystonia, or self-injurious behavior."
+        }
+      ]
+    },
+    {
+      "stem": "A 39-year-old man who has never smoked presents with progressive exertional dyspnea and a chronic cough. His father died of liver disease in his 50s. Pulmonary function tests show an obstructive pattern, and CT of the chest shows basilar-predominant panacinar emphysema. Liver biopsy performed for persistent transaminase elevation shows periodic acid-Schiff-positive, diastase-resistant globules within hepatocytes. Which mechanism best explains the combination of lung and liver disease in this patient?",
+      "difficulty": "hard",
+      "prompt": "Which of the following mechanisms best accounts for this patient's pulmonary and hepatic findings?",
+      "explanation_short": "Alpha-1 antitrypsin deficiency causes loss of antiprotease protection in the lung, permitting neutrophil elastase-mediated alveolar destruction, and misfolded protein accumulation in hepatocytes.",
+      "explanation_long": "The patient has alpha-1 antitrypsin deficiency. In the lung, insufficient functional alpha-1 antitrypsin allows neutrophil elastase to degrade elastin in alveolar walls, classically producing panacinar emphysema with lower-lobe predominance, especially in nonsmokers or patients with early disease. In the liver, certain abnormal alpha-1 antitrypsin variants misfold and accumulate in hepatocytes, producing PAS-positive, diastase-resistant globules and increasing the risk of hepatitis, cirrhosis, and hepatocellular carcinoma. This dual process reflects both loss of function in the lung and toxic gain of retained protein in the liver.",
+      "bibliography": [
+        {
+          "title": "Alpha-1 Antitrypsin Deficiency",
+          "source": "NCBI Bookshelf",
+          "year": 2024,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK442030/",
+          "note": "Describes alpha-1 antitrypsin deficiency, neutrophil elastase protection, emphysema, and liver involvement."
+        },
+        {
+          "title": "Alpha-1 Antitrypsin Deficiency",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "year": 2023,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK1519/",
+          "note": "Reviews hepatic dysfunction and chronic obstructive lung disease associated with alpha-1 antitrypsin deficiency."
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Loss of elastase inhibition in alveoli plus retention of misfolded protein in hepatocytes",
+          "correct": true,
+          "explanation": "This is correct. Alpha-1 antitrypsin deficiency causes unopposed neutrophil elastase in the lung and intracellular accumulation of abnormal protein in hepatocytes."
+        },
+        {
+          "label": "B",
+          "text": "Autoimmune destruction of intrahepatic bile ducts with granulomatous portal inflammation",
+          "correct": false,
+          "explanation": "This describes primary biliary cholangitis, which does not cause early basilar panacinar emphysema from elastase-mediated alveolar injury."
+        },
+        {
+          "label": "C",
+          "text": "Defective chloride transport causing thick secretions in airways and pancreatic ducts",
+          "correct": false,
+          "explanation": "This describes cystic fibrosis, which causes bronchiectasis and pancreatic insufficiency rather than PAS-positive hepatocyte globules and panacinar emphysema."
+        },
+        {
+          "label": "D",
+          "text": "Cigarette smoke-induced centriacinar emphysema from respiratory bronchiole injury",
+          "correct": false,
+          "explanation": "Smoking commonly causes upper-lobe centriacinar emphysema; this patient is a nonsmoker with basilar panacinar emphysema and liver inclusions."
+        }
+      ]
+    },
+    {
+      "stem": "A 67-year-old woman is evaluated for fatigue, constipation, and increased thirst. Her medications include hydrochlorothiazide, lisinopril, and atorvastatin. She has no history of malignancy. Laboratory studies show calcium 11.3 mg/dL, phosphate 3.1 mg/dL, creatinine 0.9 mg/dL, and an appropriately low parathyroid hormone level. Her urine calcium excretion is lower than expected for the degree of hypercalcemia. Which renal tubular effect of her medication most directly explains the laboratory abnormality?",
+      "difficulty": "hard",
+      "prompt": "Which of the following mechanisms best explains this patient's medication-associated hypercalcemia?",
+      "explanation_short": "Thiazide diuretics inhibit the distal convoluted tubule NaCl cotransporter, lowering intracellular sodium and promoting basolateral sodium-calcium exchange that increases calcium reabsorption.",
+      "explanation_long": "Hydrochlorothiazide can cause mild hypercalcemia by increasing calcium reabsorption in the distal convoluted tubule. Thiazides block the apical sodium-chloride cotransporter, reducing intracellular sodium. This enhances the gradient for basolateral sodium-calcium exchange and favors movement of calcium out of tubular cells into blood, increasing transcellular calcium reabsorption and lowering urinary calcium excretion. The suppressed parathyroid hormone level supports a parathyroid hormone-independent process. This effect contrasts with loop diuretics, which reduce paracellular calcium reabsorption in the thick ascending limb and can increase urinary calcium loss.",
+      "bibliography": [
+        {
+          "title": "Thiazide Diuretics",
+          "source": "NCBI Bookshelf",
+          "year": 2025,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK532918/",
+          "note": "Describes thiazide-associated hypercalcemia and increased calcium reabsorption."
+        },
+        {
+          "title": "Hypercalcemia",
+          "source": "NCBI Bookshelf",
+          "year": 2024,
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK430714/",
+          "note": "Discusses thiazide diuretics increasing distal convoluted tubule calcium reabsorption and causing PTH-independent hypercalcemia."
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Inhibition of Na-K-2Cl transport in the thick ascending limb reducing lumen-positive voltage",
+          "correct": false,
+          "explanation": "This is the mechanism of loop diuretics, which increase urinary calcium excretion rather than reduce urine calcium and cause thiazide-associated hypercalcemia."
+        },
+        {
+          "label": "B",
+          "text": "Blockade of epithelial sodium channels in principal cells with reduced potassium secretion",
+          "correct": false,
+          "explanation": "This describes potassium-sparing diuretics such as amiloride, not thiazide-induced increased distal calcium reabsorption."
+        },
+        {
+          "label": "C",
+          "text": "Enhanced distal tubular calcium reabsorption after inhibition of the NaCl cotransporter",
+          "correct": true,
+          "explanation": "This is correct. Thiazides inhibit the distal NaCl cotransporter and increase calcium reabsorption, which can raise serum calcium and lower urine calcium."
+        },
+        {
+          "label": "D",
+          "text": "Inhibition of carbonic anhydrase in the proximal tubule causing bicarbonaturia",
+          "correct": false,
+          "explanation": "Carbonic anhydrase inhibitors cause bicarbonate wasting and metabolic acidosis; they do not explain low urinary calcium with thiazide use."
+        }
+      ]
+    }
+  ],
+  "chunkSize": 10,
+  "requireExactlyTen": true,
+  "requireBibliography": false,
+  "allowSeedDevSource": false
+}
