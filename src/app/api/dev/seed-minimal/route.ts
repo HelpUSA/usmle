@@ -23,8 +23,10 @@
  *
  * Body:
  * {
+ *   "source": "pilot_import",
  *   "questions": [
  *     {
+ *       "source": "optional_per_question_source",
  *       "stem": "...",
  *       "difficulty": "easy" | "medium" | "hard",
  *       "explanation_short": "...",
@@ -40,7 +42,9 @@
  *     }
  *   ],
  *   "chunkSize": 10,
- *   "requireExactlyTen": true
+ *   "requireExactlyTen": true,
+ *   "requireBibliography": false,
+ *   "allowSeedDevSource": false
  * }
  *
  * Current pilot behavior:
@@ -48,9 +52,21 @@
  * - Set requireExactlyTen=false for larger controlled imports.
  *
  * Data behavior:
- * - Imported questions are marked as source='seed_dev'.
+ * - Imported questions default to source='pilot_import'.
+ * - body.source can set a batch-level source.
+ * - question.source can override the batch source per question.
+ * - source='seed_dev' is blocked unless allowSeedDevSource=true.
  * - question_versions are inserted as active, exam='step1', language='en'.
  * - bibliography is serialized explicitly before inserting into json/jsonb.
+ *
+ * Quality gate:
+ * - Rejects placeholder content such as TBD, placeholder, lorem ipsum.
+ * - Rejects very short stems.
+ * - Rejects very short explanations.
+ * - Requires 4 or 5 choices.
+ * - Requires exactly one correct choice.
+ * - Requires sequential labels starting at A.
+ * - Requires non-empty, non-placeholder explanations for each choice.
  */
 
 export const runtime = "nodejs";
@@ -71,28 +87,11 @@ type JsonValue =
   | JsonValue[]
   | { [key: string]: JsonValue };
 
-type Difficulty = "easy" | "medium" | "hard";
-type ChoiceLabel = "A" | "B" | "C" | "D" | "E";
-
-type ImportQuestion = {
-  stem: string;
-  difficulty: Difficulty;
-  explanation_short: string;
-  explanation_long: string;
-  bibliography?: JsonValue;
-  prompt?: string;
-  choices: Array<{
-    label: ChoiceLabel;
-    text: string;
-    correct: boolean;
-    explanation: string;
-  }>;
-};
-
 type InsertedQuestion = {
   questionId: string;
   questionVersionId: string;
   canonical_code: string;
+  source: string;
 };
 
 type ErrorPayload = {
@@ -107,17 +106,37 @@ type SuccessPayload = {
   ok: true;
   seed_route_version: string;
   mode: "import";
+  source: string;
+  sources: string[];
   requested: number;
   created: number;
   chunks: number;
   elapsed_ms: number;
+  quality_gate: string;
   sample: Array<{
     question_id: string;
     question_version_id: string;
     canonical_code: string;
+    source: string;
   }>;
   note: string;
 };
+
+type QualityIssue = {
+  index: number;
+  field: string;
+  message: string;
+  value_preview?: string;
+};
+
+const DEFAULT_IMPORT_SOURCE = "pilot_import";
+const BLOCKED_DEFAULT_SOURCE = "seed_dev";
+
+const MIN_STEM_CHARS = 120;
+const MIN_STEM_WORDS = 18;
+const MIN_EXPLANATION_SHORT_CHARS = 40;
+const MIN_EXPLANATION_LONG_CHARS = 120;
+const MIN_CHOICE_EXPLANATION_CHARS = 30;
 
 function errorJson(
   code: string,
@@ -152,6 +171,16 @@ const JsonSchema: z.ZodType<JsonValue> = z.lazy(() =>
   ])
 );
 
+const ImportSourceSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(80)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9_-]*$/, {
+    message:
+      "source must start with a letter or number and contain only letters, numbers, underscores, or hyphens.",
+  });
+
 const ChoiceSchema = z
   .object({
     label: z.enum(["A", "B", "C", "D", "E"]),
@@ -163,6 +192,7 @@ const ChoiceSchema = z
 
 const ImportQuestionSchema = z
   .object({
+    source: ImportSourceSchema.optional(),
     stem: z.string().trim().min(1),
     difficulty: z.enum(["easy", "medium", "hard"]),
     explanation_short: z.string().trim().min(1),
@@ -189,11 +219,17 @@ const ImportQuestionSchema = z
 
 const BodySchema = z
   .object({
+    source: ImportSourceSchema.optional().default(DEFAULT_IMPORT_SOURCE),
     questions: z.array(ImportQuestionSchema).min(1).max(5000),
     chunkSize: z.coerce.number().int().min(1).max(500).optional(),
     requireExactlyTen: z.boolean().optional(),
+    requireBibliography: z.boolean().optional().default(false),
+    allowSeedDevSource: z.boolean().optional().default(false),
   })
   .strict();
+
+type ImportQuestion = z.infer<typeof ImportQuestionSchema>;
+type ImportBody = z.infer<typeof BodySchema>;
 
 function isProduction(): boolean {
   return process.env.NODE_ENV === "production";
@@ -265,40 +301,293 @@ function validateAdminAccess(req: Request) {
   return { ok: true as const };
 }
 
-function assertValidQuestion(question: ImportQuestion) {
+function normalizeWhitespace(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function countWords(value: string): number {
+  const normalized = normalizeWhitespace(value);
+
+  if (!normalized) {
+    return 0;
+  }
+
+  return normalized.split(" ").filter(Boolean).length;
+}
+
+function preview(value: string, maxLength = 120): string {
+  const normalized = normalizeWhitespace(value);
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, maxLength)}…`;
+}
+
+function hasPlaceholderContent(value: string): boolean {
+  const normalized = normalizeWhitespace(value).toLowerCase();
+
+  if (!normalized) {
+    return true;
+  }
+
+  const patterns = [
+    /\btbd\b/i,
+    /\bto be determined\b/i,
+    /\bplaceholder\b/i,
+    /\blorem ipsum\b/i,
+    /\bcoming soon\b/i,
+    /\bfixme\b/i,
+    /\btodo\b/i,
+    /\bn\/a\b/i,
+    /\bnot available\b/i,
+  ];
+
+  return patterns.some((pattern) => pattern.test(normalized));
+}
+
+function hasMeaningfulBibliography(value: JsonValue | undefined): boolean {
+  if (value === undefined || value === null) {
+    return false;
+  }
+
+  if (typeof value === "string") {
+    return normalizeWhitespace(value).length >= 10;
+  }
+
+  if (Array.isArray(value)) {
+    return value.length > 0;
+  }
+
+  if (typeof value === "object") {
+    return Object.keys(value).length > 0;
+  }
+
+  return false;
+}
+
+function resolveQuestionSource(bodySource: string, question: ImportQuestion) {
+  return question.source ?? bodySource;
+}
+
+function canonicalPrefixFromSource(source: string): string {
+  const cleaned = source
+    .trim()
+    .replace(/[^A-Za-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .toUpperCase();
+
+  return cleaned.length > 0 ? cleaned.slice(0, 48) : "IMPORT";
+}
+
+function validateQuestionQuality(
+  question: ImportQuestion,
+  index: number,
+  source: string,
+  body: ImportBody
+): QualityIssue[] {
+  const issues: QualityIssue[] = [];
+
+  if (source === BLOCKED_DEFAULT_SOURCE && !body.allowSeedDevSource) {
+    issues.push({
+      index,
+      field: "source",
+      message:
+        "source='seed_dev' is blocked by default. Use 'pilot_import', 'manual_reviewed', or a batch-specific source.",
+      value_preview: source,
+    });
+  }
+
+  if (hasPlaceholderContent(source)) {
+    issues.push({
+      index,
+      field: "source",
+      message: "Question source contains placeholder content.",
+      value_preview: source,
+    });
+  }
+
+  if (hasPlaceholderContent(question.stem)) {
+    issues.push({
+      index,
+      field: "stem",
+      message: "Question stem contains placeholder content.",
+      value_preview: preview(question.stem),
+    });
+  }
+
+  if (question.stem.length < MIN_STEM_CHARS) {
+    issues.push({
+      index,
+      field: "stem",
+      message: `Question stem is too short for USMLE-style content. Minimum: ${MIN_STEM_CHARS} characters.`,
+      value_preview: preview(question.stem),
+    });
+  }
+
+  if (countWords(question.stem) < MIN_STEM_WORDS) {
+    issues.push({
+      index,
+      field: "stem",
+      message: `Question stem has too few words for USMLE-style content. Minimum: ${MIN_STEM_WORDS} words.`,
+      value_preview: preview(question.stem),
+    });
+  }
+
+  if (hasPlaceholderContent(question.explanation_short)) {
+    issues.push({
+      index,
+      field: "explanation_short",
+      message: "Short explanation contains placeholder content.",
+      value_preview: preview(question.explanation_short),
+    });
+  }
+
+  if (question.explanation_short.length < MIN_EXPLANATION_SHORT_CHARS) {
+    issues.push({
+      index,
+      field: "explanation_short",
+      message: `Short explanation is too short. Minimum: ${MIN_EXPLANATION_SHORT_CHARS} characters.`,
+      value_preview: preview(question.explanation_short),
+    });
+  }
+
+  if (hasPlaceholderContent(question.explanation_long)) {
+    issues.push({
+      index,
+      field: "explanation_long",
+      message: "Long explanation contains placeholder content.",
+      value_preview: preview(question.explanation_long),
+    });
+  }
+
+  if (question.explanation_long.length < MIN_EXPLANATION_LONG_CHARS) {
+    issues.push({
+      index,
+      field: "explanation_long",
+      message: `Long explanation is too short. Minimum: ${MIN_EXPLANATION_LONG_CHARS} characters.`,
+      value_preview: preview(question.explanation_long),
+    });
+  }
+
+  if (body.requireBibliography && !hasMeaningfulBibliography(question.bibliography)) {
+    issues.push({
+      index,
+      field: "bibliography",
+      message:
+        "Bibliography is required for this import, but this question has no meaningful bibliography.",
+    });
+  }
+
   if (question.choices.length < 4 || question.choices.length > 5) {
-    throw new Error("Question must have 4 or 5 choices.");
+    issues.push({
+      index,
+      field: "choices",
+      message: "Question must have 4 or 5 choices.",
+    });
   }
 
   const correctCount = question.choices.filter((choice) => choice.correct).length;
 
   if (correctCount !== 1) {
-    throw new Error("Question must have exactly 1 correct choice.");
+    issues.push({
+      index,
+      field: "choices",
+      message: "Question must have exactly 1 correct choice.",
+      value_preview: `correct_count=${correctCount}`,
+    });
   }
 
   const labels = question.choices.map((choice) => choice.label);
   const uniqueLabels = new Set(labels);
 
   if (uniqueLabels.size !== labels.length) {
-    throw new Error("Choice labels must be unique per question.");
+    issues.push({
+      index,
+      field: "choices.label",
+      message: "Choice labels must be unique per question.",
+      value_preview: labels.join(", "),
+    });
   }
 
   const expectedOrder = ["A", "B", "C", "D", "E"].slice(0, labels.length);
 
-  for (let index = 0; index < labels.length; index += 1) {
-    if (labels[index] !== expectedOrder[index]) {
-      throw new Error(
-        `Choice labels must be sequential starting at A. Expected ${expectedOrder.join(
+  for (let labelIndex = 0; labelIndex < labels.length; labelIndex += 1) {
+    if (labels[labelIndex] !== expectedOrder[labelIndex]) {
+      issues.push({
+        index,
+        field: "choices.label",
+        message: `Choice labels must be sequential starting at A. Expected ${expectedOrder.join(
           ", "
-        )}.`
-      );
+        )}.`,
+        value_preview: labels.join(", "),
+      });
+      break;
     }
   }
 
-  for (const choice of question.choices) {
-    if (!choice.explanation || choice.explanation.trim().length === 0) {
-      throw new Error("Each choice must include a non-empty explanation.");
+  question.choices.forEach((choice, choiceIndex) => {
+    const fieldPrefix = `choices[${choiceIndex}].`;
+
+    if (hasPlaceholderContent(choice.text)) {
+      issues.push({
+        index,
+        field: `${fieldPrefix}text`,
+        message: "Choice text contains placeholder content.",
+        value_preview: preview(choice.text),
+      });
     }
+
+    if (hasPlaceholderContent(choice.explanation)) {
+      issues.push({
+        index,
+        field: `${fieldPrefix}explanation`,
+        message: "Choice explanation contains placeholder content.",
+        value_preview: preview(choice.explanation),
+      });
+    }
+
+    if (choice.explanation.length < MIN_CHOICE_EXPLANATION_CHARS) {
+      issues.push({
+        index,
+        field: `${fieldPrefix}explanation`,
+        message: `Choice explanation is too short. Minimum: ${MIN_CHOICE_EXPLANATION_CHARS} characters.`,
+        value_preview: preview(choice.explanation),
+      });
+    }
+  });
+
+  return issues;
+}
+
+function validateImportQuality(body: ImportBody): QualityIssue[] {
+  const issues: QualityIssue[] = [];
+
+  body.questions.forEach((question, index) => {
+    const source = resolveQuestionSource(body.source, question);
+
+    issues.push(
+      ...validateQuestionQuality(question, index + 1, source, body)
+    );
+  });
+
+  return issues;
+}
+
+function assertValidQuestion(
+  question: ImportQuestion,
+  source: string,
+  body: ImportBody
+) {
+  const issues = validateQuestionQuality(question, 0, source, body);
+
+  if (issues.length > 0) {
+    throw new Error(
+      `Question failed quality validation: ${issues
+        .map((issue) => `${issue.field}: ${issue.message}`)
+        .join("; ")}`
+    );
   }
 }
 
@@ -312,11 +601,14 @@ function serializeBibliography(value: JsonValue | undefined): string | null {
 
 async function insertOne(
   client: DbClient,
-  question: ImportQuestion
+  question: ImportQuestion,
+  source: string,
+  body: ImportBody
 ): Promise<InsertedQuestion> {
-  assertValidQuestion(question);
+  assertValidQuestion(question, source, body);
 
-  const canonicalCode = `DEV_STEP1_${randomUUID()}`;
+  const canonicalPrefix = canonicalPrefixFromSource(source);
+  const canonicalCode = `${canonicalPrefix}_STEP1_${randomUUID()}`;
 
   const questionResult = await client.query<{ question_id: string }>(
     `
@@ -328,11 +620,11 @@ async function insertOne(
     VALUES (
       $1,
       'published',
-      'seed_dev'
+      $2
     )
     RETURNING question_id
     `,
-    [canonicalCode]
+    [canonicalCode, source]
   );
 
   if (questionResult.rows.length === 0) {
@@ -475,6 +767,7 @@ async function insertOne(
     questionId,
     questionVersionId,
     canonical_code: canonicalCode,
+    source,
   };
 }
 
@@ -538,6 +831,21 @@ export async function POST(req: Request) {
       );
     }
 
+    const qualityIssues = validateImportQuality(body);
+
+    if (qualityIssues.length > 0) {
+      return errorJson(
+        "QUESTION_QUALITY_FAILED",
+        "Import blocked by quality gate. Fix the listed issues before importing.",
+        {
+          total_issues: qualityIssues.length,
+          issues: qualityIssues.slice(0, 100),
+          omitted_issues: Math.max(0, qualityIssues.length - 100),
+        },
+        422
+      );
+    }
+
     const chunkSize = body.chunkSize ?? 10;
     const totalCount = body.questions.length;
 
@@ -547,7 +855,10 @@ export async function POST(req: Request) {
       question_id: string;
       question_version_id: string;
       canonical_code: string;
+      source: string;
     }> = [];
+
+    const sources = new Set<string>();
 
     let remaining = totalCount;
     let cursor = 0;
@@ -564,18 +875,24 @@ export async function POST(req: Request) {
           question_id: string;
           question_version_id: string;
           canonical_code: string;
+          source: string;
         }> = [];
 
+        const chunkSources = new Set<string>();
+
         for (const question of chunkQuestions) {
-          const inserted = await insertOne(client, question);
+          const source = resolveQuestionSource(body.source, question);
+          const inserted = await insertOne(client, question, source, body);
 
           chunkCreated += 1;
+          chunkSources.add(source);
 
           if (sample.length + chunkSample.length < 5) {
             chunkSample.push({
               question_id: inserted.questionId,
               question_version_id: inserted.questionVersionId,
               canonical_code: inserted.canonical_code,
+              source: inserted.source,
             });
           }
         }
@@ -583,6 +900,7 @@ export async function POST(req: Request) {
         return {
           chunkCreated,
           chunkSample,
+          chunkSources: [...chunkSources],
         };
       });
 
@@ -594,23 +912,32 @@ export async function POST(req: Request) {
         }
       }
 
+      for (const source of chunkResult.chunkSources) {
+        sources.add(source);
+      }
+
       remaining -= thisChunk;
       cursor += thisChunk;
     }
 
     const elapsedMs = Date.now() - startedAt;
 
+    const sourceList = [...sources].sort();
+
     const payload: SuccessPayload = {
       ok: true,
-      seed_route_version: "import_only_v2_secure_seed_dev",
+      seed_route_version: "import_only_v3_quality_source_control",
       mode: "import",
+      source: body.source,
+      sources: sourceList,
       requested: totalCount,
       created: createdCount,
       chunks: Math.ceil(totalCount / chunkSize),
       elapsed_ms: elapsedMs,
+      quality_gate: "enabled",
       sample,
       note:
-        "Import-only endpoint. Questions must be authored externally and sent in JSON. Imported questions are marked source='seed_dev'.",
+        "Import-only endpoint. Questions must be authored externally and sent in JSON. Imported questions default to source='pilot_import'; source='seed_dev' is blocked unless allowSeedDevSource=true.",
     };
 
     return NextResponse.json(payload, {
