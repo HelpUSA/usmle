@@ -1,0 +1,470 @@
+{
+    "source":  "step3_curated_batch_003",
+    "exam":  "step3",
+    "questions":  [
+                      {
+                          "stem":  "A 24-year-old woman with type 1 diabetes mellitus is brought to the emergency department because of progressive nausea, abdominal pain, and confusion. She has had influenza-like symptoms for 2 days and has missed several insulin doses because she was not eating. Temperature is 37.8 C (100.0 F), blood pressure is 96/58 mm Hg, pulse is 124/min, respirations are 28/min and deep, and oxygen saturation is 98% on room air. She appears dehydrated and is oriented only to person. Laboratory studies show serum glucose 612 mg/dL, sodium 131 mEq/L, potassium 3.0 mEq/L, bicarbonate 9 mEq/L, blood urea nitrogen 36 mg/dL, creatinine 1.4 mg/dL, beta-hydroxybutyrate markedly elevated, and arterial pH 7.16. An ECG shows sinus tachycardia without ischemic changes. Two liters of isotonic crystalloid are started.",
+                          "difficulty":  "easy",
+                          "prompt":  "Which of the following is the most appropriate next step in management?",
+                          "explanation_short":  "This patient has diabetic ketoacidosis with significant hypokalemia. Potassium must be replaced before insulin is started because insulin will drive potassium intracellularly and can precipitate life-threatening hypokalemia.",
+                          "explanation_long":  "Diabetic ketoacidosis requires fluids, insulin, electrolyte monitoring, and treatment of the precipitating illness. However, insulin should be temporarily withheld when the serum potassium is low, typically below approximately 3.3 mEq/L, because insulin shifts potassium into cells and may produce severe arrhythmia, respiratory muscle weakness, or cardiac arrest. This patient has classic DKA with acidosis, ketones, dehydration, and Kussmaul respirations, but her initial potassium is 3.0 mEq/L. The safest immediate step after volume resuscitation is aggressive intravenous potassium replacement with close monitoring; insulin infusion should begin once potassium has risen to a safe range. Bicarbonate is usually reserved for extreme acidemia, and antibiotics are not indicated without evidence of bacterial infection.",
+                          "bibliography":  [
+                                               {
+                                                   "title":  "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report",
+                                                   "source":  "Diabetes Care / ADA-led Consensus Report",
+                                                   "url":  "https://diabetesjournals.org/care/article/47/8/1257/156808/Hyperglycemic-Crises-in-Adults-With-Diabetes-A"
+                                               }
+                                           ],
+                          "choices":  [
+                                          {
+                                              "label":  "A",
+                                              "text":  "Begin intravenous potassium replacement and delay insulin until potassium is corrected",
+                                              "correct":  true,
+                                              "explanation":  "Correct. Initial potassium is dangerously low for DKA treatment. Potassium repletion should precede insulin because insulin will further lower serum potassium."
+                                          },
+                                          {
+                                              "label":  "B",
+                                              "text":  "Start a continuous intravenous regular insulin infusion immediately",
+                                              "correct":  false,
+                                              "explanation":  "Insulin is required for DKA, but starting it while potassium is 3.0 mEq/L can precipitate severe hypokalemia and arrhythmias."
+                                          },
+                                          {
+                                              "label":  "C",
+                                              "text":  "Administer intravenous sodium bicarbonate before any other therapy",
+                                              "correct":  false,
+                                              "explanation":  "Bicarbonate is not routine in DKA and is generally reserved for much more severe acidemia. It does not address the immediate potassium safety issue."
+                                          },
+                                          {
+                                              "label":  "D",
+                                              "text":  "Give subcutaneous rapid-acting insulin and discharge after oral fluids",
+                                              "correct":  false,
+                                              "explanation":  "She has severe DKA with altered mental status, dehydration, and marked acidosis. Outpatient-style treatment is unsafe."
+                                          },
+                                          {
+                                              "label":  "E",
+                                              "text":  "Administer broad-spectrum antibiotics for presumed sepsis",
+                                              "correct":  false,
+                                              "explanation":  "Infection can precipitate DKA, but this presentation is most consistent with missed insulin and viral illness. Antibiotics are not the immediate priority without bacterial evidence."
+                                          }
+                                      ]
+                      },
+                      {
+                          "stem":  "A 28-year-old woman at 18 weeks\u0027 gestation comes to clinic for prenatal care. She has used intranasal heroin several times daily for 2 years and recently tried to stop on her own but developed severe cravings, diarrhea, abdominal cramps, and insomnia. She is worried that any medication for opioid use disorder will harm the fetus. She has no suicidal ideation. Physical examination shows lacrimation, piloerection, mild tachycardia, and a viable intrauterine pregnancy. Urine toxicology is positive for fentanyl and morphine metabolites and negative for benzodiazepines. She says, \u0027I want the safest plan for my baby, but I cannot keep going through withdrawal.\u0027",
+                          "difficulty":  "medium",
+                          "prompt":  "Which of the following is the most appropriate management plan?",
+                          "explanation_short":  "Pregnant patients with opioid use disorder should receive medication treatment with methadone or buprenorphine plus comprehensive prenatal and behavioral support. Medically supervised withdrawal is generally not preferred because relapse risk is high.",
+                          "explanation_long":  "The standard of care for opioid use disorder during pregnancy is medication treatment with an opioid agonist or partial agonist, most commonly methadone or buprenorphine, integrated with prenatal care, behavioral health support, and harm-reduction counseling. This approach reduces illicit opioid use, withdrawal cycling, overdose risk, and obstetric complications. Abrupt cessation or detoxification alone has a high relapse rate and may destabilize both patient and pregnancy. Naltrexone initiation is generally not first-line in an actively opioid-dependent pregnant patient because it requires detoxification and may precipitate withdrawal if opioids remain present. Punitive reporting or dismissal from care worsens outcomes and should be avoided.",
+                          "bibliography":  [
+                                               {
+                                                   "title":  "Opioid Use and Opioid Use Disorder in Pregnancy",
+                                                   "source":  "American College of Obstetricians and Gynecologists",
+                                                   "url":  "https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/08/opioid-use-and-opioid-use-disorder-in-pregnancy"
+                                               }
+                                           ],
+                          "choices":  [
+                                          {
+                                              "label":  "A",
+                                              "text":  "Recommend abrupt opioid cessation because she is already in the second trimester",
+                                              "correct":  false,
+                                              "explanation":  "Abrupt cessation can cause severe withdrawal and is associated with relapse and instability. It is not the safest management strategy."
+                                          },
+                                          {
+                                              "label":  "B",
+                                              "text":  "Start medication treatment with buprenorphine or methadone integrated with prenatal care",
+                                              "correct":  true,
+                                              "explanation":  "Correct. Medication treatment with buprenorphine or methadone is recommended during pregnancy and should be combined with comprehensive prenatal and behavioral care."
+                                          },
+                                          {
+                                              "label":  "C",
+                                              "text":  "Start extended-release naltrexone today without additional preparation",
+                                              "correct":  false,
+                                              "explanation":  "Naltrexone can precipitate withdrawal in opioid-dependent patients and is not the initial treatment for someone actively using opioids with withdrawal symptoms."
+                                          },
+                                          {
+                                              "label":  "D",
+                                              "text":  "Delay treatment until after delivery to avoid neonatal abstinence syndrome",
+                                              "correct":  false,
+                                              "explanation":  "Delaying treatment increases maternal and fetal risk. Neonatal opioid withdrawal can occur but is manageable and does not justify withholding maternal treatment."
+                                          },
+                                          {
+                                              "label":  "E",
+                                              "text":  "Discharge her from prenatal care unless she produces a negative toxicology screen",
+                                              "correct":  false,
+                                              "explanation":  "Punitive or exclusionary care worsens engagement and outcomes. Pregnancy is an opportunity to provide integrated, evidence-based treatment."
+                                          }
+                                      ]
+                      },
+                      {
+                          "stem":  "A 61-year-old man is admitted with severe epigastric pain radiating to the back, nausea, and vomiting. He drinks alcohol rarely. Temperature is 38.9 C (102.0 F), blood pressure is 88/54 mm Hg, pulse is 118/min, and respirations are 24/min. He is jaundiced and has right upper quadrant tenderness without rebound. Laboratory studies show leukocyte count 18,200/mm3, total bilirubin 5.8 mg/dL, alkaline phosphatase 410 U/L, alanine aminotransferase 228 U/L, aspartate aminotransferase 244 U/L, and lipase 2100 U/L. Ultrasound shows gallstones, common bile duct dilation, and no gallbladder perforation. Intravenous fluids and broad-spectrum antibiotics are started, and blood cultures are obtained.",
+                          "difficulty":  "hard",
+                          "prompt":  "Which of the following is the most appropriate next step in management?",
+                          "explanation_short":  "This patient has acute gallstone pancreatitis complicated by acute cholangitis, suggested by fever, jaundice, hypotension, and common bile duct obstruction. Urgent ERCP for biliary decompression is indicated.",
+                          "explanation_long":  "Most patients with acute biliary pancreatitis without cholangitis are managed initially with supportive care rather than early ERCP. This patient is different: he has systemic infection and biliary obstruction consistent with acute cholangitis, including fever, jaundice, hypotension, leukocytosis, hyperbilirubinemia, and a dilated common bile duct. Source control by urgent endoscopic retrograde cholangiopancreatography with biliary drainage is the key next step, in addition to fluids and antibiotics. Immediate cholecystectomy is not the first step during unstable cholangitis with ongoing duct obstruction. MRCP can define anatomy but would delay urgent decompression. Prophylactic antibiotics alone or bowel rest alone does not relieve obstruction.",
+                          "bibliography":  [
+                                               {
+                                                   "title":  "American College of Gastroenterology Guidelines: Management of Acute Pancreatitis",
+                                                   "source":  "American College of Gastroenterology",
+                                                   "url":  "https://socgastro.org.br/novo/wp-content/uploads/2025/01/american_college_of_gastroenterology_guidelines_AcutePancreatitis.pdf"
+                                               }
+                                           ],
+                          "choices":  [
+                                          {
+                                              "label":  "A",
+                                              "text":  "Schedule elective cholecystectomy after discharge without further inpatient intervention",
+                                              "correct":  false,
+                                              "explanation":  "Cholecystectomy prevents recurrence, but this patient has acute cholangitis and hemodynamic instability requiring urgent biliary decompression now."
+                                          },
+                                          {
+                                              "label":  "B",
+                                              "text":  "Provide bowel rest and analgesia only because pancreatitis is usually self-limited",
+                                              "correct":  false,
+                                              "explanation":  "Supportive care alone is insufficient when there is concurrent cholangitis and obstructed bile duct requiring source control."
+                                          },
+                                          {
+                                              "label":  "C",
+                                              "text":  "Perform urgent ERCP with biliary drainage",
+                                              "correct":  true,
+                                              "explanation":  "Correct. Gallstone pancreatitis with acute cholangitis requires urgent ERCP to decompress the biliary system."
+                                          },
+                                          {
+                                              "label":  "D",
+                                              "text":  "Order outpatient magnetic resonance cholangiopancreatography after symptoms improve",
+                                              "correct":  false,
+                                              "explanation":  "MRCP can be useful diagnostically in stable patients, but delaying decompression is unsafe in cholangitis with shock physiology."
+                                          },
+                                          {
+                                              "label":  "E",
+                                              "text":  "Start prophylactic antibiotics for pancreatitis and observe for 72 hours",
+                                              "correct":  false,
+                                              "explanation":  "Antibiotics are appropriate for cholangitis, but antibiotics alone do not relieve the obstructed infected biliary system."
+                                          }
+                                      ]
+                      },
+                      {
+                          "stem":  "A 43-year-old woman who immigrated from the Philippines 8 years ago is evaluated after a new employee health screening test shows a positive interferon-gamma release assay. She has no cough, fever, night sweats, weight loss, or hemoptysis. She has never been treated for tuberculosis. Chest radiograph is normal. HIV testing is negative, liver enzymes are normal, and pregnancy test is negative. Her only medication is a combined oral contraceptive pill. She works as a nursing assistant and wants a shorter regimen if possible, but she is concerned about medication interactions.",
+                          "difficulty":  "medium",
+                          "prompt":  "Which of the following is the most appropriate management?",
+                          "explanation_short":  "This patient has latent tuberculosis infection after active disease has been excluded. A short-course rifamycin-based regimen such as 4 months of daily rifampin is preferred when appropriate, with counseling about drug interactions including reduced hormonal contraceptive efficacy.",
+                          "explanation_long":  "A positive IGRA with normal chest radiograph and no symptoms is consistent with latent tuberculosis infection. Treating LTBI reduces the risk of future active tuberculosis, especially in persons from higher-prevalence settings or health care settings. CDC-preferred regimens include short-course rifamycin-based therapy, such as 4 months of daily rifampin, 3 months of once-weekly isoniazid plus rifapentine, or 3 months of daily isoniazid plus rifampin, depending on patient factors. Rifampin induces hepatic enzymes and can decrease the effectiveness of combined oral contraceptives, so counseling and backup or nonhormonal contraception are needed. Isolation and multidrug active-TB therapy are not indicated because active disease is not present.",
+                          "bibliography":  [
+                                               {
+                                                   "title":  "Treatment for Latent Tuberculosis Infection",
+                                                   "source":  "Centers for Disease Control and Prevention",
+                                                   "url":  "https://www.cdc.gov/tb/hcp/treatment/latent-tuberculosis-infection.html"
+                                               }
+                                           ],
+                          "choices":  [
+                                          {
+                                              "label":  "A",
+                                              "text":  "No treatment is needed because the chest radiograph is normal",
+                                              "correct":  false,
+                                              "explanation":  "A normal chest radiograph helps exclude active pulmonary TB but does not eliminate the need to consider LTBI treatment."
+                                          },
+                                          {
+                                              "label":  "B",
+                                              "text":  "Begin four-drug therapy for active tuberculosis immediately",
+                                              "correct":  false,
+                                              "explanation":  "Four-drug RIPE therapy is used for active TB. This patient has no symptoms and a normal chest radiograph."
+                                          },
+                                          {
+                                              "label":  "C",
+                                              "text":  "Place her in airborne isolation until three sputum smears are negative",
+                                              "correct":  false,
+                                              "explanation":  "Airborne isolation is for suspected infectious pulmonary TB. This asymptomatic patient with normal imaging has LTBI."
+                                          },
+                                          {
+                                              "label":  "D",
+                                              "text":  "Treat latent tuberculosis infection with a short-course rifamycin-based regimen and counsel about contraceptive interaction",
+                                              "correct":  true,
+                                              "explanation":  "Correct. LTBI should be treated after active disease is excluded; rifamycin regimens are preferred when suitable, but rifampin can reduce hormonal contraceptive effectiveness."
+                                          },
+                                          {
+                                              "label":  "E",
+                                              "text":  "Repeat the interferon-gamma release assay monthly until it becomes negative",
+                                              "correct":  false,
+                                              "explanation":  "Serial IGRA testing is not a treatment strategy, and tests often remain positive despite immune control or prior treatment."
+                                          }
+                                      ]
+                      },
+                      {
+                          "stem":  "A 31-year-old pregnant woman at 22 weeks\u0027 gestation calls the clinic because her nephew was diagnosed with measles today. She spent an entire afternoon with him 4 days ago in a small apartment. She was born outside the United States, has no vaccination records, and prenatal labs do not include measles IgG. She has no fever, cough, conjunctivitis, or rash. She is otherwise healthy and takes only prenatal vitamins. The local health department confirms a significant exposure and asks the obstetrician to recommend post-exposure management while serology is pending.",
+                          "difficulty":  "hard",
+                          "prompt":  "Which of the following is the most appropriate post-exposure intervention?",
+                          "explanation_short":  "Pregnancy is a contraindication to live attenuated MMR vaccine. A nonimmune pregnant patient with significant measles exposure should receive immunoglobulin within 6 days of exposure.",
+                          "explanation_long":  "Measles post-exposure prophylaxis depends on immune status, timing, and contraindications to MMR. MMR vaccine can be used within 72 hours of exposure for susceptible persons without contraindications, but it is a live attenuated vaccine and is contraindicated during pregnancy. Immunoglobulin can be used within 6 days of exposure for high-risk susceptible patients, including pregnant patients without evidence of immunity. This patient is 4 days from exposure, so she is outside the MMR 72-hour window and also should not receive MMR because of pregnancy. She should receive immunoglobulin according to public health guidance, with symptom monitoring and appropriate isolation instructions if symptoms develop.",
+                          "bibliography":  [
+                                               {
+                                                   "title":  "Measles Vaccine Recommendations: Post-Exposure Prophylaxis",
+                                                   "source":  "Centers for Disease Control and Prevention",
+                                                   "url":  "https://www.cdc.gov/measles/hcp/vaccine-considerations/index.html"
+                                               }
+                                           ],
+                          "choices":  [
+                                          {
+                                              "label":  "A",
+                                              "text":  "Administer MMR vaccine now because it is within 6 days of exposure",
+                                              "correct":  false,
+                                              "explanation":  "MMR is a live attenuated vaccine and is contraindicated during pregnancy. The vaccine PEP window is also generally within 72 hours."
+                                          },
+                                          {
+                                              "label":  "B",
+                                              "text":  "Give oral ribavirin prophylaxis and repeat dosing weekly until delivery",
+                                              "correct":  false,
+                                              "explanation":  "Ribavirin is not measles post-exposure prophylaxis and is teratogenic; it has no role here."
+                                          },
+                                          {
+                                              "label":  "C",
+                                              "text":  "Reassure her that pregnancy protects against measles complications",
+                                              "correct":  false,
+                                              "explanation":  "Pregnancy is a high-risk state for measles complications. Lack of documented immunity after significant exposure requires action."
+                                          },
+                                          {
+                                              "label":  "D",
+                                              "text":  "Wait until rash develops before giving any prophylaxis",
+                                              "correct":  false,
+                                              "explanation":  "Post-exposure prophylaxis is time-sensitive and should not be delayed until disease develops."
+                                          },
+                                          {
+                                              "label":  "E",
+                                              "text":  "Administer immunoglobulin as post-exposure prophylaxis",
+                                              "correct":  true,
+                                              "explanation":  "Correct. A susceptible pregnant patient with significant measles exposure should receive immunoglobulin within 6 days of exposure."
+                                          }
+                                      ]
+                      },
+                      {
+                          "stem":  "A 9-year-old boy is brought to urgent care in July because he woke up with a bat flying in his bedroom. His parents removed the bat, but it escaped before it could be tested. The child has no visible bite marks and does not recall being bitten. He is healthy and has never received rabies vaccination. Physical examination is normal. The parents ask whether anything is needed because there is no obvious wound.",
+                          "difficulty":  "easy",
+                          "prompt":  "Which of the following is the most appropriate management?",
+                          "explanation_short":  "Bat exposure during sleep can represent an unrecognized rabies exposure. For an unvaccinated patient when the bat is unavailable for testing, rabies PEP includes wound care if applicable, human rabies immune globulin, and a rabies vaccine series.",
+                          "explanation_long":  "Rabies is almost uniformly fatal once clinical disease develops, so post-exposure prophylaxis is recommended for credible exposures when rabies cannot be excluded. Bat bites can be small or unnoticed, particularly when exposure occurs during sleep or in a child. Because the bat is unavailable for testing and the child has not been previously vaccinated, appropriate management is rabies PEP with human rabies immune globulin and a vaccine series. HRIG is administered once at the start of PEP, infiltrated around any wound if present with the remainder intramuscular at a distant site. Previously vaccinated patients generally receive vaccine without HRIG, but that does not apply here.",
+                          "bibliography":  [
+                                               {
+                                                   "title":  "Rabies Post-exposure Prophylaxis Guidance",
+                                                   "source":  "Centers for Disease Control and Prevention",
+                                                   "url":  "https://www.cdc.gov/rabies/hcp/clinical-care/post-exposure-prophylaxis.html"
+                                               }
+                                           ],
+                          "choices":  [
+                                          {
+                                              "label":  "A",
+                                              "text":  "Administer human rabies immune globulin and begin the rabies vaccine series",
+                                              "correct":  true,
+                                              "explanation":  "Correct. An unvaccinated child with possible bat exposure during sleep and no bat available for testing should receive rabies PEP."
+                                          },
+                                          {
+                                              "label":  "B",
+                                              "text":  "Observe without prophylaxis because no bite mark is visible",
+                                              "correct":  false,
+                                              "explanation":  "Bat bites can be occult. Absence of a visible bite does not exclude exposure in a sleeping child."
+                                          },
+                                          {
+                                              "label":  "C",
+                                              "text":  "Give rabies vaccine only because immune globulin is reserved for immunocompromised patients",
+                                              "correct":  false,
+                                              "explanation":  "HRIG is recommended for previously unvaccinated patients receiving rabies PEP, not only for immunocompromised patients."
+                                          },
+                                          {
+                                              "label":  "D",
+                                              "text":  "Start oral amoxicillin-clavulanate and reassess in 10 days",
+                                              "correct":  false,
+                                              "explanation":  "Antibiotics may be used for some mammalian bites, but they do not prevent rabies and do not replace rabies PEP."
+                                          },
+                                          {
+                                              "label":  "E",
+                                              "text":  "Order rabies serology and defer treatment until the result returns",
+                                              "correct":  false,
+                                              "explanation":  "Rabies PEP is time-sensitive. Serology is not used to decide initial prophylaxis in this exposure scenario."
+                                          }
+                                      ]
+                      },
+                      {
+                          "stem":  "A 70-year-old man comes to the emergency department because of 18 hours of severe pain and swelling in the right first metatarsophalangeal joint. He has had two similar attacks in the past year. Medical history includes chronic kidney disease stage 4, heart failure with reduced ejection fraction, atrial fibrillation, and peptic ulcer bleeding 3 years ago. Medications include apixaban, carvedilol, sacubitril-valsartan, and furosemide. Temperature is 37.4 C (99.3 F). The right first metatarsophalangeal joint is erythematous, warm, and exquisitely tender. Arthrocentesis shows needle-shaped negatively birefringent crystals and no organisms on Gram stain.",
+                          "difficulty":  "medium",
+                          "prompt":  "Which of the following is the most appropriate treatment for this acute attack?",
+                          "explanation_short":  "Acute gout can be treated with NSAIDs, colchicine, or corticosteroids, but comorbidities guide selection. In this patient with advanced CKD, anticoagulation, heart failure, and prior GI bleeding, systemic or intra-articular corticosteroids are the safest option.",
+                          "explanation_long":  "Crystal-proven gout presenting within 24 hours should be treated promptly. NSAIDs, colchicine, and glucocorticoids are all accepted acute gout therapies, but patient-specific contraindications matter. NSAIDs are relatively unsafe in advanced CKD, heart failure, anticoagulation, and prior peptic ulcer bleeding. Colchicine requires caution and dose adjustment in advanced kidney disease and may be poorly tolerated. A glucocorticoid regimen, either oral prednisone or intra-articular steroid if infection is excluded and one joint is involved, is appropriate. Allopurinol is not used as sole treatment for an acute flare and should not be newly started as the immediate analgesic intervention in the emergency department.",
+                          "bibliography":  [
+                                               {
+                                                   "title":  "Management of Acute and Recurrent Gout: A Clinical Practice Guideline",
+                                                   "source":  "American College of Physicians",
+                                                   "url":  "https://pubmed.ncbi.nlm.nih.gov/27802508/"
+                                               }
+                                           ],
+                          "choices":  [
+                                          {
+                                              "label":  "A",
+                                              "text":  "High-dose indomethacin until the pain resolves",
+                                              "correct":  false,
+                                              "explanation":  "NSAIDs are effective for gout but are unsafe here because of advanced CKD, heart failure, anticoagulation, and prior GI bleeding."
+                                          },
+                                          {
+                                              "label":  "B",
+                                              "text":  "Oral prednisone or intra-articular glucocorticoid therapy",
+                                              "correct":  true,
+                                              "explanation":  "Correct. Glucocorticoids are appropriate for acute gout when NSAIDs and colchicine are relatively contraindicated."
+                                          },
+                                          {
+                                              "label":  "C",
+                                              "text":  "Start allopurinol alone and defer anti-inflammatory therapy",
+                                              "correct":  false,
+                                              "explanation":  "Urate-lowering therapy does not treat acute inflammation quickly and should not be used as the only acute flare therapy."
+                                          },
+                                          {
+                                              "label":  "D",
+                                              "text":  "Begin full-dose colchicine every hour until diarrhea develops",
+                                              "correct":  false,
+                                              "explanation":  "This older dosing strategy is toxic. Colchicine also requires caution in advanced kidney disease."
+                                          },
+                                          {
+                                              "label":  "E",
+                                              "text":  "Treat with intravenous vancomycin for presumed septic arthritis",
+                                              "correct":  false,
+                                              "explanation":  "Septic arthritis must be considered, but Gram stain is negative and crystals explain the attack. Empiric antibiotics are not the best answer in this stable, crystal-proven case."
+                                          }
+                                      ]
+                      },
+                      {
+                          "stem":  "A 68-year-old woman is admitted because of worsening dyspnea, orthopnea, and leg swelling for 5 days. She has heart failure with reduced ejection fraction due to ischemic cardiomyopathy. Home medications include carvedilol, sacubitril-valsartan, spironolactone, empagliflozin, and furosemide 80 mg orally twice daily. Blood pressure is 142/82 mm Hg, pulse is 96/min, respirations are 24/min, and oxygen saturation is 91% on room air. Jugular venous pressure is elevated, bibasilar crackles are present, and there is 3+ pitting edema to the knees. Chest radiograph shows pulmonary edema. Serum creatinine is 1.5 mg/dL from a baseline of 1.3 mg/dL, potassium is 4.2 mEq/L, and troponin is not elevated.",
+                          "difficulty":  "hard",
+                          "prompt":  "Which of the following is the most appropriate initial inpatient treatment?",
+                          "explanation_short":  "Acute decompensated heart failure with congestion is treated initially with intravenous loop diuretics, usually at a dose sufficient to exceed the outpatient oral regimen, while monitoring urine output, weights, renal function, and electrolytes.",
+                          "explanation_long":  "This patient has acute decompensated heart failure with clear volume overload and pulmonary congestion but no shock or acute coronary syndrome. Initial therapy should focus on decongestion with intravenous loop diuretics. Patients already taking high-dose oral loop diuretics often need an adequate IV dose because gut edema and disease severity can reduce oral absorption. Response should be monitored with urine output, daily weights, symptoms, renal function, and electrolytes, with dose escalation if diuresis is inadequate. Routine IV fluids would worsen congestion. Holding all guideline-directed medical therapy is not required unless hypotension, severe renal dysfunction, or hyperkalemia develops. Inotropes are reserved for low-output shock or severe hypoperfusion.",
+                          "bibliography":  [
+                                               {
+                                                   "title":  "2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure",
+                                                   "source":  "American Heart Association / American College of Cardiology / Heart Failure Society of America",
+                                                   "url":  "https://www.ahajournals.org/doi/10.1161/CIR.0000000000001063"
+                                               }
+                                           ],
+                          "choices":  [
+                                          {
+                                              "label":  "A",
+                                              "text":  "Administer two liters of normal saline for presumed prerenal azotemia",
+                                              "correct":  false,
+                                              "explanation":  "She is congested with pulmonary edema. IV fluids would worsen respiratory status and volume overload."
+                                          },
+                                          {
+                                              "label":  "B",
+                                              "text":  "Start dobutamine immediately despite preserved blood pressure and no hypoperfusion",
+                                              "correct":  false,
+                                              "explanation":  "Inotropes are reserved for cardiogenic shock or severe hypoperfusion, not routine congestion with stable blood pressure."
+                                          },
+                                          {
+                                              "label":  "C",
+                                              "text":  "Give intravenous loop diuretic therapy and monitor diuretic response",
+                                              "correct":  true,
+                                              "explanation":  "Correct. IV loop diuresis is the initial treatment for acute decompensated heart failure with congestion."
+                                          },
+                                          {
+                                              "label":  "D",
+                                              "text":  "Stop all heart failure medications and observe overnight without diuresis",
+                                              "correct":  false,
+                                              "explanation":  "Some medications may need adjustment in instability, but observation without decongestion is inappropriate for pulmonary edema."
+                                          },
+                                          {
+                                              "label":  "E",
+                                              "text":  "Schedule outpatient follow-up because creatinine is only mildly above baseline",
+                                              "correct":  false,
+                                              "explanation":  "She has hypoxemia, pulmonary edema, and marked congestion requiring inpatient treatment."
+                                          }
+                                      ]
+                      },
+                      {
+                          "stem":  "A 59-year-old man comes to an urgent care clinic because of 2 days of fever, productive cough, pleuritic right-sided chest pain, and fatigue. He has type 2 diabetes mellitus and chronic obstructive pulmonary disease but has not been hospitalized or received antibiotics in the past 6 months. Temperature is 38.4 C (101.1 F), blood pressure is 128/76 mm Hg, pulse is 96/min, respirations are 18/min, and oxygen saturation is 95% on room air. He is alert and able to drink fluids. Chest radiograph shows a right lower lobe infiltrate. The clinician determines that outpatient treatment is appropriate.",
+                          "difficulty":  "medium",
+                          "prompt":  "Which of the following is the most appropriate empiric outpatient antibiotic regimen?",
+                          "explanation_short":  "Outpatients with community-acquired pneumonia and comorbidities should receive broader empiric therapy, such as amoxicillin-clavulanate plus doxycycline or a macrolide, or respiratory fluoroquinolone monotherapy depending on local factors.",
+                          "explanation_long":  "This patient has community-acquired pneumonia and is stable enough for outpatient treatment, but he has comorbid diabetes and COPD. Current ATS/IDSA guidance recommends broader outpatient coverage for adults with comorbidities than for otherwise healthy adults. Options include a beta-lactam such as amoxicillin-clavulanate plus doxycycline or a macrolide, or monotherapy with a respiratory fluoroquinolone when appropriate. Macrolide monotherapy is not routinely recommended in many settings because of pneumococcal resistance and is particularly inadequate in comorbid patients. Antiviral therapy alone and no antibiotics are inappropriate because he has radiographic bacterial pneumonia.",
+                          "bibliography":  [
+                                               {
+                                                   "title":  "Diagnosis and Treatment of Adults with Community-acquired Pneumonia",
+                                                   "source":  "American Thoracic Society / Infectious Diseases Society of America",
+                                                   "url":  "https://www.idsociety.org/practice-guideline/community-acquired-pneumonia-cap-in-adults/"
+                                               }
+                                           ],
+                          "choices":  [
+                                          {
+                                              "label":  "A",
+                                              "text":  "Azithromycin monotherapy regardless of local resistance patterns",
+                                              "correct":  false,
+                                              "explanation":  "Macrolide monotherapy is not the preferred regimen for outpatients with comorbidities and may be inadequate where resistance is significant."
+                                          },
+                                          {
+                                              "label":  "B",
+                                              "text":  "Oseltamivir alone without antibacterial therapy",
+                                              "correct":  false,
+                                              "explanation":  "Influenza treatment may be considered if suspected, but he has radiographic CAP requiring antibacterial coverage."
+                                          },
+                                          {
+                                              "label":  "C",
+                                              "text":  "No antibiotics because oxygen saturation is normal",
+                                              "correct":  false,
+                                              "explanation":  "Normal oxygen saturation does not exclude bacterial pneumonia. Fever, focal infiltrate, and productive cough warrant therapy."
+                                          },
+                                          {
+                                              "label":  "D",
+                                              "text":  "Amoxicillin-clavulanate plus doxycycline",
+                                              "correct":  true,
+                                              "explanation":  "Correct. This is an appropriate outpatient CAP regimen for a patient with comorbidities."
+                                          },
+                                          {
+                                              "label":  "E",
+                                              "text":  "Trimethoprim-sulfamethoxazole monotherapy",
+                                              "correct":  false,
+                                              "explanation":  "TMP-SMX is not a recommended empiric monotherapy regimen for adult outpatient CAP."
+                                          }
+                                      ]
+                      },
+                      {
+                          "stem":  "A 26-year-old woman comes to the emergency department because of 2 days of light vaginal bleeding and left lower quadrant pain. Her last menstrual period was 7 weeks ago. She is hemodynamically stable and wants future fertility. Pelvic examination shows mild left adnexal tenderness without peritoneal signs. Serum beta-hCG is 2100 mIU/mL. Transvaginal ultrasonography shows no intrauterine pregnancy and a 2.1-cm left tubal ectopic pregnancy without fetal cardiac activity or free intraperitoneal fluid. Hemoglobin, leukocyte count, creatinine, and liver enzymes are normal. She lives 15 minutes from the hospital and states she can return for all follow-up testing.",
+                          "difficulty":  "medium",
+                          "prompt":  "Which of the following is the most appropriate management?",
+                          "explanation_short":  "A stable patient with a small unruptured ectopic pregnancy, no fetal cardiac activity, normal renal and hepatic function, and reliable follow-up is a candidate for methotrexate therapy.",
+                          "explanation_long":  "Management of tubal ectopic pregnancy depends on hemodynamic stability, rupture risk, ectopic size, beta-hCG level, fetal cardiac activity, contraindications to methotrexate, and ability to adhere to follow-up. This patient is stable, has no signs of rupture, has a small ectopic pregnancy without fetal cardiac activity, has normal kidney and liver function, and can comply with serial beta-hCG monitoring. Methotrexate is therefore appropriate. Emergent surgery is required for hemodynamic instability, rupture, contraindications to methotrexate, or selected high-risk findings. Expectant management is generally reserved for carefully selected patients with low and declining beta-hCG levels. Uterine curettage is not the treatment for a confirmed tubal ectopic pregnancy.",
+                          "bibliography":  [
+                                               {
+                                                   "title":  "ACOG Practice Bulletin No. 191: Tubal Ectopic Pregnancy",
+                                                   "source":  "American College of Obstetricians and Gynecologists",
+                                                   "url":  "https://journals.lww.com/greenjournal/fulltext/2018/02000/acog_practice_bulletin_no__191__tubal_ectopic.38.aspx"
+                                               }
+                                           ],
+                          "choices":  [
+                                          {
+                                              "label":  "A",
+                                              "text":  "Immediate laparotomy because all ectopic pregnancies are surgical emergencies",
+                                              "correct":  false,
+                                              "explanation":  "Surgery is needed for rupture or instability, but stable selected patients can be treated medically."
+                                          },
+                                          {
+                                              "label":  "B",
+                                              "text":  "Expectant management without follow-up because beta-hCG is below 5000 mIU/mL",
+                                              "correct":  false,
+                                              "explanation":  "Expectant management requires careful selection and serial monitoring; beta-hCG level alone does not justify no follow-up."
+                                          },
+                                          {
+                                              "label":  "C",
+                                              "text":  "Dilation and curettage as definitive treatment",
+                                              "correct":  false,
+                                              "explanation":  "Dilation and curettage does not treat a confirmed tubal ectopic pregnancy."
+                                          },
+                                          {
+                                              "label":  "D",
+                                              "text":  "Administer misoprostol to expel the ectopic pregnancy",
+                                              "correct":  false,
+                                              "explanation":  "Misoprostol is used for intrauterine pregnancy management, not for treating a tubal ectopic pregnancy."
+                                          },
+                                          {
+                                              "label":  "E",
+                                              "text":  "Administer methotrexate with serial beta-hCG follow-up",
+                                              "correct":  true,
+                                              "explanation":  "Correct. She is stable, has an unruptured small tubal ectopic pregnancy, has no fetal cardiac activity, and can comply with follow-up."
+                                          }
+                                      ]
+                      }
+                  ],
+    "chunkSize":  10,
+    "requireExactlyTen":  true,
+    "requireBibliography":  true,
+    "allowSeedDevSource":  false
+}
