@@ -251,6 +251,7 @@ export default function SessionPage({
   const [autoSubmitting, setAutoSubmitting] = useState(false);
 
   const autoSubmitTriggeredRef = useRef(false);
+  const intentionalNavigationRef = useRef(false);
   const questionStartedAtRef = useRef<number | null>(null);
 
   const current = useMemo(() => items[idx] ?? null, [items, idx]);
@@ -291,11 +292,26 @@ export default function SessionPage({
           method: "POST",
         });
 
-        router.push(getPostSubmitDestination());
+        const destination = getPostSubmitDestination();
+
+        intentionalNavigationRef.current = true;
+        setSessionMeta((currentMeta) =>
+          currentMeta
+            ? {
+                ...currentMeta,
+                status: "submitted",
+                submitted_at:
+                  currentMeta.submitted_at ?? new Date().toISOString(),
+              }
+            : currentMeta
+        );
+
+        router.replace(destination);
       } catch (error) {
         const message = getErrorMessage(error, "Failed to submit session");
 
         if (message.includes("Session is not in_progress")) {
+          intentionalNavigationRef.current = true;
           router.replace(`/session/${sessionId}/review`);
           return;
         }
@@ -371,6 +387,7 @@ export default function SessionPage({
       setSubmitted(false);
       setFeedback(null);
       setRemainingSeconds(null);
+      intentionalNavigationRef.current = true;
       router.replace(`/session/${sessionId}/review`);
       return;
     }
@@ -391,6 +408,8 @@ export default function SessionPage({
     if (sessionMeta.status !== "in_progress") return;
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (intentionalNavigationRef.current) return;
+
       event.preventDefault();
       event.returnValue = "";
     };
@@ -518,6 +537,7 @@ export default function SessionPage({
           const message = getErrorMessage(error, "Failed to load question");
 
           if (message.includes("Session is not in_progress")) {
+            intentionalNavigationRef.current = true;
             router.replace(`/session/${sessionId}/review`);
             return;
           }
@@ -536,11 +556,13 @@ export default function SessionPage({
 
   async function finish() {
     if (sessionMeta?.status === "submitted") {
+      intentionalNavigationRef.current = true;
       router.replace(`/session/${sessionId}/review`);
       return;
     }
 
     if (sessionMeta?.status && sessionMeta.status !== "in_progress") {
+      intentionalNavigationRef.current = true;
       router.replace("/study");
       return;
     }
@@ -609,6 +631,7 @@ export default function SessionPage({
       const message = getErrorMessage(error, "Failed to submit answer");
 
       if (message.includes("Session is not in_progress")) {
+        intentionalNavigationRef.current = true;
         router.replace(`/session/${sessionId}/review`);
         return;
       }
@@ -850,7 +873,10 @@ export default function SessionPage({
 
           <button
             type="button"
-            onClick={() => router.replace(`/session/${sessionId}/review`)}
+            onClick={() => {
+              intentionalNavigationRef.current = true;
+              router.replace(`/session/${sessionId}/review`);
+            }}
             style={{
               padding: "10px 12px",
               borderRadius: 12,
@@ -886,7 +912,10 @@ export default function SessionPage({
 
           <button
             type="button"
-            onClick={() => router.replace("/study")}
+            onClick={() => {
+              intentionalNavigationRef.current = true;
+              router.replace("/study");
+            }}
             style={{
               padding: "10px 12px",
               borderRadius: 12,
