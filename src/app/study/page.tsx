@@ -42,7 +42,7 @@ import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
 
 type SessionMode = "practice" | "timed_block" | "exam_sim";
-type ExamType = "step1";
+type ExamType = "step1" | "step2ck" | "step3";
 type KnownSessionStatus = "in_progress" | "submitted" | "abandoned";
 type DifficultyDefault = "easy" | "medium" | "hard" | "all";
 type DifficultyOrderMode = "random" | "ascending" | "descending";
@@ -111,6 +111,10 @@ function isSessionMode(value: unknown): value is SessionMode {
   return value === "practice" || value === "timed_block" || value === "exam_sim";
 }
 
+function isExamType(value: unknown): value is ExamType {
+  return value === "step1" || value === "step2ck" || value === "step3";
+}
+
 function isDifficultyDefault(value: unknown): value is DifficultyDefault {
   return value === "easy" || value === "medium" || value === "hard" || value === "all";
 }
@@ -149,10 +153,9 @@ function loadSettings(): UserSettings {
     const parsed = JSON.parse(raw) as Partial<UserSettings>;
 
     return {
-      defaultExam:
-        parsed.defaultExam === "step1"
-          ? "step1"
-          : defaultSettings.defaultExam,
+      defaultExam: isExamType(parsed.defaultExam)
+        ? parsed.defaultExam
+        : defaultSettings.defaultExam,
       defaultMode: isSessionMode(parsed.defaultMode)
         ? parsed.defaultMode
         : defaultSettings.defaultMode,
@@ -200,6 +203,21 @@ function getErrorMessage(error: unknown, fallback: string): string {
   }
 
   return fallback;
+}
+
+function examLabel(exam: ExamType): string {
+  switch (exam) {
+    case "step1":
+      return "Step 1";
+    case "step2ck":
+      return "Step 2 CK";
+    case "step3":
+      return "Step 3";
+    default: {
+      const exhaustiveCheck: never = exam;
+      return exhaustiveCheck;
+    }
+  }
 }
 
 function difficultyDefaultLabel(value: DifficultyDefault): string {
@@ -593,11 +611,7 @@ export default function StudyPage() {
             >
               <InfoCard
                 label="Default exam"
-                value={
-                  userSettings.defaultExam === "step1"
-                    ? "Step 1"
-                    : userSettings.defaultExam
-                }
+                value={examLabel(userSettings.defaultExam)}
               />
 
               <InfoCard

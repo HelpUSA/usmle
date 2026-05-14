@@ -1,4 +1,4 @@
-﻿/*
+/*
  * File: src/app/settings/page.tsx
  *
  * Responsibility:
@@ -27,7 +27,7 @@ import { useEffect, useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 type StudyMode = "practice" | "timed_block" | "exam_sim";
-type ExamType = "step1";
+type ExamType = "step1" | "step2ck" | "step3";
 type DifficultyDefault = "easy" | "medium" | "hard" | "all";
 type DifficultyOrderMode = "random" | "ascending" | "descending";
 type AreaOrderMode = "random" | "by_area";
@@ -182,7 +182,7 @@ function isStudyMode(value: unknown): value is StudyMode {
 }
 
 function isExamType(value: unknown): value is ExamType {
-  return value === "step1";
+  return value === "step1" || value === "step2ck" || value === "step3";
 }
 
 function isDifficultyDefault(value: unknown): value is DifficultyDefault {
@@ -302,6 +302,10 @@ function examLabel(exam: ExamType): string {
   switch (exam) {
     case "step1":
       return "Step 1";
+    case "step2ck":
+      return "Step 2 CK";
+    case "step3":
+      return "Step 3";
     default: {
       const exhaustiveCheck: never = exam;
       return exhaustiveCheck;
@@ -672,6 +676,8 @@ export default function SettingsPage() {
                 }}
               >
                 <option value="step1">Step 1</option>
+                <option value="step2ck">Step 2 CK</option>
+                <option value="step3">Step 3</option>
               </select>
 
               <div style={{ fontSize: 12, color: "#6b7280" }}>

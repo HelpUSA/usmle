@@ -27,7 +27,7 @@ import { getUserIdForApi } from "@/lib/auth";
 const CreateSessionSchema = z
   .object({
     mode: z.enum(["practice", "timed_block", "exam_sim"]),
-    exam: z.enum(["step1", "step2ck"]),
+    exam: z.enum(["step1", "step2ck", "step3"]),
     language: z.string().trim().min(2).max(10).default("en"),
   })
   .strict();
