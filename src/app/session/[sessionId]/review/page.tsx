@@ -54,6 +54,16 @@ type MedicalArea = {
 type ReviewItem = {
   session_item_id: string;
   position: number;
+  block_index?: number | null;
+  position_in_block?: number | null;
+  first_seen_at?: string | null;
+  last_seen_at?: string | null;
+  flagged_for_review?: boolean;
+  attempt_flagged_for_review?: boolean;
+  item_flagged_for_review?: boolean;
+  time_spent_seconds?: number | null;
+  confidence?: number | null;
+  answered_at?: string | null;
 
   question_version_id?: string;
   explanation_short?: string | null;
@@ -123,6 +133,54 @@ function formatReferenceBlock(item: ReviewItem): string {
   return parts.join("\n\n");
 }
 
+function isReviewItemFlagged(item: ReviewItem): boolean {
+  return Boolean(
+    item.flagged_for_review ||
+      item.item_flagged_for_review ||
+      item.attempt_flagged_for_review
+  );
+}
+
+function formatDateTime(value?: string | null): string | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (!Number.isFinite(date.getTime())) {
+    return null;
+  }
+
+  return date.toLocaleString();
+}
+
+function formatDurationSeconds(seconds?: number | null): string | null {
+  if (typeof seconds !== "number" || !Number.isFinite(seconds) || seconds < 0) {
+    return null;
+  }
+
+  if (seconds < 60) {
+    return `${Math.round(seconds)}s`;
+  }
+
+  const minutes = Math.floor(seconds / 60);
+  const remainder = Math.round(seconds % 60);
+
+  return `${minutes}m ${String(remainder).padStart(2, "0")}s`;
+}
+
+function getQuestionLocationLabel(item: ReviewItem): string {
+  if (
+    typeof item.block_index === "number" &&
+    item.block_index > 0 &&
+    typeof item.position_in_block === "number" &&
+    item.position_in_block > 0
+  ) {
+    return `Block ${item.block_index} - Q${item.position_in_block}`;
+  }
+
+  return `Q${item.position}`;
+}
+
 export default function ReviewPage({
   params,
 }: {
@@ -178,8 +236,18 @@ export default function ReviewPage({
     let wrong = 0;
     let skipped = 0;
     let unanswered = 0;
+    let flagged = 0;
+    const blockIndexes = new Set<number>();
 
     for (const item of data.items) {
+      if (typeof item.block_index === "number" && item.block_index > 0) {
+        blockIndexes.add(item.block_index);
+      }
+
+      if (isReviewItemFlagged(item)) {
+        flagged += 1;
+      }
+
       if (item.result === "correct") correct += 1;
       else if (item.result === "wrong") wrong += 1;
       else if (item.result === "skipped") skipped += 1;
@@ -197,6 +265,8 @@ export default function ReviewPage({
       answered,
       total: data.items.length,
       accuracy,
+      flagged,
+      blocks: blockIndexes.size || (data.items.length > 0 ? 1 : 0),
     };
   }, [data]);
 
@@ -451,6 +521,8 @@ export default function ReviewPage({
                   <span style={pill()}>wrong: {summary.wrong}</span>
                   <span style={pill()}>skipped: {summary.skipped}</span>
                   <span style={pill()}>unanswered: {summary.unanswered}</span>
+                  <span style={pill()}>flagged: {summary.flagged}</span>
+                  <span style={pill()}>blocks: {summary.blocks}</span>
                 </div>
               </div>
             )}
@@ -468,6 +540,7 @@ export default function ReviewPage({
                 const status = statusFor(item);
                 const isActive = item.position === activePos;
                 const color = navColor(status);
+                const flagged = isReviewItemFlagged(item);
 
                 return (
                   <button
@@ -477,9 +550,11 @@ export default function ReviewPage({
                       width: 34,
                       height: 34,
                       borderRadius: 999,
-                      border: `1px solid ${color.border}`,
-                      background: color.bg,
-                      color: color.text,
+                      border: flagged
+                        ? "1px solid rgba(245,158,11,0.75)"
+                        : `1px solid ${color.border}`,
+                      background: flagged ? "rgba(245,158,11,0.18)" : color.bg,
+                      color: flagged ? "rgba(253,230,138,1)" : color.text,
                       fontSize: 13,
                       fontWeight: 700,
                       cursor: "pointer",
@@ -493,6 +568,7 @@ export default function ReviewPage({
                     }`}
                   >
                     {item.position}
+                    {flagged ? "*" : ""}
                   </button>
                 );
               })}
@@ -518,22 +594,58 @@ export default function ReviewPage({
                     alignItems: "center",
                   }}
                 >
-                  <div style={{ fontWeight: 800 }}>
-                    Question {activeItem.position} of {itemsSorted.length}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 800 }}>
+                      Question {activeItem.position} of {itemsSorted.length}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 4,
+                        fontSize: 12,
+                        color: "rgba(244,244,245,0.62)",
+                      }}
+                    >
+                      {getQuestionLocationLabel(activeItem)}
+                    </div>
                   </div>
 
-                  <span
+                  <div
                     style={{
-                      ...pill(),
-                      borderColor: navColor(statusFor(activeItem)).border,
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                      justifyContent: "flex-end",
                     }}
                   >
-                    {activeItem.result ?? "unanswered"}
-                  </span>
+                    {isReviewItemFlagged(activeItem) ? (
+                      <span
+                        style={{
+                          ...pill(),
+                          borderColor: "rgba(245,158,11,0.55)",
+                          background: "rgba(245,158,11,0.14)",
+                          color: "rgba(253,230,138,1)",
+                        }}
+                      >
+                        flagged
+                      </span>
+                    ) : null}
+
+                    <span
+                      style={{
+                        ...pill(),
+                        borderColor: navColor(statusFor(activeItem)).border,
+                      }}
+                    >
+                      {activeItem.result ?? "unanswered"}
+                    </span>
+                  </div>
                 </div>
 
                 <div style={{ padding: 14 }}>
                   <AreaBadges areas={activeItem.areas ?? []} />
+
+                  <ReviewMetadata item={activeItem} />
 
                   <div
                     style={{
@@ -726,6 +838,63 @@ function AreaBadges({ areas }: { areas: MedicalArea[] }) {
           title={area.is_primary ? "Primary area" : "Secondary area"}
         >
           {area.name}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function ReviewMetadata({ item }: { item: ReviewItem }) {
+  const firstSeen = formatDateTime(item.first_seen_at);
+  const lastSeen = formatDateTime(item.last_seen_at);
+  const answeredAt = formatDateTime(item.answered_at);
+  const timeSpent = formatDurationSeconds(item.time_spent_seconds);
+  const flagged = isReviewItemFlagged(item);
+
+  const metadataItems = [
+    getQuestionLocationLabel(item),
+    flagged ? "Flagged for review" : "Not flagged",
+    firstSeen ? `First seen: ${firstSeen}` : null,
+    lastSeen ? `Last seen: ${lastSeen}` : null,
+    answeredAt ? `Answered: ${answeredAt}` : null,
+    timeSpent ? `Time spent: ${timeSpent}` : null,
+    typeof item.confidence === "number" ? `Confidence: ${item.confidence}/5` : null,
+  ].filter((value): value is string => Boolean(value));
+
+  if (metadataItems.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      style={{
+        marginBottom: 14,
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        alignItems: "center",
+      }}
+    >
+      {metadataItems.map((value) => (
+        <span
+          key={value}
+          style={{
+            ...pill(),
+            borderColor:
+              value === "Flagged for review"
+                ? "rgba(245,158,11,0.55)"
+                : "rgba(255,255,255,0.14)",
+            background:
+              value === "Flagged for review"
+                ? "rgba(245,158,11,0.14)"
+                : "rgba(255,255,255,0.04)",
+            color:
+              value === "Flagged for review"
+                ? "rgba(253,230,138,1)"
+                : "rgba(244,244,245,0.80)",
+          }}
+        >
+          {value}
         </span>
       ))}
     </div>
