@@ -1,0 +1,480 @@
+{
+  "source": "step1_curated_batch_003",
+  "exam": "step1",
+  "questions": [
+    {
+      "stem": "A 68-year-old man is brought to clinic for progressive gait instability, numbness in both feet, and forgetfulness over 8 months. He eats meat regularly and has not had bowel surgery. Examination shows pallor, a smooth erythematous tongue, decreased vibration and position sense in the legs, and a wide-based gait. Laboratory studies show hemoglobin 9.1 g/dL, mean corpuscular volume 114 μm3, leukopenia, and mild thrombocytopenia. Serum methylmalonic acid and homocysteine are elevated. Anti-intrinsic factor antibodies are positive, and gastric biopsy shows chronic atrophic gastritis of the body and fundus. Which mechanism best explains his hematologic and neurologic findings?",
+      "difficulty": "medium",
+      "prompt": "Identify the pathophysiologic mechanism linking pernicious anemia to vitamin B12 deficiency and neurologic dysfunction.",
+      "explanation_short": "Pernicious anemia causes autoimmune loss of intrinsic factor function, impairing terminal ileal vitamin B12 absorption. B12 deficiency impairs DNA synthesis and myelin maintenance, causing megaloblastic anemia and dorsal column/corticospinal tract dysfunction.",
+      "explanation_long": "This patient has vitamin B12 deficiency due to pernicious anemia: macrocytosis, glossitis, pancytopenia, elevated methylmalonic acid and homocysteine, neurologic findings, and anti-intrinsic factor antibodies. Parietal cells produce intrinsic factor, which binds dietary vitamin B12 and permits terminal ileal absorption. Autoimmune intrinsic factor/parietal cell dysfunction causes B12 malabsorption despite adequate intake. B12 deficiency impairs thymidylate synthesis and methylmalonyl-CoA metabolism, producing megaloblastic hematopoiesis and abnormal myelin maintenance.",
+      "bibliography": [
+        {
+          "title": "Vitamin B12 - Health Professional Fact Sheet",
+          "source": "NIH Office of Dietary Supplements",
+          "url": "https://ods.od.nih.gov/factsheets/VitaminB12-HealthProfessional/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Autoimmune pancreatic acinar destruction causing loss of protease-mediated cobalamin release",
+          "correct": false,
+          "explanation": "Pancreatic enzymes help release cobalamin from binding proteins, but autoimmune pancreatic destruction is not the mechanism of pernicious anemia and would more often cause fat malabsorption."
+        },
+        {
+          "label": "B",
+          "text": "Autoimmune loss of intrinsic factor production causing impaired terminal ileal cobalamin absorption",
+          "correct": true,
+          "explanation": "Correct. Pernicious anemia is autoimmune gastritis with loss of intrinsic factor function, preventing vitamin B12 absorption in the terminal ileum and causing megaloblastic anemia plus neurologic dysfunction."
+        },
+        {
+          "label": "C",
+          "text": "Defective conversion of homocysteine to cystathionine due to cystathionine beta-synthase deficiency",
+          "correct": false,
+          "explanation": "Cystathionine beta-synthase deficiency causes homocystinuria with thrombosis, lens dislocation, and marfanoid habitus; it does not cause methylmalonic acid elevation or intrinsic factor antibodies."
+        },
+        {
+          "label": "D",
+          "text": "Dietary folate deficiency causing impaired purine synthesis without methylmalonic acid accumulation",
+          "correct": false,
+          "explanation": "Folate deficiency causes megaloblastic anemia and elevated homocysteine, but not elevated methylmalonic acid or dorsal column neurologic findings."
+        },
+        {
+          "label": "E",
+          "text": "Loss of gastric chief cells causing impaired pepsinogen-mediated iron absorption",
+          "correct": false,
+          "explanation": "Iron deficiency causes microcytosis and does not explain elevated methylmalonic acid, neurologic deficits, and anti-intrinsic factor antibodies."
+        }
+      ]
+    },
+    {
+      "stem": "A 2-month-old boy is evaluated for poor weight gain, frequent bulky foul-smelling stools, and persistent cough. He had meconium ileus requiring surgery shortly after birth. Since discharge, he has had recurrent nasal congestion and a chronic productive cough. Examination shows weight below the 5th percentile and scattered crackles. Sweat chloride testing is repeatedly elevated, and genetic testing identifies pathogenic variants in both copies of a gene encoding an epithelial chloride channel. Which cellular defect most directly explains the thick airway secretions and pancreatic insufficiency in this infant?",
+      "difficulty": "easy",
+      "prompt": "Identify the epithelial ion-transport defect in cystic fibrosis.",
+      "explanation_short": "Cystic fibrosis is caused by CFTR chloride channel loss of function. Impaired chloride and bicarbonate secretion dehydrates airway and pancreatic secretions, causing thick mucus, recurrent infections, pancreatic insufficiency, and elevated sweat chloride.",
+      "explanation_long": "Cystic fibrosis is an autosomal recessive disorder caused by pathogenic variants in CFTR, an epithelial chloride and bicarbonate channel. Loss of CFTR function in airways reduces chloride secretion and increases water absorption, dehydrating airway surface liquid and impairing mucociliary clearance. In pancreatic ducts, inspissated secretions obstruct exocrine flow, causing malabsorption and failure to thrive. Sweat chloride is elevated because sweat ducts cannot reabsorb chloride normally.",
+      "bibliography": [
+        {
+          "title": "Cystic Fibrosis",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK1250/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Failure of dynein arms to generate coordinated ciliary motion",
+          "correct": false,
+          "explanation": "Dynein arm dysfunction causes primary ciliary dyskinesia, not elevated sweat chloride or pancreatic insufficiency due to CFTR dysfunction."
+        },
+        {
+          "label": "B",
+          "text": "Defective lysosomal degradation of sphingomyelin in macrophages",
+          "correct": false,
+          "explanation": "Sphingomyelinase deficiency causes Niemann-Pick disease with hepatosplenomegaly and neurodegeneration, not meconium ileus and elevated sweat chloride."
+        },
+        {
+          "label": "C",
+          "text": "Impaired elastase inhibition causing alveolar wall destruction",
+          "correct": false,
+          "explanation": "Alpha-1 antitrypsin deficiency causes emphysema and liver disease, not infancy-onset malabsorption with high sweat chloride."
+        },
+        {
+          "label": "D",
+          "text": "Loss of epithelial CFTR chloride channel function causing dehydrated luminal secretions",
+          "correct": true,
+          "explanation": "Correct. CFTR loss impairs chloride/bicarbonate transport and dehydrates secretions, causing thick mucus, pancreatic duct obstruction, meconium ileus, and elevated sweat chloride."
+        },
+        {
+          "label": "E",
+          "text": "Autoimmune destruction of intrinsic factor-producing gastric parietal cells",
+          "correct": false,
+          "explanation": "Intrinsic factor loss causes B12 malabsorption and megaloblastic anemia, not recurrent sinopulmonary infection with pancreatic insufficiency."
+        }
+      ]
+    },
+    {
+      "stem": "A 49-year-old man presents with fatigue, decreased libido, and aching in his hands. He has type 2 diabetes diagnosed at age 44 despite a normal body mass index. His father died of cirrhosis, and his brother has abnormal iron studies. Examination shows hyperpigmented skin and mild hepatomegaly. Laboratory studies show serum ferritin 980 ng/mL and transferrin saturation 78%. Genetic testing reveals homozygosity for a pathogenic HFE variant. Which mechanism is most responsible for this patient’s progressive tissue injury?",
+      "difficulty": "medium",
+      "prompt": "Identify the iron-regulatory mechanism underlying HFE-related hereditary hemochromatosis.",
+      "explanation_short": "HFE-related hemochromatosis causes inappropriately low hepcidin signaling, increasing ferroportin-mediated intestinal iron absorption and macrophage iron release. Excess iron deposits in tissues and causes oxidative injury.",
+      "explanation_long": "Hereditary hemochromatosis due to HFE mutations disrupts normal hepcidin regulation. Hepcidin normally limits iron entry into plasma by downregulating ferroportin on enterocytes and macrophages. Inadequate hepcidin signaling permits excessive intestinal iron absorption and iron release, leading to high transferrin saturation and parenchymal iron deposition. Iron catalyzes free radical formation, damaging liver, pancreas, joints, heart, endocrine organs, and skin.",
+      "bibliography": [
+        {
+          "title": "Diagnosis and Management of Hemochromatosis: 2011 Practice Guideline",
+          "source": "American Association for the Study of Liver Diseases / Hepatology",
+          "url": "https://aasldpubs.onlinelibrary.wiley.com/doi/10.1002/hep.24330"
+        },
+        {
+          "title": "HFE-Related Hemochromatosis",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK1440/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Inappropriately low hepcidin activity causing increased ferroportin-mediated iron entry into plasma",
+          "correct": true,
+          "explanation": "Correct. HFE-related hemochromatosis reduces hepcidin signaling, increasing intestinal iron absorption and iron release from macrophages through ferroportin."
+        },
+        {
+          "label": "B",
+          "text": "Autoimmune destruction of pancreatic beta cells causing absolute insulin deficiency",
+          "correct": false,
+          "explanation": "Type 1 diabetes results from autoimmune beta-cell destruction; this patient’s diabetes is a consequence of iron deposition rather than primary autoimmune diabetes."
+        },
+        {
+          "label": "C",
+          "text": "Defective bilirubin UDP-glucuronosyltransferase causing unconjugated hyperbilirubinemia",
+          "correct": false,
+          "explanation": "UGT defects cause Gilbert or Crigler-Najjar syndromes, not high transferrin saturation and systemic iron deposition."
+        },
+        {
+          "label": "D",
+          "text": "Impaired ATP-dependent hepatic copper excretion into bile",
+          "correct": false,
+          "explanation": "ATP7B dysfunction causes Wilson disease, which features copper accumulation, low ceruloplasmin, and neurologic signs rather than high transferrin saturation."
+        },
+        {
+          "label": "E",
+          "text": "Antibody-mediated activation of the TSH receptor on thyroid follicular cells",
+          "correct": false,
+          "explanation": "TSH receptor-stimulating antibodies cause Graves disease and hyperthyroidism, not iron overload with cirrhosis risk."
+        }
+      ]
+    },
+    {
+      "stem": "A newborn girl fails her hearing screen and is noted to have petechiae, hepatosplenomegaly, jaundice, and a small head circumference. Cranial ultrasound shows periventricular calcifications. Her mother recalls a mild mononucleosis-like illness during the second trimester. Ophthalmologic examination later identifies chorioretinitis. Which infectious agent and pathogenic route best explain this infant’s findings?",
+      "difficulty": "hard",
+      "prompt": "Identify the congenital infection pattern caused by transplacental cytomegalovirus.",
+      "explanation_short": "Congenital cytomegalovirus is acquired transplacentally and classically causes periventricular calcifications, sensorineural hearing loss, microcephaly, chorioretinitis, hepatosplenomegaly, jaundice, and petechiae.",
+      "explanation_long": "Congenital CMV is the most common congenital viral infection and can follow maternal primary infection or reactivation. The infant’s periventricular calcifications, sensorineural hearing loss, microcephaly, hepatosplenomegaly, jaundice, petechiae, and chorioretinitis point to transplacental CMV infection. This differs from toxoplasmosis, which classically produces diffuse intracranial calcifications and hydrocephalus, and rubella, which is associated with cataracts, PDA, and deafness.",
+      "bibliography": [
+        {
+          "title": "About Cytomegalovirus and Congenital CMV Infection",
+          "source": "Centers for Disease Control and Prevention",
+          "url": "https://www.cdc.gov/cytomegalovirus/about/congenital-infection.html"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Toxoplasma gondii acquired from undercooked meat causing diffuse intracranial calcifications and hydrocephalus",
+          "correct": false,
+          "explanation": "Congenital toxoplasmosis can cause chorioretinitis, hydrocephalus, and diffuse intracranial calcifications, but the periventricular calcifications and hearing loss strongly favor CMV."
+        },
+        {
+          "label": "B",
+          "text": "Rubella virus acquired transplacentally causing cataracts, patent ductus arteriosus, and sensorineural deafness",
+          "correct": false,
+          "explanation": "Congenital rubella causes cataracts, PDA, and deafness; it does not classically cause periventricular calcifications."
+        },
+        {
+          "label": "C",
+          "text": "Treponema pallidum crossing the placenta causing snuffles, periostitis, and Hutchinson teeth",
+          "correct": false,
+          "explanation": "Congenital syphilis causes snuffles, rash, hepatosplenomegaly, periostitis, and later Hutchinson teeth, but not classic periventricular calcifications."
+        },
+        {
+          "label": "D",
+          "text": "Herpes simplex virus acquired during delivery causing vesicular lesions and temporal lobe encephalitis",
+          "correct": false,
+          "explanation": "Neonatal HSV is often acquired intrapartum and causes vesicular lesions, sepsis-like illness, or encephalitis; it does not fit the congenital periventricular calcification pattern."
+        },
+        {
+          "label": "E",
+          "text": "Cytomegalovirus acquired transplacentally causing periventricular calcifications and sensorineural hearing loss",
+          "correct": true,
+          "explanation": "Correct. Congenital CMV causes periventricular calcifications, hearing loss, microcephaly, hepatosplenomegaly, jaundice, petechiae, and chorioretinitis."
+        }
+      ]
+    },
+    {
+      "stem": "A 38-year-old woman undergoes colonoscopy after several relatives developed colorectal cancer before age 50. Her father had right-sided colon cancer at age 42, and her paternal aunt had endometrial cancer at age 46. Colonoscopy identifies an adenocarcinoma in the ascending colon. Tumor testing shows high microsatellite instability and loss of MLH1 and PMS2 expression on immunohistochemistry. Which inherited molecular defect most likely explains this family’s cancer predisposition?",
+      "difficulty": "medium",
+      "prompt": "Identify the DNA repair pathway defect in Lynch syndrome.",
+      "explanation_short": "Lynch syndrome is caused by germline defects in DNA mismatch repair genes such as MLH1, MSH2, MSH6, or PMS2, leading to microsatellite instability and increased colorectal, endometrial, and other cancers.",
+      "explanation_long": "The early-onset right-sided colon cancer, family history of colorectal and endometrial cancers, high microsatellite instability, and loss of mismatch repair protein expression indicate Lynch syndrome. Mismatch repair proteins correct insertion-deletion loops and base-base mismatches that arise during DNA replication. Germline defects allow mutations to accumulate in repetitive microsatellite sequences, promoting malignancy. This is distinct from APC-related familial adenomatous polyposis, which causes hundreds to thousands of adenomatous polyps.",
+      "bibliography": [
+        {
+          "title": "Lynch Syndrome",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK1211/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Germline APC loss causing constitutive beta-catenin signaling and innumerable adenomatous polyps",
+          "correct": false,
+          "explanation": "APC loss causes familial adenomatous polyposis with hundreds to thousands of polyps; Lynch syndrome usually has fewer polyps and mismatch repair deficiency."
+        },
+        {
+          "label": "B",
+          "text": "Defective nucleotide excision repair causing inability to remove ultraviolet-induced pyrimidine dimers",
+          "correct": false,
+          "explanation": "Nucleotide excision repair defects cause xeroderma pigmentosum and skin cancer susceptibility, not microsatellite instability colon cancer."
+        },
+        {
+          "label": "C",
+          "text": "Germline mismatch repair deficiency causing accumulation of replication errors in microsatellite regions",
+          "correct": true,
+          "explanation": "Correct. Lynch syndrome is due to mismatch repair gene mutations and causes microsatellite instability with colorectal and endometrial cancer risk."
+        },
+        {
+          "label": "D",
+          "text": "BRCA-mediated homologous recombination failure causing defective double-strand break repair",
+          "correct": false,
+          "explanation": "BRCA1/2 mutations impair homologous recombination and predispose to breast, ovarian, pancreatic, and prostate cancers, not the classic Lynch pattern."
+        },
+        {
+          "label": "E",
+          "text": "RET proto-oncogene activation causing medullary thyroid carcinoma and pheochromocytoma",
+          "correct": false,
+          "explanation": "RET activation causes MEN2 syndromes; it does not explain microsatellite instability or colorectal/endometrial cancer clustering."
+        }
+      ]
+    },
+    {
+      "stem": "A 19-year-old man is evaluated after his older brother required emergency surgery for an ascending aortic dissection. The patient is tall with disproportionately long arms, pectus excavatum, scoliosis, hypermobile joints, and myopia. Slit-lamp examination shows superior lens subluxation, and echocardiography demonstrates dilation of the aortic root. Genetic testing identifies a pathogenic variant in FBN1. Which molecular mechanism best links this mutation to his cardiovascular risk?",
+      "difficulty": "medium",
+      "prompt": "Identify the connective tissue defect in Marfan syndrome.",
+      "explanation_short": "Marfan syndrome is caused by FBN1 mutations that disrupt fibrillin-1 microfibrils and alter TGF-beta signaling, weakening connective tissue and predisposing to aortic root dilation and dissection.",
+      "explanation_long": "Marfan syndrome is an autosomal dominant connective tissue disorder due to pathogenic FBN1 variants. Fibrillin-1 is a major component of extracellular microfibrils and regulates TGF-beta bioavailability. Defective fibrillin weakens elastic tissues, especially in the aortic media, and contributes to excessive TGF-beta signaling. The result is aortic root dilation, aneurysm, and dissection risk, along with skeletal overgrowth and ectopia lentis.",
+      "bibliography": [
+        {
+          "title": "FBN1-Related Marfan Syndrome",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK1335/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Defective type I collagen synthesis causing brittle bones and blue sclerae",
+          "correct": false,
+          "explanation": "Type I collagen defects cause osteogenesis imperfecta. Marfan syndrome is due to fibrillin-1 abnormalities and features ectopia lentis and aortic root disease."
+        },
+        {
+          "label": "B",
+          "text": "Abnormal fibrillin-1 microfibrils with dysregulated TGF-beta signaling in connective tissue",
+          "correct": true,
+          "explanation": "Correct. FBN1 mutations disrupt fibrillin microfibrils and TGF-beta regulation, causing aortic root dilation, ectopia lentis, and skeletal features."
+        },
+        {
+          "label": "C",
+          "text": "Impaired lysyl hydroxylase activity causing defective collagen cross-linking and severe kyphoscoliosis",
+          "correct": false,
+          "explanation": "Lysyl hydroxylase defects cause a form of Ehlers-Danlos syndrome, not classic Marfan syndrome with FBN1 mutation."
+        },
+        {
+          "label": "D",
+          "text": "Defective copper transport causing impaired lysyl oxidase activity and kinky hair",
+          "correct": false,
+          "explanation": "Menkes disease involves copper transport and lysyl oxidase dysfunction in infancy, not Marfan phenotype."
+        },
+        {
+          "label": "E",
+          "text": "Autoimmune granulomatous inflammation destroying the aortic vasa vasorum",
+          "correct": false,
+          "explanation": "Granulomatous aortitis can occur in large-vessel vasculitis; it does not explain FBN1-associated ectopia lentis and skeletal findings."
+        }
+      ]
+    },
+    {
+      "stem": "A 12-year-old boy has had chronic nasal congestion, recurrent otitis media, and a daily productive cough since early childhood. He was hospitalized for respiratory distress as a newborn despite being born at term. Chest CT shows bronchiectasis, and abdominal imaging shows situs inversus totalis. Semen analysis later in adolescence reveals immotile sperm. Which ultrastructural abnormality best explains this patient’s respiratory infections and later infertility?",
+      "difficulty": "easy",
+      "prompt": "Identify the ciliary motility defect in primary ciliary dyskinesia.",
+      "explanation_short": "Primary ciliary dyskinesia is caused by impaired motile ciliary function, often from dynein arm defects. It causes chronic sinopulmonary disease, bronchiectasis, neonatal respiratory distress, situs inversus, and male infertility.",
+      "explanation_long": "This patient has primary ciliary dyskinesia with Kartagener syndrome: chronic sinusitis/otitis, bronchiectasis, situs inversus, neonatal respiratory distress, and immotile sperm. Motile cilia and sperm flagella require axonemal dynein ATPase arms to generate sliding of microtubules and coordinated movement. Defective ciliary motility impairs mucociliary clearance, predisposes to infections, disrupts embryonic left-right patterning, and causes infertility from immotile sperm.",
+      "bibliography": [
+        {
+          "title": "Primary Ciliary Dyskinesia",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK1122/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Loss of axonemal dynein arm function impairing microtubule sliding in motile cilia",
+          "correct": true,
+          "explanation": "Correct. Primary ciliary dyskinesia commonly involves dynein arm dysfunction, impairing ciliary motion and sperm motility."
+        },
+        {
+          "label": "B",
+          "text": "Loss of CFTR chloride channel activity causing dehydrated airway secretions",
+          "correct": false,
+          "explanation": "CFTR loss causes cystic fibrosis with pancreatic insufficiency and elevated sweat chloride; situs inversus and immotile sperm point to ciliary dyskinesia."
+        },
+        {
+          "label": "C",
+          "text": "Defective neutrophil NADPH oxidase preventing reactive oxygen species generation",
+          "correct": false,
+          "explanation": "NADPH oxidase deficiency causes chronic granulomatous disease with catalase-positive infections, not situs inversus or immotile sperm."
+        },
+        {
+          "label": "D",
+          "text": "Abnormal surfactant protein production causing neonatal alveolar collapse",
+          "correct": false,
+          "explanation": "Surfactant deficiency causes neonatal respiratory distress in premature infants, not lifelong sinusitis, bronchiectasis, and situs inversus."
+        },
+        {
+          "label": "E",
+          "text": "Defective dystrophin linking actin cytoskeleton to the sarcolemma",
+          "correct": false,
+          "explanation": "Dystrophin defects cause Duchenne or Becker muscular dystrophy, not impaired mucociliary clearance."
+        }
+      ]
+    },
+    {
+      "stem": "A 16-year-old girl is referred after a school physical reveals cholesterol levels far above the 99th percentile. Her father had a myocardial infarction at age 38, and several paternal relatives have premature coronary artery disease. Examination shows tendon xanthomas over the Achilles tendons and xanthelasmas. Laboratory studies show LDL cholesterol 312 mg/dL, triglycerides 110 mg/dL, and normal thyroid-stimulating hormone. Which defect best explains this patient’s lifelong elevation in LDL cholesterol?",
+      "difficulty": "medium",
+      "prompt": "Identify the receptor-mediated clearance defect in familial hypercholesterolemia.",
+      "explanation_short": "Familial hypercholesterolemia is usually autosomal dominant and commonly caused by LDL receptor pathway defects. Reduced hepatic LDL clearance causes markedly elevated LDL from birth, tendon xanthomas, and premature atherosclerosis.",
+      "explanation_long": "The patient has heterozygous familial hypercholesterolemia: very high LDL cholesterol, normal triglycerides, tendon xanthomas, and premature coronary disease in the family. The most common mechanism is impaired LDL receptor-mediated uptake of LDL particles by the liver, due to LDLR variants or related pathway defects such as APOB or PCSK9. Reduced clearance leads to lifelong LDL elevation and accelerated atherosclerosis.",
+      "bibliography": [
+        {
+          "title": "Familial Hypercholesterolemia",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK174884/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Defective lipoprotein lipase activity causing impaired chylomicron triglyceride clearance",
+          "correct": false,
+          "explanation": "Lipoprotein lipase deficiency causes severe hypertriglyceridemia and pancreatitis, not isolated LDL elevation with tendon xanthomas."
+        },
+        {
+          "label": "B",
+          "text": "Apolipoprotein E2 homozygosity causing remnant accumulation and palmar xanthomas",
+          "correct": false,
+          "explanation": "Dysbetalipoproteinemia causes remnant accumulation with elevated cholesterol and triglycerides and palmar xanthomas; this case fits familial hypercholesterolemia."
+        },
+        {
+          "label": "C",
+          "text": "Increased hepatic VLDL synthesis due to insulin resistance",
+          "correct": false,
+          "explanation": "Insulin resistance can increase VLDL and triglycerides, but does not cause very high LDL from childhood with tendon xanthomas."
+        },
+        {
+          "label": "D",
+          "text": "Reduced LDL receptor-mediated hepatic uptake of circulating LDL particles",
+          "correct": true,
+          "explanation": "Correct. Familial hypercholesterolemia usually involves impaired LDL receptor pathway clearance, leading to markedly elevated LDL and premature atherosclerosis."
+        },
+        {
+          "label": "E",
+          "text": "Failure of ABCA1-mediated cholesterol efflux from peripheral tissues to HDL",
+          "correct": false,
+          "explanation": "ABCA1 defects cause Tangier disease with very low HDL, orange tonsils, and neuropathy, not isolated LDL elevation."
+        }
+      ]
+    },
+    {
+      "stem": "A 7-month-old boy is brought to the clinic for recurrent ear infections, persistent eczema, and intermittent bloody diarrhea. His mother reports that a maternal uncle died in childhood after repeated infections. Examination shows excoriated eczematous plaques and petechiae. Laboratory studies show platelet count 42,000/mm3 with small platelets on smear, low IgM, elevated IgA and IgE, and impaired antibody responses to polysaccharide antigens. Which molecular defect best explains this child’s combined immune and platelet abnormalities?",
+      "difficulty": "hard",
+      "prompt": "Identify the molecular basis of Wiskott-Aldrich syndrome.",
+      "explanation_short": "Wiskott-Aldrich syndrome is an X-linked disorder caused by WAS gene defects affecting WASP-mediated actin cytoskeleton remodeling in hematopoietic cells, producing eczema, recurrent infections, immune dysregulation, and microthrombocytopenia.",
+      "explanation_long": "This infant has Wiskott-Aldrich syndrome: eczema, recurrent infections, thrombocytopenia with small platelets, bloody diarrhea, and X-linked family history. WAS encodes WASP, which links cell-surface signaling to actin cytoskeleton rearrangement in hematopoietic cells. Defective cytoskeletal remodeling impairs immune synapse formation, lymphocyte function, and platelet formation, leading to combined immunodeficiency, abnormal antibody responses, and microthrombocytopenia.",
+      "bibliography": [
+        {
+          "title": "WAS-Related Disorders",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK1178/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Failure of class-switch recombination due to CD40 ligand deficiency",
+          "correct": false,
+          "explanation": "CD40 ligand deficiency causes X-linked hyper-IgM syndrome but not the classic triad of eczema, infections, and small-platelet thrombocytopenia."
+        },
+        {
+          "label": "B",
+          "text": "Adenosine deaminase deficiency causing toxic purine metabolite accumulation in lymphocytes",
+          "correct": false,
+          "explanation": "ADA deficiency causes severe combined immunodeficiency with profound lymphopenia, not small platelets and eczema."
+        },
+        {
+          "label": "C",
+          "text": "Defective WASP-mediated actin cytoskeleton remodeling in hematopoietic cells",
+          "correct": true,
+          "explanation": "Correct. WAS mutations affect WASP and actin cytoskeleton dynamics, causing eczema, infections, immune dysregulation, and microthrombocytopenia."
+        },
+        {
+          "label": "D",
+          "text": "Defective phagocyte NADPH oxidase causing impaired respiratory burst",
+          "correct": false,
+          "explanation": "NADPH oxidase deficiency causes chronic granulomatous disease, not small platelets and eczema."
+        },
+        {
+          "label": "E",
+          "text": "BTK mutation preventing maturation of B cells into immunoglobulin-producing plasma cells",
+          "correct": false,
+          "explanation": "BTK mutation causes X-linked agammaglobulinemia; it does not cause thrombocytopenia with small platelets or eczema."
+        }
+      ]
+    },
+    {
+      "stem": "A 17-year-old boy is brought to clinic because of declining school performance, irritability, hand tremor, and difficulty with handwriting. He has intermittent jaundice and right upper quadrant discomfort. Examination shows dysarthria, a resting tremor, mild hepatomegaly, and brown-green rings at the corneal limbus on slit-lamp examination. Laboratory studies show elevated aminotransferases, low serum ceruloplasmin, and increased urinary copper excretion. Which mechanism best explains his hepatic and neurologic disease?",
+      "difficulty": "hard",
+      "prompt": "Identify the copper transport defect in Wilson disease.",
+      "explanation_short": "Wilson disease is caused by ATP7B mutations that impair hepatic copper incorporation into ceruloplasmin and copper excretion into bile. Copper accumulates in liver, brain, and cornea.",
+      "explanation_long": "The adolescent’s liver disease, neuropsychiatric changes, movement disorder, Kayser-Fleischer rings, low ceruloplasmin, and increased urinary copper are classic for Wilson disease. ATP7B encodes a hepatic copper-transporting ATPase needed for incorporation of copper into ceruloplasmin and excretion of excess copper into bile. When ATP7B is defective, copper accumulates first in the liver and then in extrahepatic tissues including the basal ganglia and cornea.",
+      "bibliography": [
+        {
+          "title": "Wilson Disease",
+          "source": "GeneReviews, NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK1512/"
+        },
+        {
+          "title": "Wilson disease: a summary of the updated AASLD Practice Guidance",
+          "source": "Hepatology Communications / PMC",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10187853/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "HFE mutation causing increased intestinal iron absorption due to low hepcidin signaling",
+          "correct": false,
+          "explanation": "HFE-related hemochromatosis causes iron overload with high transferrin saturation and ferritin; this patient has copper accumulation."
+        },
+        {
+          "label": "B",
+          "text": "Defective phenylalanine hydroxylase causing toxic phenylalanine accumulation",
+          "correct": false,
+          "explanation": "Phenylketonuria causes neurodevelopmental problems if untreated, not copper-associated liver disease and Kayser-Fleischer rings."
+        },
+        {
+          "label": "C",
+          "text": "Failure to degrade branched-chain amino acids causing episodic ketoacidosis",
+          "correct": false,
+          "explanation": "Maple syrup urine disease presents in infancy with neurologic crises, not adolescent copper accumulation."
+        },
+        {
+          "label": "D",
+          "text": "Defective lysosomal glucocerebroside degradation causing macrophage lipid accumulation",
+          "correct": false,
+          "explanation": "Gaucher disease causes hepatosplenomegaly, cytopenias, and bone crises, not low ceruloplasmin and high urinary copper."
+        },
+        {
+          "label": "E",
+          "text": "ATP7B dysfunction impairing copper incorporation into ceruloplasmin and biliary copper excretion",
+          "correct": true,
+          "explanation": "Correct. Wilson disease is due to ATP7B dysfunction, causing impaired copper handling by hepatocytes and toxic copper accumulation."
+        }
+      ]
+    }
+  ],
+  "chunkSize": 10,
+  "requireExactlyTen": true,
+  "requireBibliography": true,
+  "allowSeedDevSource": false
+}
