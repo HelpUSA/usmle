@@ -51,6 +51,11 @@ type SessionItemJoinRow = {
   session_id: string;
   position: number;
   question_version_id: string;
+  block_index: number;
+  position_in_block: number | null;
+  flagged_for_review: boolean;
+  first_seen_at: string | null;
+  last_seen_at: string | null;
   user_id: string;
   status: string;
 };
@@ -91,6 +96,11 @@ type QuestionPayload = {
     session_id: string;
     position: number;
     question_version_id: string;
+    block_index: number;
+    position_in_block: number | null;
+    flagged_for_review: boolean;
+    first_seen_at: string | null;
+    last_seen_at: string | null;
   };
   question: QuestionVersionPublicRow;
   choices: ChoicePublicRow[];
@@ -175,6 +185,11 @@ export async function GET(req: Request, { params }: RouteParams) {
           si.session_id,
           si.position,
           si.question_version_id,
+          si.block_index,
+          si.position_in_block,
+          si.flagged_for_review,
+          si.first_seen_at,
+          si.last_seen_at,
           s.user_id,
           s.status
         FROM session_items si
@@ -191,7 +206,7 @@ export async function GET(req: Request, { params }: RouteParams) {
         };
       }
 
-      const item = itemRes.rows[0];
+      let item = itemRes.rows[0];
 
       if (item.user_id !== userId) {
         return {
@@ -205,6 +220,35 @@ export async function GET(req: Request, { params }: RouteParams) {
           status: 409,
           payload: { error: "Session is not in_progress" },
         };
+      }
+
+      const seenUpdateRes = await client.query<SessionItemJoinRow>(
+        `
+        UPDATE session_items si
+        SET
+          first_seen_at = COALESCE(si.first_seen_at, now()),
+          last_seen_at = now()
+        FROM sessions s
+        WHERE si.session_item_id = $1
+          AND s.session_id = si.session_id
+        RETURNING
+          si.session_item_id,
+          si.session_id,
+          si.position,
+          si.question_version_id,
+          si.block_index,
+          si.position_in_block,
+          si.flagged_for_review,
+          si.first_seen_at,
+          si.last_seen_at,
+          s.user_id,
+          s.status
+        `,
+        [sessionItemId]
+      );
+
+      if (seenUpdateRes.rows.length > 0) {
+        item = seenUpdateRes.rows[0];
       }
 
       const questionRes = await client.query<QuestionVersionDbRow>(
@@ -267,6 +311,11 @@ export async function GET(req: Request, { params }: RouteParams) {
             session_id: item.session_id,
             position: item.position,
             question_version_id: item.question_version_id,
+            block_index: item.block_index,
+            position_in_block: item.position_in_block,
+            flagged_for_review: item.flagged_for_review,
+            first_seen_at: item.first_seen_at,
+            last_seen_at: item.last_seen_at,
           },
           question: {
             ...questionRes.rows[0],
