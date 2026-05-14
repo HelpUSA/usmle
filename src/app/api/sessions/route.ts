@@ -41,6 +41,12 @@ type DerivedSessionBehavior = {
     review_strategy: "immediate" | "deferred";
     timer_visible: boolean;
     mode_semantics: SessionMode;
+    exam_format_version: "legacy" | "usmle_2026_new_software";
+    block_size: number | null;
+    block_minutes: number | null;
+    pacing_target_seconds_per_item: number | null;
+    flag_warning_threshold: number | null;
+    implementation_phase: "current" | "planned";
   };
 };
 
@@ -54,28 +60,46 @@ function deriveSessionBehavior(mode: SessionMode): DerivedSessionBehavior {
           review_strategy: "immediate",
           timer_visible: false,
           mode_semantics: "practice",
+          exam_format_version: "usmle_2026_new_software",
+          block_size: null,
+          block_minutes: null,
+          pacing_target_seconds_per_item: null,
+          flag_warning_threshold: null,
+          implementation_phase: "current",
         },
       };
 
     case "timed_block":
       return {
         timed: true,
-        time_limit_seconds: 60 * 60,
+        time_limit_seconds: 30 * 60,
         settings_json: {
           review_strategy: "deferred",
           timer_visible: true,
           mode_semantics: "timed_block",
+          exam_format_version: "usmle_2026_new_software",
+          block_size: 20,
+          block_minutes: 30,
+          pacing_target_seconds_per_item: 90,
+          flag_warning_threshold: 5,
+          implementation_phase: "current",
         },
       };
 
     case "exam_sim":
       return {
         timed: true,
-        time_limit_seconds: 4 * 60 * 60,
+        time_limit_seconds: 30 * 60,
         settings_json: {
           review_strategy: "deferred",
           timer_visible: true,
           mode_semantics: "exam_sim",
+          exam_format_version: "usmle_2026_new_software",
+          block_size: 20,
+          block_minutes: 30,
+          pacing_target_seconds_per_item: 90,
+          flag_warning_threshold: 5,
+          implementation_phase: "planned",
         },
       };
 

@@ -299,11 +299,41 @@ function getRecommendedCount(mode: SessionMode, settings: UserSettings): number 
     case "practice":
       return settings.practiceQuestionCount;
     case "timed_block":
-      return 40;
+      return 20;
     case "exam_sim":
-      return 40;
+      return 20;
     default:
       return 10;
+  }
+}
+
+function officialFormatSummary(exam: ExamType): string {
+  switch (exam) {
+    case "step1":
+      return "14 blocks x 20 questions";
+    case "step2ck":
+      return "16 blocks x 18-20 questions";
+    case "step3":
+      return "Day 1/Day 2 block profiles";
+    default: {
+      const exhaustiveCheck: never = exam;
+      return exhaustiveCheck;
+    }
+  }
+}
+
+function examSimulationDetail(exam: ExamType): string {
+  switch (exam) {
+    case "step1":
+      return "Official target: 14 x 20. Current safe preset: one 20-question block.";
+    case "step2ck":
+      return "Official target: 16 blocks of 18-20. Current safe preset: one 20-question block.";
+    case "step3":
+      return "Official target: Day 1/Day 2 profiles. Current safe preset: one 20-question block.";
+    default: {
+      const exhaustiveCheck: never = exam;
+      return exhaustiveCheck;
+    }
   }
 }
 
@@ -498,7 +528,7 @@ export default function StudyPage() {
             maxWidth: 760,
           }}
         >
-          Start a new study session or continue where you left off.
+          Launch practice, timed blocks, or exam-style training using the newer USMLE block rhythm.
         </div>
       </section>
 
@@ -589,7 +619,7 @@ export default function StudyPage() {
                     lineHeight: 1.5,
                   }}
                 >
-                  Start with your preferred setup from Settings.
+                  Start with your preferred setup from Settings. Timed and simulation modes now use a 20-question official-format block preset.
                 </div>
               </div>
 
@@ -622,6 +652,16 @@ export default function StudyPage() {
               <InfoCard
                 label="Default count"
                 value={`${defaultModeCount} questions`}
+              />
+
+              <InfoCard
+                label="Official 2026 format"
+                value={officialFormatSummary(userSettings.defaultExam)}
+              />
+
+              <InfoCard
+                label="Timed block preset"
+                value="20 questions · 30 min"
               />
 
               <InfoCard
@@ -850,7 +890,7 @@ export default function StudyPage() {
                   lineHeight: 1.5,
                 }}
               >
-                Choose the format that best matches your study goal.
+                Choose the format that best matches your study goal. Timed modes are now aligned around 20-question, 30-minute blocks.
               </div>
             </div>
 
@@ -863,7 +903,7 @@ export default function StudyPage() {
             >
               <StudyModeCard
                 title="Practice"
-                description="Untimed. Immediate feedback after each question. Best for daily learning."
+                description="Untimed. Immediate feedback after each question. Best for building concepts before moving into timed work."
                 detail={`Default: ${userSettings.practiceQuestionCount} questions`}
                 isDefault={userSettings.defaultMode === "practice"}
                 borderDefault="#86efac"
@@ -875,8 +915,8 @@ export default function StudyPage() {
 
               <StudyModeCard
                 title="Timed block"
-                description="Timed session with deferred review. Best for pacing and block training."
-                detail="Default: 40 questions"
+                description="Official-format 20-question block with deferred review. Best for pacing, flag discipline, and test-day rhythm."
+                detail="Official-format preset: 20 questions · 30 min"
                 isDefault={userSettings.defaultMode === "timed_block"}
                 borderDefault="#fde68a"
                 borderNormal="#ece5c8"
@@ -887,8 +927,8 @@ export default function StudyPage() {
 
               <StudyModeCard
                 title="Exam simulation"
-                description="Simulation-style flow with deferred review. Best for realistic exam practice."
-                detail="Current preset: 40 questions"
+                description="Simulation-style flow with deferred review. This phase starts with one official-format block while full multi-block support is prepared."
+                detail={examSimulationDetail(userSettings.defaultExam)}
                 isDefault={userSettings.defaultMode === "exam_sim"}
                 borderDefault="#fecaca"
                 borderNormal="#f0dddd"
@@ -968,15 +1008,18 @@ function StudyModeCard(props: {
       onClick={onClick}
       disabled={disabled}
       style={{
-        padding: "16px",
-        borderRadius: 18,
+        padding: "18px",
+        borderRadius: 22,
         border: isDefault
           ? `2px solid ${borderDefault}`
           : `1px solid ${borderNormal}`,
-        background,
+        background: `linear-gradient(135deg, ${background} 0%, #ffffff 100%)`,
         cursor: disabled ? "not-allowed" : "pointer",
         textAlign: "left",
         opacity: disabled ? 0.65 : 1,
+        boxShadow: isDefault
+          ? "0 12px 30px rgba(15, 23, 42, 0.08)"
+          : "0 8px 22px rgba(15, 23, 42, 0.05)",
       }}
     >
       <div
