@@ -7,7 +7,8 @@
  * - Provide:
  *   - overall attempt metrics;
  *   - metrics grouped by exam;
- *   - metrics grouped by study mode.
+ *   - metrics grouped by study mode;
+ *   - metrics grouped by USMLE 2026 block index.
  *
  * API contract:
  * - GET /api/me/stats?range=30
@@ -21,6 +22,8 @@
  * - Only submitted sessions are counted.
  * - Attempts counted as answered are result IN ('correct', 'wrong', 'skipped').
  * - Accuracy = correct / answered.
+ * - Flag count uses persisted session_items flag when available,
+ *   otherwise the attempt-level flag.
  */
 
 import { NextResponse } from "next/server";
@@ -42,6 +45,7 @@ type AggregateRow = {
   correct?: number | string | null;
   wrong?: number | string | null;
   skipped?: number | string | null;
+  flagged?: number | string | null;
   avg_time_seconds?: number | string | null;
 };
 
@@ -53,11 +57,16 @@ type ByModeRow = AggregateRow & {
   mode?: string | null;
 };
 
+type ByBlockRow = AggregateRow & {
+  block_index?: number | string | null;
+};
+
 type NormalizedAggregate = {
   answered: number;
   correct: number;
   wrong: number;
   skipped: number;
+  flagged: number;
   accuracy: number;
   avg_time_seconds: number;
 };
@@ -81,6 +90,7 @@ function normalizeAggregate(row: AggregateRow | null | undefined): NormalizedAgg
     correct,
     wrong: toNumber(row?.wrong),
     skipped: toNumber(row?.skipped),
+    flagged: toNumber(row?.flagged),
     accuracy: answered > 0 ? correct / answered : 0,
     avg_time_seconds: toNumber(row?.avg_time_seconds),
   };
@@ -150,9 +160,15 @@ export async function GET(req: Request) {
           COUNT(*) FILTER (WHERE a.result = 'correct')::int AS correct,
           COUNT(*) FILTER (WHERE a.result = 'wrong')::int AS wrong,
           COUNT(*) FILTER (WHERE a.result = 'skipped')::int AS skipped,
+          COUNT(*) FILTER (
+            WHERE COALESCE(si.flagged_for_review, a.flagged_for_review, false)
+          )::int AS flagged,
           COALESCE(AVG(a.time_spent_seconds), 0)::float AS avg_time_seconds
         FROM attempts a
         JOIN sessions s ON s.session_id = a.session_id
+        LEFT JOIN session_items si
+          ON si.session_item_id = a.session_item_id
+          AND si.session_id = a.session_id
         WHERE a.user_id = $1
           AND s.user_id = $1
           AND s.status = 'submitted'
@@ -173,9 +189,15 @@ export async function GET(req: Request) {
           COUNT(*) FILTER (WHERE a.result = 'correct')::int AS correct,
           COUNT(*) FILTER (WHERE a.result = 'wrong')::int AS wrong,
           COUNT(*) FILTER (WHERE a.result = 'skipped')::int AS skipped,
+          COUNT(*) FILTER (
+            WHERE COALESCE(si.flagged_for_review, a.flagged_for_review, false)
+          )::int AS flagged,
           COALESCE(AVG(a.time_spent_seconds), 0)::float AS avg_time_seconds
         FROM attempts a
         JOIN sessions s ON s.session_id = a.session_id
+        LEFT JOIN session_items si
+          ON si.session_item_id = a.session_item_id
+          AND si.session_id = a.session_id
         WHERE a.user_id = $1
           AND s.user_id = $1
           AND s.status = 'submitted'
@@ -194,9 +216,15 @@ export async function GET(req: Request) {
           COUNT(*) FILTER (WHERE a.result = 'correct')::int AS correct,
           COUNT(*) FILTER (WHERE a.result = 'wrong')::int AS wrong,
           COUNT(*) FILTER (WHERE a.result = 'skipped')::int AS skipped,
+          COUNT(*) FILTER (
+            WHERE COALESCE(si.flagged_for_review, a.flagged_for_review, false)
+          )::int AS flagged,
           COALESCE(AVG(a.time_spent_seconds), 0)::float AS avg_time_seconds
         FROM attempts a
         JOIN sessions s ON s.session_id = a.session_id
+        LEFT JOIN session_items si
+          ON si.session_item_id = a.session_item_id
+          AND si.session_id = a.session_id
         WHERE a.user_id = $1
           AND s.user_id = $1
           AND s.status = 'submitted'
@@ -212,8 +240,40 @@ export async function GET(req: Request) {
         ...normalizeAggregate(row),
       }));
 
+      const byBlockRes = await client.query(
+        `
+        SELECT
+          COALESCE(si.block_index, 1)::int AS block_index,
+          COUNT(*) FILTER (WHERE a.result IN ('correct', 'wrong', 'skipped'))::int AS answered,
+          COUNT(*) FILTER (WHERE a.result = 'correct')::int AS correct,
+          COUNT(*) FILTER (WHERE a.result = 'wrong')::int AS wrong,
+          COUNT(*) FILTER (WHERE a.result = 'skipped')::int AS skipped,
+          COUNT(*) FILTER (
+            WHERE COALESCE(si.flagged_for_review, a.flagged_for_review, false)
+          )::int AS flagged,
+          COALESCE(AVG(a.time_spent_seconds), 0)::float AS avg_time_seconds
+        FROM attempts a
+        JOIN sessions s ON s.session_id = a.session_id
+        LEFT JOIN session_items si
+          ON si.session_item_id = a.session_item_id
+          AND si.session_id = a.session_id
+        WHERE a.user_id = $1
+          AND s.user_id = $1
+          AND s.status = 'submitted'
+          AND s.submitted_at >= (now() - ($2::int * interval '1 day'))
+        GROUP BY COALESCE(si.block_index, 1)
+        ORDER BY block_index ASC
+        `,
+        [userId, rangeDays]
+      );
+
       const by_mode = ((byModeRes.rows ?? []) as ByModeRow[]).map((row) => ({
         mode: row.mode ?? "unknown",
+        ...normalizeAggregate(row),
+      }));
+
+      const by_block = ((byBlockRes.rows ?? []) as ByBlockRow[]).map((row) => ({
+        block_index: Math.max(1, Math.trunc(toNumber(row.block_index) || 1)),
         ...normalizeAggregate(row),
       }));
 
@@ -222,6 +282,7 @@ export async function GET(req: Request) {
         overall,
         by_exam,
         by_mode,
+        by_block,
       };
     });
 
