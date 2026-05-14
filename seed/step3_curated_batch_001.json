@@ -1,0 +1,475 @@
+{
+  "source": "step3_curated_batch_001",
+  "exam": "step3",
+  "questions": [
+    {
+      "stem": "A 78-year-old woman comes to the office for follow-up after an emergency department visit for palpitations. ECG in the emergency department showed atrial fibrillation with a ventricular rate of 112/min; she is now rate-controlled on metoprolol. She has hypertension, type 2 diabetes mellitus, and heart failure with preserved ejection fraction. She has no mechanical heart valve, no moderate or severe mitral stenosis, no active bleeding, and no history of intracranial hemorrhage. Serum creatinine is 0.9 mg/dL.",
+      "difficulty": "medium",
+      "prompt": "What is the most appropriate long-term management to reduce her risk of stroke?",
+      "explanation_short": "A patient with atrial fibrillation and elevated CHA2DS2-VASc stroke risk should receive oral anticoagulation, preferably a direct oral anticoagulant when eligible.",
+      "explanation_long": "This patient has nonvalvular atrial fibrillation and a high CHA2DS2-VASc score due to age, sex, hypertension, diabetes, and heart failure. Rate control addresses symptoms and tachycardia but does not adequately prevent cardioembolic stroke. In the absence of contraindications, long-term oral anticoagulation is indicated. A direct oral anticoagulant such as apixaban is generally preferred over warfarin for eligible patients without mechanical valves or moderate to severe rheumatic mitral stenosis.",
+      "bibliography": [
+        {
+          "title": "2023 ACC/AHA/ACCP/HRS Guideline for the Diagnosis and Management of Atrial Fibrillation",
+          "source": "American Heart Association / American College of Cardiology",
+          "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000001193"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Start apixaban for long-term oral anticoagulation",
+          "correct": true,
+          "explanation": "This is correct. She has nonvalvular atrial fibrillation and high thromboembolic risk, making long-term oral anticoagulation indicated. A direct oral anticoagulant is appropriate because she has no mechanical valve or moderate to severe mitral stenosis."
+        },
+        {
+          "label": "B",
+          "text": "Use aspirin alone because she is already rate-controlled",
+          "correct": false,
+          "explanation": "Rate control does not prevent atrial thrombus formation, and aspirin is inferior to anticoagulation for stroke prevention in high-risk atrial fibrillation."
+        },
+        {
+          "label": "C",
+          "text": "Defer anticoagulation unless atrial fibrillation becomes persistent for more than 1 year",
+          "correct": false,
+          "explanation": "Stroke prevention is based on thromboembolic risk, not waiting for a prolonged duration of persistent atrial fibrillation."
+        },
+        {
+          "label": "D",
+          "text": "Prescribe clopidogrel because it has less bleeding risk than anticoagulation",
+          "correct": false,
+          "explanation": "Antiplatelet therapy is not an adequate substitute for anticoagulation in high-risk atrial fibrillation."
+        },
+        {
+          "label": "E",
+          "text": "Schedule elective cardioversion and avoid anticoagulation if sinus rhythm is restored",
+          "correct": false,
+          "explanation": "Restoration of sinus rhythm does not eliminate the need for stroke prevention in a patient with high baseline thromboembolic risk."
+        }
+      ]
+    },
+    {
+      "stem": "A 66-year-old man is being discharged after hospitalization for an acute exacerbation of chronic obstructive pulmonary disease. He improved with bronchodilators, systemic glucocorticoids, and antibiotics. He has smoked 1 pack per day for 45 years, uses albuterol several times per week, and says he often forgets how to use his inhalers correctly. He has not received influenza or pneumococcal vaccination. He is stable on room air at rest.",
+      "difficulty": "medium",
+      "prompt": "Which discharge plan is most appropriate to reduce future exacerbations and improve long-term outcomes?",
+      "explanation_short": "COPD discharge planning should include optimization of maintenance therapy, inhaler technique review, smoking cessation, vaccination, pulmonary rehabilitation when appropriate, and close follow-up.",
+      "explanation_long": "After a COPD exacerbation requiring hospitalization, discharge planning should address factors that reduce recurrence and improve function. This includes assessment and optimization of long-acting inhaled maintenance therapy, verification of inhaler technique, smoking cessation treatment, vaccination, referral to pulmonary rehabilitation when appropriate, and timely outpatient follow-up. Albuterol alone does not provide adequate long-term exacerbation prevention for a patient with symptomatic COPD and recent hospitalization.",
+      "bibliography": [
+        {
+          "title": "Global Strategy for Prevention, Diagnosis and Management of COPD: 2024 Report",
+          "source": "Global Initiative for Chronic Obstructive Lung Disease",
+          "url": "https://goldcopd.org/2024-gold-report/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Discharge with albuterol alone because oxygen saturation is normal at rest",
+          "correct": false,
+          "explanation": "Normal resting oxygen saturation does not address exacerbation prevention. This patient needs maintenance therapy optimization and preventive interventions."
+        },
+        {
+          "label": "B",
+          "text": "Review inhaler technique, start or optimize long-acting bronchodilator therapy, provide smoking cessation treatment, update vaccinations, and arrange follow-up",
+          "correct": true,
+          "explanation": "This comprehensive discharge plan addresses modifiable risks for recurrent COPD exacerbations and poor outcomes."
+        },
+        {
+          "label": "C",
+          "text": "Continue systemic glucocorticoids indefinitely to prevent relapse",
+          "correct": false,
+          "explanation": "Long-term systemic glucocorticoids are not routine COPD maintenance therapy and carry significant adverse effects."
+        },
+        {
+          "label": "D",
+          "text": "Start chronic suppressive antibiotics in all patients after one COPD hospitalization",
+          "correct": false,
+          "explanation": "Chronic antibiotic therapy is reserved for selected patients with recurrent exacerbations despite optimized therapy. It is not automatic after a single hospitalization."
+        },
+        {
+          "label": "E",
+          "text": "Avoid pulmonary rehabilitation because exertion may provoke dyspnea",
+          "correct": false,
+          "explanation": "Pulmonary rehabilitation can improve exercise tolerance, symptoms, and recovery after exacerbation in appropriate patients."
+        }
+      ]
+    },
+    {
+      "stem": "A 29-year-old woman comes to her obstetrician 6 weeks after delivering a healthy infant. She reports persistent sadness, anhedonia, guilt, poor sleep even when the baby is sleeping, and difficulty bonding with the infant. Symptoms have lasted 4 weeks and are impairing daily functioning. She denies thoughts of harming herself or the baby, hallucinations, delusions, or decreased need for sleep. She is breastfeeding and wants treatment.",
+      "difficulty": "easy",
+      "prompt": "What is the most appropriate next step in management?",
+      "explanation_short": "Postpartum depression without psychosis or imminent safety risk is treated with psychotherapy and/or antidepressant therapy, with SSRIs commonly used when medication is indicated.",
+      "explanation_long": "This patient has postpartum depression rather than postpartum blues because symptoms are persistent, impairing, and last beyond the early postpartum period. She has no signs of postpartum psychosis, mania, or imminent danger to herself or the infant. Appropriate treatment includes psychotherapy and initiation of an antidepressant such as sertraline when symptoms are moderate or impairing, with attention to lactation safety and close follow-up.",
+      "bibliography": [
+        {
+          "title": "Screening and Diagnosis of Mental Health Conditions During Pregnancy and Postpartum",
+          "source": "American College of Obstetricians and Gynecologists",
+          "url": "https://www.acog.org/clinical/clinical-guidance/clinical-practice-guideline/articles/2023/06/screening-and-diagnosis-of-mental-health-conditions-during-pregnancy-and-postpartum"
+        },
+        {
+          "title": "Treatment and Management of Mental Health Conditions During Pregnancy and Postpartum",
+          "source": "American College of Obstetricians and Gynecologists",
+          "url": "https://www.acog.org/clinical/clinical-guidance/clinical-practice-guideline/articles/2023/06/treatment-and-management-of-mental-health-conditions-during-pregnancy-and-postpartum"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Reassure her that symptoms are normal postpartum blues and require no follow-up",
+          "correct": false,
+          "explanation": "Postpartum blues are usually mild and transient. Persistent, impairing depressive symptoms for several weeks require active treatment and follow-up."
+        },
+        {
+          "label": "B",
+          "text": "Hospitalize her involuntarily for postpartum psychosis",
+          "correct": false,
+          "explanation": "She has no psychosis, delusions, hallucinations, mania, or intent to harm herself or the infant. Hospitalization is not indicated on this presentation."
+        },
+        {
+          "label": "C",
+          "text": "Start psychotherapy and consider sertraline with close follow-up",
+          "correct": true,
+          "explanation": "This is appropriate for postpartum depression without psychosis or imminent safety risk. Sertraline is commonly used when an SSRI is indicated during breastfeeding."
+        },
+        {
+          "label": "D",
+          "text": "Advise immediate cessation of breastfeeding before any depression treatment",
+          "correct": false,
+          "explanation": "Breastfeeding does not need to be stopped automatically. Treatment decisions should consider medication safety, symptom severity, and patient preference."
+        },
+        {
+          "label": "E",
+          "text": "Treat only with benzodiazepines because antidepressants are contraindicated postpartum",
+          "correct": false,
+          "explanation": "Antidepressants are not categorically contraindicated postpartum. Benzodiazepines do not treat core depressive symptoms and may cause sedation and dependence."
+        }
+      ]
+    },
+    {
+      "stem": "A 58-year-old man with type 2 diabetes mellitus comes for follow-up. He had a myocardial infarction 2 years ago and underwent coronary stenting. Current medications include metformin, high-intensity atorvastatin, aspirin, lisinopril, and metoprolol. His hemoglobin A1c is 8.4%. Estimated glomerular filtration rate is 78 mL/min/1.73 m2. He has no history of pancreatitis or medullary thyroid carcinoma.",
+      "difficulty": "medium",
+      "prompt": "Which medication change is most appropriate to improve glycemic control and cardiovascular outcomes?",
+      "explanation_short": "In type 2 diabetes with established atherosclerotic cardiovascular disease, adding a GLP-1 receptor agonist or SGLT2 inhibitor with proven cardiovascular benefit is recommended.",
+      "explanation_long": "This patient has type 2 diabetes and established atherosclerotic cardiovascular disease. Agents with demonstrated cardiovascular benefit should be prioritized, independent of the need for additional glycemic control. A GLP-1 receptor agonist with cardiovascular benefit, such as semaglutide, is appropriate given preserved renal function and no listed contraindication. Sulfonylureas lower glucose but do not provide comparable cardiovascular benefit and increase hypoglycemia risk.",
+      "bibliography": [
+        {
+          "title": "Standards of Care in Diabetes",
+          "source": "American Diabetes Association",
+          "url": "https://professional.diabetes.org/standards-of-care"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Stop metformin because coronary artery disease is a contraindication",
+          "correct": false,
+          "explanation": "Stable coronary artery disease is not a contraindication to metformin. His renal function is adequate for continued use."
+        },
+        {
+          "label": "B",
+          "text": "Add glyburide because it is the preferred agent after myocardial infarction",
+          "correct": false,
+          "explanation": "Glyburide increases hypoglycemia risk and does not provide the cardiovascular benefit expected from GLP-1 receptor agonists or SGLT2 inhibitors in this setting."
+        },
+        {
+          "label": "C",
+          "text": "Use sliding-scale short-acting insulin alone as outpatient therapy",
+          "correct": false,
+          "explanation": "Sliding-scale insulin alone is not an optimal outpatient strategy and does not address cardiovascular risk reduction."
+        },
+        {
+          "label": "D",
+          "text": "Add a GLP-1 receptor agonist with proven cardiovascular benefit",
+          "correct": true,
+          "explanation": "This is correct. A GLP-1 receptor agonist with cardiovascular benefit can improve glycemic control and reduce cardiovascular risk in type 2 diabetes with established ASCVD."
+        },
+        {
+          "label": "E",
+          "text": "Avoid all additional glucose-lowering therapy unless A1c exceeds 10%",
+          "correct": false,
+          "explanation": "His A1c is above goal and he has established ASCVD, so therapy should be intensified with agents that also improve cardiovascular outcomes."
+        }
+      ]
+    },
+    {
+      "stem": "An 82-year-old woman who lives in a nursing facility is evaluated because a urine culture obtained for cloudy urine grew Escherichia coli. She has no dysuria, urgency, suprapubic pain, flank pain, fever, rigors, or change in mental status. Her vital signs are normal. She has chronic urinary incontinence but no indwelling catheter. The nurse asks which antibiotic should be prescribed.",
+      "difficulty": "easy",
+      "prompt": "What is the most appropriate management?",
+      "explanation_short": "Asymptomatic bacteriuria in older adults should not be treated with antibiotics unless specific exceptions apply, such as pregnancy or invasive urologic procedures.",
+      "explanation_long": "This patient has asymptomatic bacteriuria: bacteria in the urine without urinary symptoms or systemic signs of infection. Older adults in long-term care commonly have bacteriuria, but antibiotic treatment does not improve outcomes and increases risks such as adverse drug events, Clostridioides difficile infection, and antimicrobial resistance. Cloudy urine alone is not an indication for antibiotics.",
+      "bibliography": [
+        {
+          "title": "Clinical Practice Guideline for the Management of Asymptomatic Bacteriuria: 2019 Update by IDSA",
+          "source": "Infectious Diseases Society of America",
+          "url": "https://www.idsociety.org/practice-guideline/asymptomatic-bacteriuria/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Begin ciprofloxacin for 7 days",
+          "correct": false,
+          "explanation": "Fluoroquinolone therapy is not indicated for asymptomatic bacteriuria and exposes the patient to avoidable adverse effects and resistance."
+        },
+        {
+          "label": "B",
+          "text": "Begin nitrofurantoin because E coli is the most common urinary pathogen",
+          "correct": false,
+          "explanation": "The organism does not determine treatment when the patient lacks symptoms. Asymptomatic bacteriuria should not be treated in this setting."
+        },
+        {
+          "label": "C",
+          "text": "Repeat urine cultures weekly until sterile",
+          "correct": false,
+          "explanation": "Routine surveillance cultures promote unnecessary antibiotics and are not recommended for asymptomatic bacteriuria."
+        },
+        {
+          "label": "D",
+          "text": "Treat only if pyuria is present on urinalysis",
+          "correct": false,
+          "explanation": "Pyuria is common in bacteriuria and does not by itself distinguish infection from colonization in older adults."
+        },
+        {
+          "label": "E",
+          "text": "Do not prescribe antibiotics and monitor clinically",
+          "correct": true,
+          "explanation": "This is correct. She has asymptomatic bacteriuria without pregnancy or an upcoming invasive urologic procedure, so antibiotics are not indicated."
+        }
+      ]
+    },
+    {
+      "stem": "An 84-year-old man is brought to clinic by his daughter after two falls in the last month. He feels unsteady when rising at night to urinate. Medications include hydrochlorothiazide, tamsulosin, lorazepam at bedtime, diphenhydramine for sleep, and ibuprofen as needed. Examination shows mild orthostatic symptoms but no focal neurologic deficits. He lives at home and wants to avoid another fall.",
+      "difficulty": "hard",
+      "prompt": "Which intervention is most appropriate as part of his fall-risk management?",
+      "explanation_short": "Older adults with falls should undergo medication review and deprescribing of high-risk medications, especially benzodiazepines and anticholinergics, along with multifactorial fall prevention.",
+      "explanation_long": "This patient has recurrent falls and is taking medications associated with falls, cognitive impairment, sedation, and orthostasis. Lorazepam is a benzodiazepine and diphenhydramine is strongly anticholinergic; both are potentially inappropriate in older adults and should be deprescribed when possible. A broader fall plan should also address orthostasis, gait and balance training, home safety, vision, footwear, and nocturia.",
+      "bibliography": [
+        {
+          "title": "2023 American Geriatrics Society Beers Criteria for Potentially Inappropriate Medication Use in Older Adults",
+          "source": "American Geriatrics Society",
+          "url": "https://agsjournals.onlinelibrary.wiley.com/doi/10.1111/jgs.18372"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Taper lorazepam, stop diphenhydramine, and implement multifactorial fall prevention",
+          "correct": true,
+          "explanation": "This is correct. Benzodiazepines and anticholinergic sedatives increase fall and cognitive risk in older adults and should be deprescribed as part of a multifactorial fall-prevention plan."
+        },
+        {
+          "label": "B",
+          "text": "Add zolpidem because it is safer than benzodiazepines for falls",
+          "correct": false,
+          "explanation": "Z-drugs also increase falls, delirium, and cognitive adverse effects in older adults and are not a safe replacement."
+        },
+        {
+          "label": "C",
+          "text": "Prescribe a wheelchair permanently to eliminate walking",
+          "correct": false,
+          "explanation": "Unnecessary wheelchair use can worsen deconditioning. The goal is risk reduction while preserving mobility and function."
+        },
+        {
+          "label": "D",
+          "text": "Continue all medications because stopping sedatives abruptly is always safe",
+          "correct": false,
+          "explanation": "Benzodiazepines require tapering to avoid withdrawal, but continuing high-risk sedatives without a deprescribing plan is unsafe."
+        },
+        {
+          "label": "E",
+          "text": "Order head CT as the only fall-prevention intervention",
+          "correct": false,
+          "explanation": "Imaging may be needed after selected head injuries, but it does not address the preventable causes of recurrent falls in this patient."
+        }
+      ]
+    },
+    {
+      "stem": "A 62-year-old man comes for an annual visit. He smoked 1 pack of cigarettes daily for 35 years and quit 7 years ago. He has no cough, hemoptysis, weight loss, or dyspnea. He is functionally independent and would be willing to undergo curative lung surgery if cancer were detected.",
+      "difficulty": "medium",
+      "prompt": "What is the most appropriate lung cancer screening recommendation?",
+      "explanation_short": "Adults aged 50 to 80 with at least a 20 pack-year smoking history who currently smoke or quit within the past 15 years should receive annual low-dose CT screening if they are candidates for curative treatment.",
+      "explanation_long": "This patient is 62 years old, has a 35 pack-year smoking history, and quit 7 years ago. He meets criteria for annual low-dose CT screening because he is within the age range, has sufficient pack-year exposure, quit within the past 15 years, and is healthy enough to benefit from curative treatment. Chest radiography is not an adequate screening test for lung cancer.",
+      "bibliography": [
+        {
+          "title": "Recommendation: Lung Cancer: Screening",
+          "source": "United States Preventive Services Task Force",
+          "url": "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/lung-cancer-screening"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "No screening because he quit smoking more than 5 years ago",
+          "correct": false,
+          "explanation": "Screening remains recommended for eligible adults who quit within the past 15 years."
+        },
+        {
+          "label": "B",
+          "text": "Annual low-dose CT of the chest",
+          "correct": true,
+          "explanation": "This is correct. He is 50 to 80 years old, has at least a 20 pack-year smoking history, quit within 15 years, and is a candidate for curative treatment."
+        },
+        {
+          "label": "C",
+          "text": "Annual chest radiography",
+          "correct": false,
+          "explanation": "Chest radiography is not the recommended screening modality for lung cancer; low-dose CT is used."
+        },
+        {
+          "label": "D",
+          "text": "Sputum cytology every 6 months",
+          "correct": false,
+          "explanation": "Sputum cytology is not recommended as a routine lung cancer screening strategy."
+        },
+        {
+          "label": "E",
+          "text": "Screen only if he develops hemoptysis",
+          "correct": false,
+          "explanation": "Screening is intended for asymptomatic high-risk individuals. Waiting for symptoms may miss early-stage disease."
+        }
+      ]
+    },
+    {
+      "stem": "A 49-year-old man with chronic nonspecific low back pain requests oxycodone because over-the-counter medications have not eliminated his pain. He has no cancer, fracture, infection, neurologic deficit, or inflammatory arthritis. He works as a mechanic and wants to keep working. He has a history of alcohol use disorder in sustained remission. He has not tried structured physical therapy or cognitive behavioral therapy.",
+      "difficulty": "hard",
+      "prompt": "What is the most appropriate next step in management?",
+      "explanation_short": "For chronic noncancer pain, clinicians should prioritize nonopioid therapies, set functional goals, assess risks, and use opioids only when expected benefits for pain and function outweigh risks.",
+      "explanation_long": "This patient has chronic noncancer low back pain without red flags. Long-term opioid therapy should not be started reflexively, especially with a substance use history. Management should focus on functional goals, exercise or physical therapy, behavioral approaches, nonopioid pharmacologic options when appropriate, and careful risk assessment. Opioids may be considered only after shared decision-making when benefits for pain and function are expected to outweigh risks.",
+      "bibliography": [
+        {
+          "title": "CDC Clinical Practice Guideline for Prescribing Opioids for Pain - United States, 2022",
+          "source": "Centers for Disease Control and Prevention",
+          "url": "https://www.cdc.gov/mmwr/volumes/71/rr/rr7103a1.htm"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Start long-term oxycodone today because complete pain relief is the primary goal",
+          "correct": false,
+          "explanation": "Complete pain elimination is often unrealistic, and long-term opioid therapy should not be initiated without evaluating nonopioid options, functional goals, and risk."
+        },
+        {
+          "label": "B",
+          "text": "Dismiss the patient from care because he requested an opioid",
+          "correct": false,
+          "explanation": "Requesting opioids should prompt careful assessment and patient-centered management, not abandonment."
+        },
+        {
+          "label": "C",
+          "text": "Establish functional goals, initiate nonopioid and nonpharmacologic therapy, and assess opioid-related risks",
+          "correct": true,
+          "explanation": "This is correct. Chronic noncancer pain management should emphasize function, nonopioid therapies, risk assessment, and shared decision-making."
+        },
+        {
+          "label": "D",
+          "text": "Order whole-spine MRI before any conservative therapy despite no red flags",
+          "correct": false,
+          "explanation": "Advanced imaging is not routinely indicated for nonspecific low back pain without red flags or neurologic deficits."
+        },
+        {
+          "label": "E",
+          "text": "Prescribe concurrent benzodiazepines to prevent opioid-related anxiety",
+          "correct": false,
+          "explanation": "Combining opioids and benzodiazepines increases risk of sedation, respiratory depression, overdose, and death."
+        }
+      ]
+    },
+    {
+      "stem": "A 76-year-old man is hospitalized after hip fracture repair. On postoperative day 2, he becomes inattentive and disoriented, with fluctuating alertness that worsens overnight. He repeatedly tries to climb out of bed. He has no focal neurologic deficits. Medications include oxycodone, diphenhydramine for sleep, and cyclobenzaprine. Bladder scan shows urinary retention.",
+      "difficulty": "medium",
+      "prompt": "What is the most appropriate initial management?",
+      "explanation_short": "Delirium management focuses on identifying and treating precipitating causes and using nonpharmacologic safety measures; deliriogenic medications should be minimized.",
+      "explanation_long": "This patient has postoperative delirium, suggested by acute onset, fluctuating course, inattention, and disorientation. Initial management should identify and treat triggers such as urinary retention, pain, infection, hypoxia, dehydration, and deliriogenic medications. Diphenhydramine and cyclobenzaprine should be stopped. Nonpharmacologic measures include reorientation, sleep hygiene, mobilization, sensory aids, hydration, and family engagement. Restraints and sedatives should be avoided unless necessary for immediate safety.",
+      "bibliography": [
+        {
+          "title": "Delirium: Prevention, Diagnosis and Management in Hospital and Long-Term Care",
+          "source": "National Institute for Health and Care Excellence",
+          "url": "https://www.nice.org.uk/guidance/cg103"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Begin scheduled haloperidol for all postoperative delirium patients",
+          "correct": false,
+          "explanation": "Antipsychotics are not routine first-line therapy for all delirium and are generally reserved for severe agitation threatening safety after reversible causes and nonpharmacologic measures are addressed."
+        },
+        {
+          "label": "B",
+          "text": "Apply physical restraints continuously to prevent falls",
+          "correct": false,
+          "explanation": "Restraints can worsen delirium and injury risk. They should be avoided unless absolutely necessary for immediate safety."
+        },
+        {
+          "label": "C",
+          "text": "Give diphenhydramine at a higher dose to restore sleep",
+          "correct": false,
+          "explanation": "Diphenhydramine is anticholinergic and can precipitate or worsen delirium in older adults."
+        },
+        {
+          "label": "D",
+          "text": "Treat urinary retention, stop deliriogenic medications, and use reorientation, mobilization, sleep hygiene, hydration, and sensory aids",
+          "correct": true,
+          "explanation": "This is correct. Delirium management begins with treating reversible causes and implementing nonpharmacologic supportive measures."
+        },
+        {
+          "label": "E",
+          "text": "Delay all evaluation because delirium is expected after surgery",
+          "correct": false,
+          "explanation": "Delirium is common but not benign. It requires prompt assessment for reversible causes and safety-focused management."
+        }
+      ]
+    },
+    {
+      "stem": "A 71-year-old man is brought to the emergency department because of dizziness, weakness, and near-syncope. Blood pressure is 78/44 mm Hg, pulse is 32/min, and oxygen saturation is 96% with supplemental oxygen. ECG shows sinus bradycardia without ST-segment elevation. He is awake but diaphoretic and confused. Intravenous access is obtained, and atropine 1 mg IV is given with no improvement.",
+      "difficulty": "hard",
+      "prompt": "What is the most appropriate next step?",
+      "explanation_short": "Unstable symptomatic bradycardia that does not respond to atropine should be treated with transcutaneous pacing and/or chronotropic infusion while reversible causes are evaluated.",
+      "explanation_long": "This patient has unstable symptomatic bradycardia with hypotension and altered mental status. Initial management includes airway support, monitoring, IV access, and atropine. Because atropine did not improve perfusion, the next step is transcutaneous pacing while preparing for possible transvenous pacing and evaluating reversible causes. Dopamine or epinephrine infusion may also be used, but persistent instability after atropine requires immediate escalation.",
+      "bibliography": [
+        {
+          "title": "Adult Bradycardia With a Pulse Algorithm",
+          "source": "American Heart Association",
+          "url": "https://cpr.heart.org/-/media/CPR-Files/CPR-Guidelines-Files/2025-Algorithms/Algorithm-ACLS-Bradycardia-250514.pdf"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Discharge with outpatient Holter monitoring",
+          "correct": false,
+          "explanation": "He is hemodynamically unstable with hypotension and confusion, requiring immediate treatment rather than outpatient evaluation."
+        },
+        {
+          "label": "B",
+          "text": "Repeat atropine indefinitely until the heart rate normalizes",
+          "correct": false,
+          "explanation": "Atropine has a maximum recommended cumulative dose and did not improve perfusion. Persistent instability requires escalation."
+        },
+        {
+          "label": "C",
+          "text": "Administer adenosine",
+          "correct": false,
+          "explanation": "Adenosine is used for selected supraventricular tachycardias, not unstable bradycardia."
+        },
+        {
+          "label": "D",
+          "text": "Begin oral beta-blocker therapy",
+          "correct": false,
+          "explanation": "Beta blockers can worsen bradycardia and hypotension and are contraindicated in this unstable presentation."
+        },
+        {
+          "label": "E",
+          "text": "Initiate transcutaneous pacing while evaluating reversible causes",
+          "correct": true,
+          "explanation": "This is correct. Unstable bradycardia that fails atropine requires immediate escalation to transcutaneous pacing and preparation for additional chronotropic or pacing support."
+        }
+      ]
+    }
+  ],
+  "chunkSize": 10,
+  "requireExactlyTen": true,
+  "requireBibliography": true,
+  "allowSeedDevSource": false
+}
