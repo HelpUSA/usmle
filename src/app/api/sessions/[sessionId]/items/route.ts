@@ -95,12 +95,18 @@ type DifficultyDefault = Difficulty | "all";
 type DifficultyOrderMode = "random" | "ascending" | "descending";
 type AreaOrderMode = "random" | "by_area";
 
+type SessionSettingsJson = {
+  block_size?: number | null;
+};
+
 type SessionRow = {
   session_id: string;
   user_id: string;
   exam: string;
   language: string;
   status: string;
+  mode: string;
+  settings_json: SessionSettingsJson | null;
 };
 
 type SessionItemRow = {
@@ -109,6 +115,11 @@ type SessionItemRow = {
   position: number;
   question_version_id: string;
   presented_at: string;
+  block_index: number;
+  position_in_block: number | null;
+  flagged_for_review: boolean;
+  first_seen_at: string | null;
+  last_seen_at: string | null;
 };
 
 type QuestionCandidateRow = {
@@ -140,6 +151,27 @@ function splitByDifficulty(count: number): Record<Difficulty, number> {
   const medium = Math.max(0, count - easy - hard);
 
   return { easy, medium, hard };
+}
+
+function getSessionBlockSize(session: SessionRow, itemCount: number): number {
+  const configured = session.settings_json?.block_size;
+
+  if (typeof configured === "number" && configured > 0) {
+    return configured;
+  }
+
+  if (session.mode === "timed_block" || session.mode === "exam_sim") {
+    return 20;
+  }
+
+  return Math.max(1, itemCount);
+}
+
+function getBlockMetadata(position: number, blockSize: number) {
+  return {
+    blockIndex: Math.floor((position - 1) / blockSize) + 1,
+    positionInBlock: ((position - 1) % blockSize) + 1,
+  };
 }
 
 function uniqueSlugs(slugs: string[]): string[] {
@@ -277,7 +309,12 @@ async function readSessionItems(
       session_id,
       position,
       question_version_id,
-      presented_at
+      presented_at,
+      block_index,
+      position_in_block,
+      flagged_for_review,
+      first_seen_at,
+      last_seen_at
     FROM session_items
     WHERE session_id = $1
     ORDER BY position ASC
@@ -367,7 +404,9 @@ export async function POST(req: Request, { params }: RouteParams) {
           user_id,
           exam,
           language,
-          status
+          status,
+          mode,
+          settings_json
         FROM sessions
         WHERE session_id = $1
         FOR UPDATE
@@ -633,13 +672,26 @@ export async function POST(req: Request, { params }: RouteParams) {
 
       const insertValues: Array<string | number> = [];
       const placeholders: string[] = [];
+      const blockSize = getSessionBlockSize(session, orderedPicked.length);
 
       orderedPicked.forEach((candidate, index) => {
         const position = index + 1;
-        const base = index * 3;
+        const { blockIndex, positionInBlock } = getBlockMetadata(
+          position,
+          blockSize
+        );
+        const base = index * 5;
 
-        placeholders.push(`($${base + 1}, $${base + 2}, $${base + 3})`);
-        insertValues.push(sessionId, position, candidate.question_version_id);
+        placeholders.push(
+          `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`
+        );
+        insertValues.push(
+          sessionId,
+          position,
+          candidate.question_version_id,
+          blockIndex,
+          positionInBlock
+        );
       });
 
       const inserted = await client.query<SessionItemRow>(
@@ -648,7 +700,9 @@ export async function POST(req: Request, { params }: RouteParams) {
           INSERT INTO session_items (
             session_id,
             position,
-            question_version_id
+            question_version_id,
+            block_index,
+            position_in_block
           )
           VALUES ${placeholders.join(", ")}
           RETURNING
@@ -656,14 +710,24 @@ export async function POST(req: Request, { params }: RouteParams) {
             session_id,
             position,
             question_version_id,
-            presented_at
+            presented_at,
+            block_index,
+            position_in_block,
+            flagged_for_review,
+            first_seen_at,
+            last_seen_at
         )
         SELECT
           session_item_id,
           session_id,
           position,
           question_version_id,
-          presented_at
+          presented_at,
+          block_index,
+          position_in_block,
+          flagged_for_review,
+          first_seen_at,
+          last_seen_at
         FROM inserted
         ORDER BY position ASC
         `,
