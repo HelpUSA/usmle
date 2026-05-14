@@ -8,14 +8,14 @@
  *   - Results = history/navigation by session.
  *   - Progress = visual patterns, activity, distribution, completion profile.
  *
- * API contract used:
+ * API contracts used:
  * - GET /api/sessions
+ * - GET /api/me/stats?range=365
  *
- * Current data limitation:
- * - This page still uses only session-level data.
- * - It does not calculate accuracy, average time per question, weak areas,
- *   or attempt-level performance because the current endpoint does not expose
- *   attempt-level aggregates.
+ * Analytics strategy:
+ * - Session-level data drives activity and history visuals.
+ * - Attempt-level aggregate data drives accuracy, timing, flags, and
+ *   USMLE 2026 block analytics.
  *
  * UX strategy:
  * - Mobile-first.
@@ -50,6 +50,28 @@ type SessionSummary = {
 
 type SessionsResponse = {
   sessions: SessionSummary[];
+};
+
+type StatsAggregate = {
+  answered: number;
+  correct: number;
+  wrong: number;
+  skipped: number;
+  flagged: number;
+  accuracy: number;
+  avg_time_seconds: number;
+};
+
+type BlockAggregate = StatsAggregate & {
+  block_index: number;
+};
+
+type StatsResponse = {
+  range_days: number;
+  overall: StatsAggregate;
+  by_exam: Array<StatsAggregate & { exam: string }>;
+  by_mode: Array<StatsAggregate & { mode: string }>;
+  by_block: BlockAggregate[];
 };
 
 type DailyPoint = {
@@ -101,6 +123,49 @@ function formatDateTime(value?: string | null): string {
   }
 
   return date.toLocaleString();
+}
+
+function formatPercent(value?: number | null): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return "0%";
+  }
+
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatAverageSeconds(value?: number | null): string {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return "-";
+  }
+
+  if (value < 60) {
+    return `${Math.round(value)}s`;
+  }
+
+  const minutes = Math.floor(value / 60);
+  const seconds = Math.round(value % 60);
+
+  return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+}
+
+function getBlockPaceLabel(avgSeconds?: number | null): string {
+  if (
+    typeof avgSeconds !== "number" ||
+    !Number.isFinite(avgSeconds) ||
+    avgSeconds <= 0
+  ) {
+    return "No timing";
+  }
+
+  if (avgSeconds <= 90) {
+    return "On pace";
+  }
+
+  if (avgSeconds <= 110) {
+    return "Borderline";
+  }
+
+  return "Slow";
 }
 
 function getComparableTime(value?: string | null): number {
@@ -322,6 +387,7 @@ export default function ProgressPage() {
   const { data: session, status: sessionStatus } = useSession();
 
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [stats, setStats] = useState<StatsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -336,6 +402,7 @@ export default function ProgressPage() {
 
     if (!isSignedIn) {
       setSessions([]);
+      setStats(null);
       setLoading(false);
       setErr(null);
       return;
@@ -345,11 +412,17 @@ export default function ProgressPage() {
     setErr(null);
 
     try {
-      const res = await apiFetch<SessionsResponse>("/api/sessions");
-      setSessions(Array.isArray(res.sessions) ? res.sessions : []);
+      const [sessionsRes, statsRes] = await Promise.all([
+        apiFetch<SessionsResponse>("/api/sessions"),
+        apiFetch<StatsResponse>("/api/me/stats?range=365"),
+      ]);
+
+      setSessions(Array.isArray(sessionsRes.sessions) ? sessionsRes.sessions : []);
+      setStats(statsRes);
     } catch (error) {
       setErr(getErrorMessage(error, "Failed to load progress data"));
       setSessions([]);
+      setStats(null);
     } finally {
       setLoading(false);
     }
@@ -405,6 +478,42 @@ export default function ProgressPage() {
     () => sortedSessions.slice(0, 5),
     [sortedSessions]
   );
+
+  const blockAnalytics = useMemo(() => {
+    if (!stats || !Array.isArray(stats.by_block)) return [];
+
+    return [...stats.by_block]
+      .filter((block) => block.answered > 0)
+      .sort((a, b) => a.block_index - b.block_index);
+  }, [stats]);
+
+  const weakestBlock = useMemo(() => {
+    if (blockAnalytics.length === 0) return null;
+
+    return blockAnalytics.reduce<BlockAggregate | null>((weakest, current) => {
+      if (!weakest) return current;
+      if (current.accuracy < weakest.accuracy) return current;
+
+      if (
+        current.accuracy === weakest.accuracy &&
+        current.answered > weakest.answered
+      ) {
+        return current;
+      }
+
+      return weakest;
+    }, null);
+  }, [blockAnalytics]);
+
+  const mostFlaggedBlock = useMemo(() => {
+    if (blockAnalytics.length === 0) return null;
+
+    return blockAnalytics.reduce<BlockAggregate | null>((highest, current) => {
+      if (!highest) return current;
+      if (current.flagged > highest.flagged) return current;
+      return highest;
+    }, null);
+  }, [blockAnalytics]);
 
   const chartWidth = 640;
   const chartHeight = 220;
@@ -586,6 +695,18 @@ export default function ProgressPage() {
             {[
               { label: "Total sessions", value: String(totalSessions) },
               { label: "Completion rate", value: `${completionRate}%` },
+              {
+                label: "Overall accuracy",
+                value: stats ? formatPercent(stats.overall.accuracy) : "-",
+              },
+              {
+                label: "Avg/question",
+                value: stats ? formatAverageSeconds(stats.overall.avg_time_seconds) : "-",
+              },
+              {
+                label: "Flagged answers",
+                value: stats ? String(stats.overall.flagged) : "-",
+              },
               { label: "Active days", value: String(activeDays) },
               { label: "Most used mode", value: mostUsedMode },
             ].map((card) => (
@@ -755,6 +876,165 @@ export default function ProgressPage() {
                   </svg>
                 </div>
               </div>
+            )}
+          </section>
+
+          <section
+            style={{
+              padding: 18,
+              borderRadius: 20,
+              border: "1px solid #e5e7eb",
+              background: "white",
+              display: "grid",
+              gap: 14,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 12,
+                alignItems: "flex-start",
+                flexWrap: "wrap",
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 20 }}>
+                  USMLE 2026 block analytics
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 13,
+                    color: "#6b7280",
+                  }}
+                >
+                  Accuracy, timing, and flags grouped by 30-minute block.
+                </div>
+              </div>
+
+              <div
+                style={{
+                  fontSize: 12,
+                  padding: "6px 10px",
+                  borderRadius: 999,
+                  border: "1px solid #dbeafe",
+                  background: "#eff6ff",
+                  color: "#1d4ed8",
+                  fontWeight: 800,
+                }}
+              >
+                Range: {stats?.range_days ?? 365} days
+              </div>
+            </div>
+
+            {!stats ? (
+              <p style={{ margin: 0, color: "#555" }}>
+                Loading block analytics...
+              </p>
+            ) : blockAnalytics.length === 0 ? (
+              <p style={{ margin: 0, color: "#555" }}>
+                Complete submitted sessions to populate block-level analytics.
+              </p>
+            ) : (
+              <>
+                <div
+                  style={{
+                    display: "grid",
+                    gap: 12,
+                    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  }}
+                >
+                  <div style={analyticsCardStyle()}>
+                    <div style={analyticsLabelStyle()}>Tracked blocks</div>
+                    <div style={analyticsValueStyle()}>{blockAnalytics.length}</div>
+                  </div>
+
+                  <div style={analyticsCardStyle()}>
+                    <div style={analyticsLabelStyle()}>Weakest block</div>
+                    <div style={analyticsValueStyle()}>
+                      {weakestBlock ? `Block ${weakestBlock.block_index}` : "-"}
+                    </div>
+                    <div style={analyticsHintStyle()}>
+                      {weakestBlock ? formatPercent(weakestBlock.accuracy) : "-"}
+                    </div>
+                  </div>
+
+                  <div style={analyticsCardStyle()}>
+                    <div style={analyticsLabelStyle()}>Most flagged</div>
+                    <div style={analyticsValueStyle()}>
+                      {mostFlaggedBlock
+                        ? `Block ${mostFlaggedBlock.block_index}`
+                        : "-"}
+                    </div>
+                    <div style={analyticsHintStyle()}>
+                      {mostFlaggedBlock ? `${mostFlaggedBlock.flagged} flagged` : "-"}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gap: 10 }}>
+                  {blockAnalytics.map((block) => (
+                    <div
+                      key={block.block_index}
+                      style={{
+                        padding: 14,
+                        borderRadius: 16,
+                        border: "1px solid #eef2f7",
+                        background: "#fbfdff",
+                        display: "grid",
+                        gap: 10,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: 10,
+                          flexWrap: "wrap",
+                          alignItems: "center",
+                        }}
+                      >
+                        <div style={{ fontWeight: 900 }}>
+                          Block {block.block_index}
+                        </div>
+
+                        <div
+                          style={{
+                            fontSize: 12,
+                            padding: "5px 8px",
+                            borderRadius: 999,
+                            border: "1px solid #e0e7ff",
+                            background: "#eef2ff",
+                            color: "#3730a3",
+                            fontWeight: 800,
+                          }}
+                        >
+                          {getBlockPaceLabel(block.avg_time_seconds)}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gap: 10,
+                          gridTemplateColumns:
+                            "repeat(auto-fit, minmax(120px, 1fr))",
+                        }}
+                      >
+                        <MetricMini label="Answered" value={String(block.answered)} />
+                        <MetricMini label="Accuracy" value={formatPercent(block.accuracy)} />
+                        <MetricMini
+                          label="Avg/question"
+                          value={formatAverageSeconds(block.avg_time_seconds)}
+                        />
+                        <MetricMini label="Flagged" value={String(block.flagged)} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </section>
 
@@ -967,6 +1247,53 @@ export default function ProgressPage() {
       )}
     </main>
   );
+}
+
+function MetricMini(props: { label: string; value: string }) {
+  const { label, value } = props;
+
+  return (
+    <div>
+      <div style={{ fontSize: 12, color: "#6b7280" }}>{label}</div>
+      <div style={{ marginTop: 4, fontSize: 18, fontWeight: 900 }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function analyticsCardStyle(): CSSProperties {
+  return {
+    padding: 14,
+    borderRadius: 16,
+    border: "1px solid #eef2f7",
+    background: "#fbfdff",
+  };
+}
+
+function analyticsLabelStyle(): CSSProperties {
+  return {
+    fontSize: 12,
+    color: "#6b7280",
+  };
+}
+
+function analyticsValueStyle(): CSSProperties {
+  return {
+    marginTop: 8,
+    fontSize: 22,
+    lineHeight: 1.1,
+    fontWeight: 900,
+  };
+}
+
+function analyticsHintStyle(): CSSProperties {
+  return {
+    marginTop: 5,
+    color: "#6b7280",
+    fontSize: 12,
+    fontWeight: 700,
+  };
 }
 
 function DonutPanel(props: {
