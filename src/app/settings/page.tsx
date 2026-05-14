@@ -83,7 +83,13 @@ const MEDICAL_AREAS: MedicalArea[] = [
     slug: "gastroenterology",
     name: "Gastroenterology",
     description:
-      "Gastrointestinal physiology, malabsorption, hepatobiliary disease, and nutrition.",
+      "Gastrointestinal physiology, malabsorption, and hepatobiliary disease.",
+  },
+  {
+    slug: "nutrition_metabolism",
+    name: "Nutrition/Metabolism",
+    description:
+      "Evidence-based nutrition, obesity, vitamin deficiency, malnutrition, metabolic counseling, and diet-related disease risk.",
   },
   {
     slug: "endocrinology",
@@ -358,6 +364,51 @@ function areaOrderLabel(value: AreaOrderMode): string {
   }
 }
 
+function officialFormatSummary(exam: ExamType): string {
+  switch (exam) {
+    case "step1":
+      return "14 blocks x 20 questions · 30 min/block";
+    case "step2ck":
+      return "16 blocks x 18-20 questions · 30 min/block";
+    case "step3":
+      return "Day 1 and Day 2 official block profiles";
+    default: {
+      const exhaustiveCheck: never = exam;
+      return exhaustiveCheck;
+    }
+  }
+}
+
+function timedBlockPresetLabel(exam: ExamType): string {
+  switch (exam) {
+    case "step1":
+      return "20 questions · 30 minutes";
+    case "step2ck":
+      return "18-20 questions · 30 minutes";
+    case "step3":
+      return "18-20 questions · 30 minutes";
+    default: {
+      const exhaustiveCheck: never = exam;
+      return exhaustiveCheck;
+    }
+  }
+}
+
+function examSimulationPlanningLabel(exam: ExamType): string {
+  switch (exam) {
+    case "step1":
+      return "Planned full mode: 14 blocks x 20 questions";
+    case "step2ck":
+      return "Planned full mode: 16 blocks, up to 316 questions";
+    case "step3":
+      return "Planned full mode: Day 1 FIP + Day 2 ACM/CCS";
+    default: {
+      const exhaustiveCheck: never = exam;
+      return exhaustiveCheck;
+    }
+  }
+}
+
 export default function SettingsPage() {
   const { data: session, status } = useSession();
 
@@ -492,7 +543,7 @@ export default function SettingsPage() {
                 lineHeight: 1.55,
               }}
             >
-              Personalize your account and study defaults.
+              Personalize your study defaults, official-format timing, and question filters.
             </div>
           </div>
 
@@ -678,8 +729,6 @@ export default function SettingsPage() {
                 <option value="step1">Step 1</option>
                 <option value="step2ck">Step 2 CK</option>
                 <option value="step3">Step 3</option>
-                <option value="step2ck">Step 2 CK</option>
-                <option value="step3">Step 3</option>
               </select>
 
               <div style={{ fontSize: 12, color: "#6b7280" }}>
@@ -723,6 +772,54 @@ export default function SettingsPage() {
               </div>
             </div>
 
+            <div
+              style={{
+                padding: 14,
+                borderRadius: 18,
+                border: "1px solid #dbeafe",
+                background: "linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)",
+                display: "grid",
+                gap: 12,
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 900 }}>Official 2026 exam format</div>
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 13,
+                    color: "#4b5563",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  These presets align study sessions with the updated USMLE delivery software. Full multi-block simulation will be implemented in the database/API phase.
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gap: 10,
+                  gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+                }}
+              >
+                <InfoCard
+                  label="Selected exam profile"
+                  value={officialFormatSummary(settings.defaultExam)}
+                />
+
+                <InfoCard
+                  label="Timed block preset"
+                  value={timedBlockPresetLabel(settings.defaultExam)}
+                />
+
+                <InfoCard
+                  label="Exam simulation roadmap"
+                  value={examSimulationPlanningLabel(settings.defaultExam)}
+                />
+              </div>
+            </div>
+
             <div style={{ display: "grid", gap: 6 }}>
               <label style={{ fontSize: 13, color: "#555" }}>
                 Practice question count
@@ -749,8 +846,7 @@ export default function SettingsPage() {
               />
 
               <div style={{ fontSize: 12, color: "#6b7280" }}>
-                Used as the preferred count for daily untimed study. Allowed
-                range: 1 to 200.
+                Used only for daily untimed Practice. Timed Block now follows the official-format 20-question / 30-minute preset.
               </div>
             </div>
           </section>
@@ -779,7 +875,7 @@ export default function SettingsPage() {
                 }}
               >
                 These settings are applied when a new session is generated.
-                Existing sessions keep their original question sequence.
+                Existing sessions keep their original question sequence. Nutrition/Metabolism is exposed as a dedicated area because nutrition performance will become a more explicit USMLE reporting domain.
               </div>
             </div>
 
@@ -1019,7 +1115,7 @@ export default function SettingsPage() {
               <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>
                 At least one medical area must remain selected. Areas without
                 available questions will simply not contribute items until
-                content is added.
+                content is added. Nutrition/Metabolism may also overlap with endocrine, renal, cardiovascular, pediatrics, and gastrointestinal questions.
               </div>
             </div>
           </section>
@@ -1055,7 +1151,7 @@ export default function SettingsPage() {
                 key: "emphasizeTimer" as const,
                 label: "Show timer in highlighted mode during timed sessions",
                 description:
-                  "Make the countdown visually stronger in timed blocks and exam simulation.",
+                  "Make the countdown visually stronger in official-format timed blocks and exam simulation.",
               },
             ].map((item) => (
               <label
