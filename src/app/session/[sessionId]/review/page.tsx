@@ -45,6 +45,12 @@ type ReviewChoice = {
   explanation: string | null;
 };
 
+type MedicalArea = {
+  slug: string;
+  name: string;
+  is_primary: boolean;
+};
+
 type ReviewItem = {
   session_item_id: string;
   position: number;
@@ -54,6 +60,7 @@ type ReviewItem = {
   explanation_long?: string | null;
   bibliography?: JsonValue | null;
   prompt?: string | null;
+  areas?: MedicalArea[];
 
   stem: string;
   result: "correct" | "wrong" | "skipped" | null;
@@ -526,6 +533,8 @@ export default function ReviewPage({
                 </div>
 
                 <div style={{ padding: 14 }}>
+                  <AreaBadges areas={activeItem.areas ?? []} />
+
                   <div
                     style={{
                       fontSize: `${1 * fontScale}rem`,
@@ -671,6 +680,54 @@ export default function ReviewPage({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AreaBadges({ areas }: { areas: MedicalArea[] }) {
+  if (!areas.length) return null;
+
+  return (
+    <div
+      style={{
+        marginBottom: 12,
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        alignItems: "center",
+      }}
+    >
+      <span
+        style={{
+          fontSize: 12,
+          fontWeight: 850,
+          color: "rgba(244,244,245,0.72)",
+        }}
+      >
+        Areas:
+      </span>
+
+      {areas.map((area) => (
+        <span
+          key={`${area.slug}-${area.is_primary ? "primary" : "secondary"}`}
+          style={{
+            ...pill(),
+            borderColor: area.is_primary
+              ? "rgba(96,165,250,0.45)"
+              : "rgba(255,255,255,0.14)",
+            background: area.is_primary
+              ? "rgba(59,130,246,0.18)"
+              : "rgba(255,255,255,0.04)",
+            color: area.is_primary
+              ? "rgba(191,219,254,1)"
+              : "rgba(244,244,245,0.85)",
+            fontWeight: area.is_primary ? 800 : 650,
+          }}
+          title={area.is_primary ? "Primary area" : "Secondary area"}
+        >
+          {area.name}
+        </span>
+      ))}
     </div>
   );
 }

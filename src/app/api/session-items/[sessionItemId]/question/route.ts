@@ -55,6 +55,12 @@ type SessionItemJoinRow = {
   status: string;
 };
 
+type MedicalAreaPayload = {
+  slug: string;
+  name: string;
+  is_primary: boolean;
+};
+
 type QuestionVersionPublicRow = {
   question_version_id: string;
   exam: string;
@@ -62,12 +68,21 @@ type QuestionVersionPublicRow = {
   difficulty: string | null;
   stem: string;
   prompt?: string | null;
+  areas: MedicalAreaPayload[];
 };
+
+type QuestionVersionDbRow = Omit<QuestionVersionPublicRow, "areas">;
 
 type ChoicePublicRow = {
   choice_id: string;
   label: string;
   choice_text: string;
+};
+
+type MedicalAreaRow = {
+  slug: string;
+  name: string;
+  is_primary: boolean;
 };
 
 type QuestionPayload = {
@@ -192,7 +207,7 @@ export async function GET(req: Request, { params }: RouteParams) {
         };
       }
 
-      const questionRes = await client.query<QuestionVersionPublicRow>(
+      const questionRes = await client.query<QuestionVersionDbRow>(
         `
         SELECT
           question_version_id,
@@ -228,6 +243,22 @@ export async function GET(req: Request, { params }: RouteParams) {
         [item.question_version_id]
       );
 
+      const areasRes = await client.query<MedicalAreaRow>(
+        `
+        SELECT
+          ma.slug,
+          ma.name,
+          qva.is_primary
+        FROM question_version_areas qva
+        JOIN medical_areas ma
+          ON ma.area_id = qva.area_id
+        WHERE qva.question_version_id = $1
+          AND ma.is_active = true
+        ORDER BY qva.is_primary DESC, ma.display_order ASC, ma.name ASC
+        `,
+        [item.question_version_id]
+      );
+
       return {
         status: 200,
         payload: {
@@ -237,7 +268,14 @@ export async function GET(req: Request, { params }: RouteParams) {
             position: item.position,
             question_version_id: item.question_version_id,
           },
-          question: questionRes.rows[0],
+          question: {
+            ...questionRes.rows[0],
+            areas: areasRes.rows.map((area) => ({
+              slug: area.slug,
+              name: area.name,
+              is_primary: Boolean(area.is_primary),
+            })),
+          },
           choices: choicesRes.rows,
         },
       };

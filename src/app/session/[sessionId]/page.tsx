@@ -71,6 +71,12 @@ type SessionSummary = {
   submitted_at?: string | null;
 };
 
+type MedicalArea = {
+  slug: string;
+  name: string;
+  is_primary: boolean;
+};
+
 type QuestionResponse = {
   session_item: {
     session_item_id: string;
@@ -81,6 +87,7 @@ type QuestionResponse = {
   question: {
     stem: string;
     prompt?: string | null;
+    areas?: MedicalArea[];
   };
   choices: Array<{
     choice_id: string;
@@ -219,6 +226,50 @@ function normalizeIsCorrect(feedback: AttemptResponse | null): boolean | null {
 
 function isPlayableStatus(status?: SessionStatus | null): boolean {
   return status === "in_progress";
+}
+
+function AreaBadges({ areas }: { areas: MedicalArea[] }) {
+  if (!areas.length) return null;
+
+  return (
+    <div
+      style={{
+        marginBottom: 12,
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        alignItems: "center",
+      }}
+    >
+      <span
+        style={{
+          fontSize: 12,
+          fontWeight: 800,
+          color: "#4b5563",
+        }}
+      >
+        Areas:
+      </span>
+
+      {areas.map((area) => (
+        <span
+          key={`${area.slug}-${area.is_primary ? "primary" : "secondary"}`}
+          style={{
+            fontSize: 12,
+            padding: "4px 8px",
+            borderRadius: 999,
+            border: area.is_primary ? "1px solid #93c5fd" : "1px solid #ddd",
+            background: area.is_primary ? "#eff6ff" : "#fafafa",
+            color: area.is_primary ? "#1d4ed8" : "#374151",
+            fontWeight: area.is_primary ? 800 : 650,
+          }}
+          title={area.is_primary ? "Primary area" : "Secondary area"}
+        >
+          {area.name}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 export default function SessionPage({
@@ -940,6 +991,8 @@ export default function SessionPage({
         <p style={{ marginTop: 16 }}>Loading question…</p>
       ) : (
         <div style={{ marginTop: 16 }}>
+          <AreaBadges areas={q.question.areas ?? []} />
+
           <p
             style={{
               fontSize: 16,

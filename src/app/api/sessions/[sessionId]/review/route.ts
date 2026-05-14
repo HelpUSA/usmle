@@ -94,12 +94,25 @@ type ReviewChoiceRow = {
   explanation: string | null;
 };
 
+type ReviewAreaRow = {
+  question_version_id: string;
+  slug: string;
+  name: string;
+  is_primary: boolean;
+};
+
 type ReviewChoice = {
   choice_id: string;
   label: string;
   choice_text: string;
   is_correct: boolean;
   explanation: string | null;
+};
+
+type ReviewArea = {
+  slug: string;
+  name: string;
+  is_primary: boolean;
 };
 
 type ReviewItem = {
@@ -129,6 +142,7 @@ type ReviewItem = {
   selected_label: string | null;
   selected_choice_text: string | null;
 
+  areas: ReviewArea[];
   choices: ReviewChoice[];
 };
 
@@ -344,8 +358,42 @@ export async function GET(req: Request, { params }: RouteParams) {
       );
 
       const choicesByQuestionVersionId: Record<string, ReviewChoice[]> = {};
+      const areasByQuestionVersionId: Record<string, ReviewArea[]> = {};
 
       if (questionVersionIds.length > 0) {
+        const areasRes = await client.query<ReviewAreaRow>(
+          `
+          SELECT
+            qva.question_version_id,
+            ma.slug,
+            ma.name,
+            qva.is_primary
+          FROM question_version_areas qva
+          JOIN medical_areas ma
+            ON ma.area_id = qva.area_id
+          WHERE qva.question_version_id = ANY($1::uuid[])
+            AND ma.is_active = true
+          ORDER BY
+            qva.question_version_id,
+            qva.is_primary DESC,
+            ma.display_order ASC,
+            ma.name ASC
+          `,
+          [questionVersionIds]
+        );
+
+        for (const area of areasRes.rows) {
+          if (!areasByQuestionVersionId[area.question_version_id]) {
+            areasByQuestionVersionId[area.question_version_id] = [];
+          }
+
+          areasByQuestionVersionId[area.question_version_id].push({
+            slug: area.slug,
+            name: area.name,
+            is_primary: Boolean(area.is_primary),
+          });
+        }
+
         const choicesRes = await client.query<ReviewChoiceRow>(
           `
           SELECT
@@ -404,6 +452,7 @@ export async function GET(req: Request, { params }: RouteParams) {
         selected_label: row.selected_label ?? null,
         selected_choice_text: row.selected_choice_text ?? null,
 
+        areas: areasByQuestionVersionId[row.question_version_id] ?? [],
         choices: choicesByQuestionVersionId[row.question_version_id] ?? [],
       }));
 
