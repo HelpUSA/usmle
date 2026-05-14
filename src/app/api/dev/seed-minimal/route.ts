@@ -56,14 +56,14 @@
  * - body.source can set a batch-level source.
  * - question.source can override the batch source per question.
  * - source='seed_dev' is blocked unless allowSeedDevSource=true.
- * - question_versions are inserted as active, exam='step1', language='en'.
+ * - question_versions are inserted as active, exam='step1' | 'step2ck' | 'step3', language='en'.
  * - bibliography is serialized explicitly before inserting into json/jsonb.
  *
  * Quality gate:
  * - Rejects placeholder content such as TBD, placeholder, lorem ipsum.
  * - Rejects very short stems.
  * - Rejects very short explanations.
- * - Requires 4 or 5 choices.
+ * - Requires exactly 5 choices.
  * - Requires exactly one correct choice.
  * - Requires sequential labels starting at A.
  * - Requires non-empty, non-placeholder explanations for each choice.
@@ -107,6 +107,7 @@ type SuccessPayload = {
   seed_route_version: string;
   mode: "import";
   source: string;
+  exam: "step1" | "step2ck" | "step3";
   sources: string[];
   requested: number;
   created: number;
@@ -131,6 +132,9 @@ type QualityIssue = {
 
 const DEFAULT_IMPORT_SOURCE = "pilot_import";
 const BLOCKED_DEFAULT_SOURCE = "seed_dev";
+
+const ExamSchema = z.enum(["step1", "step2ck", "step3"]);
+type ExamValue = z.infer<typeof ExamSchema>;
 
 const MIN_STEM_CHARS = 120;
 const MIN_STEM_WORDS = 18;
@@ -193,6 +197,7 @@ const ChoiceSchema = z
 const ImportQuestionSchema = z
   .object({
     source: ImportSourceSchema.optional(),
+    exam: ExamSchema.optional(),
     stem: z.string().trim().min(1),
     difficulty: z.enum(["easy", "medium", "hard"]),
     explanation_short: z.string().trim().min(1),
@@ -213,13 +218,14 @@ const ImportQuestionSchema = z
         return trimmed.length > 0 ? trimmed : undefined;
       }),
 
-    choices: z.array(ChoiceSchema).min(4).max(5),
+    choices: z.array(ChoiceSchema).length(5),
   })
   .strict();
 
 const BodySchema = z
   .object({
     source: ImportSourceSchema.optional().default(DEFAULT_IMPORT_SOURCE),
+    exam: ExamSchema.optional().default("step1"),
     questions: z.array(ImportQuestionSchema).min(1).max(5000),
     chunkSize: z.coerce.number().int().min(1).max(500).optional(),
     requireExactlyTen: z.boolean().optional(),
@@ -371,6 +377,10 @@ function resolveQuestionSource(bodySource: string, question: ImportQuestion) {
   return question.source ?? bodySource;
 }
 
+function resolveQuestionExam(body: ImportBody, question: ImportQuestion): ExamValue {
+  return question.exam ?? body.exam;
+}
+
 function canonicalPrefixFromSource(source: string): string {
   const cleaned = source
     .trim()
@@ -480,11 +490,11 @@ function validateQuestionQuality(
     });
   }
 
-  if (question.choices.length < 4 || question.choices.length > 5) {
+  if (question.choices.length !== 5) {
     issues.push({
       index,
       field: "choices",
-      message: "Question must have 4 or 5 choices.",
+      message: "Question must have exactly 5 choices.",
     });
   }
 
@@ -608,7 +618,8 @@ async function insertOne(
   assertValidQuestion(question, source, body);
 
   const canonicalPrefix = canonicalPrefixFromSource(source);
-  const canonicalCode = `${canonicalPrefix}_STEP1_${randomUUID()}`;
+  const exam = resolveQuestionExam(body, question);
+  const canonicalCode = `${canonicalPrefix}_${exam.toUpperCase()}_${randomUUID()}`;
 
   const questionResult = await client.query<{ question_id: string }>(
     `
@@ -657,20 +668,21 @@ async function insertOne(
       VALUES (
         $1,
         1,
-        'step1',
-        'en',
         $2,
+        'en',
         $3,
         $4,
         $5,
-        $6::jsonb,
-        $7,
+        $6,
+        $7::jsonb,
+        $8,
         true
       )
       RETURNING question_version_id
       `,
       [
         questionId,
+        exam,
         question.difficulty,
         question.stem,
         question.explanation_short,
@@ -700,20 +712,21 @@ async function insertOne(
       VALUES (
         $1,
         1,
-        'step1',
-        'en',
         $2,
+        'en',
         $3,
         $4,
         $5,
-        $6::json,
-        $7,
+        $6,
+        $7::json,
+        $8,
         true
       )
       RETURNING question_version_id
       `,
       [
         questionId,
+        exam,
         question.difficulty,
         question.stem,
         question.explanation_short,
@@ -926,9 +939,10 @@ export async function POST(req: Request) {
 
     const payload: SuccessPayload = {
       ok: true,
-      seed_route_version: "import_only_v3_quality_source_control",
+      seed_route_version: "import_only_v4_exam_support",
       mode: "import",
       source: body.source,
+      exam: body.exam,
       sources: sourceList,
       requested: totalCount,
       created: createdCount,

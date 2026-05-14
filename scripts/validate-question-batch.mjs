@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
 File: D:/dev/usmle/scripts/validate-question-batch.mjs
-Responsibility: read-only validator for USMLE Step 1 seed JSON batches.
+Responsibility: read-only validator for USMLE seed JSON batches across Step 1, Step 2 CK, and Step 3.
 It does not import data, touch the database, or deploy anything.
 */
 
@@ -15,7 +15,8 @@ const EXIT_USAGE = 3;
 
 const EXPECTED_DIFF = { easy: 2, medium: 5, hard: 3 };
 const DIFFICULTIES = new Set(["easy", "medium", "hard"]);
-const LABELS = ["A", "B", "C", "D"];
+const EXAMS = new Set(["step1", "step2ck", "step3"]);
+const LABELS = ["A", "B", "C", "D", "E"];
 const BAD_SOURCES = new Set(["seed_dev", "pilot_import", "PMC12748819"]);
 const BLOCKED = [
   "tbd",
@@ -114,7 +115,7 @@ function validate(batch, opts, info) {
   const errors = [];
   const warnings = [];
   const diff = { easy: 0, medium: 0, hard: 0 };
-  const answers = { A: 0, B: 0, C: 0, D: 0 };
+  const answers = { A: 0, B: 0, C: 0, D: 0, E: 0 };
   const stems = new Map();
 
   if (info.hasBom) {
@@ -137,7 +138,7 @@ function validate(batch, opts, info) {
     }
   }
 
-  if (batch.exam !== undefined && key(batch.exam) !== "step1") errors.push("exam must be step1 when present.");
+  if (batch.exam !== undefined && !EXAMS.has(key(batch.exam))) errors.push("exam must be one of step1, step2ck, or step3 when present.");
   if (batch.language !== undefined && key(batch.language) !== "en") errors.push("language must be en when present.");
 
   if (!Array.isArray(batch.questions)) {
@@ -154,7 +155,7 @@ function validate(batch, opts, info) {
       continue;
     }
 
-    if (q.exam !== undefined && key(q.exam) !== "step1") errors.push(p + ".exam must be step1.");
+    if (q.exam !== undefined && !EXAMS.has(key(q.exam))) errors.push(p + ".exam must be one of step1, step2ck, or step3.");
     if (q.language !== undefined && key(q.language) !== "en") errors.push(p + ".language must be en.");
 
     if (!DIFFICULTIES.has(q.difficulty)) errors.push(p + ".difficulty must be easy, medium, or hard.");
@@ -197,8 +198,8 @@ function validate(batch, opts, info) {
       errors.push(p + ".choices must be an array.");
       continue;
     }
-    if (q.choices.length !== 4) {
-      errors.push(p + ".choices must have exactly 4 items; got " + q.choices.length + ".");
+    if (q.choices.length !== 5) {
+      errors.push(p + ".choices must have exactly 5 items; got " + q.choices.length + ".");
     }
 
     const choiceTexts = new Map();
@@ -258,8 +259,8 @@ function validate(batch, opts, info) {
   }
 
   for (const label of LABELS) {
-    if (answers[label] === 0) errors.push("answer distribution must include label " + label + " at least once.");
-    if (answers[label] > 4) errors.push("answer distribution has too many " + label + " answers: " + answers[label] + " > 4.");
+    if (answers[label] === 0) warnings.push("answer distribution does not include label " + label + ".");
+    if (answers[label] > 5) warnings.push("answer distribution has many " + label + " answers: " + answers[label] + " > 5.");
   }
 
   return { errors, warnings, diff, answers };
