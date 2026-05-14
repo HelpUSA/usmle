@@ -1,0 +1,480 @@
+{
+  "source": "step2ck_curated_batch_001",
+  "exam": "step2ck",
+  "questions": [
+    {
+      "stem": "A 23-year-old sexually active woman comes to the clinic because of 3 days of lower abdominal pain, dyspareunia, and mucopurulent cervical discharge. Temperature is 38.1 C. Pelvic examination shows cervical motion tenderness and bilateral adnexal tenderness without a palpable mass. Urine pregnancy test is negative. She is able to tolerate oral medications and has no signs of sepsis.",
+      "difficulty": "easy",
+      "prompt": "What is the most appropriate next step in management?",
+      "explanation_short": "Outpatient pelvic inflammatory disease should be treated empirically with broad coverage including gonorrhea, chlamydia, and anaerobes.",
+      "explanation_long": "This patient has pelvic inflammatory disease based on pelvic or lower abdominal pain plus cervical motion and adnexal tenderness. Treatment should not wait for confirmatory nucleic acid testing because delayed therapy increases the risk of infertility, ectopic pregnancy, and chronic pelvic pain. In a clinically stable, nonpregnant patient without tubo-ovarian abscess who can tolerate oral therapy, outpatient treatment with ceftriaxone plus doxycycline and metronidazole is appropriate.",
+      "bibliography": [
+        {
+          "title": "Pelvic Inflammatory Disease - STI Treatment Guidelines",
+          "source": "Centers for Disease Control and Prevention",
+          "url": "https://www.cdc.gov/std/treatment-guidelines/pid.htm"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Schedule diagnostic laparoscopy before starting antibiotics",
+          "correct": false,
+          "explanation": "Laparoscopy can diagnose PID but is not required before empiric treatment when the clinical presentation is typical. Waiting for invasive confirmation can delay therapy and increase reproductive complications."
+        },
+        {
+          "label": "B",
+          "text": "Treat only if cervical nucleic acid testing returns positive",
+          "correct": false,
+          "explanation": "Negative or pending cervical tests do not exclude upper genital tract infection. Empiric treatment is recommended when PID is suspected clinically."
+        },
+        {
+          "label": "C",
+          "text": "Give intramuscular ceftriaxone plus oral doxycycline and metronidazole",
+          "correct": true,
+          "explanation": "This is the appropriate outpatient regimen for mild to moderate PID in a stable, nonpregnant patient who can tolerate oral therapy and has no tubo-ovarian abscess."
+        },
+        {
+          "label": "D",
+          "text": "Admit for intravenous clindamycin and gentamicin in all cases",
+          "correct": false,
+          "explanation": "Hospitalization is reserved for pregnancy, severe illness, inability to tolerate oral therapy, tubo-ovarian abscess, diagnostic uncertainty requiring surgery, or failure of outpatient therapy."
+        },
+        {
+          "label": "E",
+          "text": "Treat with oral fluconazole because the discharge suggests candidiasis",
+          "correct": false,
+          "explanation": "Candidiasis can cause vulvovaginal symptoms, but cervical motion tenderness, adnexal tenderness, fever, and mucopurulent cervicitis indicate PID rather than uncomplicated yeast infection."
+        }
+      ]
+    },
+    {
+      "stem": "A 31-year-old woman at 35 weeks of gestation is brought to labor and delivery because of a severe headache, visual scotomata, and right upper quadrant pain. Blood pressure is 172/112 mm Hg on two measurements 15 minutes apart. Urine protein-to-creatinine ratio is elevated, platelet count is 92,000/mm3, and AST is elevated. Fetal testing is reassuring.",
+      "difficulty": "medium",
+      "prompt": "What is the most appropriate management?",
+      "explanation_short": "Preeclampsia with severe features at or beyond 34 weeks requires maternal stabilization, seizure prophylaxis, antihypertensive therapy, and delivery.",
+      "explanation_long": "This patient has preeclampsia with severe features, including severe-range blood pressure, neurologic symptoms, thrombocytopenia, and liver involvement. At 35 weeks, expectant management is not appropriate. The next step is to stabilize the mother with magnesium sulfate for seizure prophylaxis and intravenous antihypertensive therapy for severe hypertension, followed by delivery. Fetal reassurance does not override the maternal indication for delivery.",
+      "bibliography": [
+        {
+          "title": "Gestational Hypertension and Preeclampsia: ACOG Practice Bulletin No. 222",
+          "source": "American College of Obstetricians and Gynecologists",
+          "url": "https://journals.lww.com/greenjournal/fulltext/2020/06000/gestational_hypertension_and_preeclampsia__acog.44.aspx"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Discharge with oral labetalol and outpatient blood pressure monitoring",
+          "correct": false,
+          "explanation": "Severe-range hypertension with symptoms and laboratory abnormalities requires inpatient management. Outpatient treatment would expose the patient to stroke, seizure, hepatic rupture, and placental complications."
+        },
+        {
+          "label": "B",
+          "text": "Administer corticosteroids and delay delivery for two weeks",
+          "correct": false,
+          "explanation": "Corticosteroids may be considered when indicated for fetal lung maturity, but at 35 weeks with severe features, delivery should proceed after maternal stabilization rather than prolonged expectant management."
+        },
+        {
+          "label": "C",
+          "text": "Perform immediate cesarean delivery without maternal stabilization",
+          "correct": false,
+          "explanation": "Delivery is indicated, but severe hypertension and seizure risk should be stabilized first. Cesarean delivery is not automatically required; route depends on obstetric factors."
+        },
+        {
+          "label": "D",
+          "text": "Give magnesium sulfate, treat severe hypertension, and proceed with delivery",
+          "correct": true,
+          "explanation": "This is the correct management for preeclampsia with severe features at 35 weeks. Magnesium reduces seizure risk, antihypertensives reduce maternal stroke risk, and delivery is definitive treatment."
+        },
+        {
+          "label": "E",
+          "text": "Start low-dose aspirin now and continue pregnancy until 39 weeks",
+          "correct": false,
+          "explanation": "Low-dose aspirin is preventive when started earlier in high-risk pregnancies. It is not treatment for established preeclampsia with severe features."
+        }
+      ]
+    },
+    {
+      "stem": "A 68-year-old man with hypertension and chronic kidney disease is admitted with fever, productive cough, pleuritic chest pain, and a right lower lobe infiltrate. Oxygen saturation is 93% on room air. He is alert, blood pressure is stable, and he does not require intensive care. He has no recent hospitalization, no prior respiratory isolation of MRSA or Pseudomonas, and no structural lung disease.",
+      "difficulty": "medium",
+      "prompt": "Which empiric antibiotic regimen is most appropriate?",
+      "explanation_short": "Nonsevere inpatient community-acquired pneumonia without MRSA or Pseudomonas risk is treated with a beta-lactam plus macrolide or respiratory fluoroquinolone.",
+      "explanation_long": "This patient has nonsevere inpatient community-acquired pneumonia. In the absence of validated risk factors for MRSA or Pseudomonas, broad antipseudomonal or anti-MRSA therapy is unnecessary. A standard regimen such as ceftriaxone plus azithromycin provides appropriate coverage for typical and atypical community pathogens.",
+      "bibliography": [
+        {
+          "title": "Diagnosis and Treatment of Adults with Community-acquired Pneumonia",
+          "source": "American Thoracic Society and Infectious Diseases Society of America",
+          "url": "https://www.idsociety.org/practice-guideline/community-acquired-pneumonia-cap-in-adults/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Vancomycin plus piperacillin-tazobactam for all hospitalized pneumonia",
+          "correct": false,
+          "explanation": "Anti-MRSA and antipseudomonal therapy should be reserved for patients with validated risk factors. Overly broad therapy increases toxicity and antimicrobial resistance."
+        },
+        {
+          "label": "B",
+          "text": "Ceftriaxone plus azithromycin",
+          "correct": true,
+          "explanation": "This regimen is appropriate for nonsevere inpatient community-acquired pneumonia without risk factors for MRSA or Pseudomonas. It covers typical bacteria and atypical pathogens."
+        },
+        {
+          "label": "C",
+          "text": "Oral amoxicillin alone with outpatient follow-up",
+          "correct": false,
+          "explanation": "The patient is being admitted because of age, comorbidity, and clinical pneumonia. Oral outpatient therapy alone is insufficient for an inpatient treatment plan."
+        },
+        {
+          "label": "D",
+          "text": "Oseltamivir alone while awaiting sputum culture",
+          "correct": false,
+          "explanation": "Antiviral therapy may be added when influenza is suspected, but bacterial pneumonia with lobar infiltrate requires empiric antibacterial therapy."
+        },
+        {
+          "label": "E",
+          "text": "Trimethoprim-sulfamethoxazole monotherapy",
+          "correct": false,
+          "explanation": "This does not provide standard empiric coverage for typical and atypical community-acquired pneumonia pathogens in a hospitalized adult."
+        }
+      ]
+    },
+    {
+      "stem": "A 46-year-old man comes for a routine health maintenance visit. He has no gastrointestinal symptoms, no personal history of inflammatory bowel disease or adenomatous polyps, and no family history of colorectal cancer. He does not smoke and takes no medications. Physical examination is normal.",
+      "difficulty": "easy",
+      "prompt": "What is the most appropriate recommendation regarding colorectal cancer screening?",
+      "explanation_short": "Average-risk adults should begin colorectal cancer screening at age 45.",
+      "explanation_long": "This patient is at average risk for colorectal cancer and is 46 years old. Current preventive screening recommendations support screening average-risk adults beginning at age 45 and continuing through age 75. Acceptable strategies include colonoscopy at recommended intervals or stool-based testing depending on patient preference, availability, and follow-up reliability.",
+      "bibliography": [
+        {
+          "title": "Recommendation: Colorectal Cancer: Screening",
+          "source": "United States Preventive Services Task Force",
+          "url": "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/colorectal-cancer-screening"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Delay screening until age 50 because he has no family history",
+          "correct": false,
+          "explanation": "Average-risk screening now begins at age 45. Lack of family history does not justify waiting until age 50."
+        },
+        {
+          "label": "B",
+          "text": "Screen only if fecal occult blood testing is positive",
+          "correct": false,
+          "explanation": "Fecal testing is itself a screening strategy; it should not be used only after symptoms or another abnormal screening result."
+        },
+        {
+          "label": "C",
+          "text": "Perform colonoscopy every year beginning now",
+          "correct": false,
+          "explanation": "Annual colonoscopy is not recommended for average-risk screening. Colonoscopy is typically repeated at longer intervals when normal."
+        },
+        {
+          "label": "D",
+          "text": "Order CT abdomen and pelvis as the preferred screening test",
+          "correct": false,
+          "explanation": "Routine CT abdomen and pelvis is not a recommended average-risk colorectal cancer screening strategy."
+        },
+        {
+          "label": "E",
+          "text": "Begin colorectal cancer screening now using an accepted screening strategy",
+          "correct": true,
+          "explanation": "At age 46, an average-risk adult should begin colorectal cancer screening. Colonoscopy or approved stool-based strategies are acceptable depending on shared decision-making."
+        }
+      ]
+    },
+    {
+      "stem": "A 4-year-old boy is brought to the emergency department because of 6 days of fever. He has bilateral nonpurulent conjunctival injection, cracked red lips, a strawberry tongue, a diffuse polymorphous rash, swelling of the hands, and a 2-cm unilateral cervical lymph node. He is irritable but hemodynamically stable.",
+      "difficulty": "medium",
+      "prompt": "What is the most appropriate treatment?",
+      "explanation_short": "Classic Kawasaki disease should be treated promptly with intravenous immunoglobulin and aspirin, with echocardiographic evaluation.",
+      "explanation_long": "This child has classic Kawasaki disease: fever for at least 5 days plus conjunctivitis, mucous membrane changes, rash, extremity changes, and cervical lymphadenopathy. Early treatment with intravenous immunoglobulin reduces the risk of coronary artery aneurysms. Aspirin is also used, and echocardiography should assess coronary involvement.",
+      "bibliography": [
+        {
+          "title": "Kawasaki Disease",
+          "source": "American Heart Association",
+          "url": "https://www.heart.org/en/health-topics/kawasaki-disease"
+        },
+        {
+          "title": "Diagnosis, Treatment, and Long-Term Management of Kawasaki Disease",
+          "source": "American Heart Association Scientific Statement",
+          "url": "https://www.ahajournals.org/doi/10.1161/cir.0000000000000484"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Intravenous immunoglobulin plus aspirin",
+          "correct": true,
+          "explanation": "IVIG given early in Kawasaki disease decreases the risk of coronary artery aneurysms. Aspirin is part of standard therapy, and echocardiography should be obtained."
+        },
+        {
+          "label": "B",
+          "text": "Amoxicillin-clavulanate for presumed bacterial cervical lymphadenitis",
+          "correct": false,
+          "explanation": "Cervical lymphadenopathy can occur in Kawasaki disease, but the constellation of prolonged fever, conjunctivitis, mucous membrane changes, rash, and extremity swelling is not explained by isolated bacterial lymphadenitis."
+        },
+        {
+          "label": "C",
+          "text": "Supportive care only because the illness is usually self-limited",
+          "correct": false,
+          "explanation": "Although fever may eventually resolve, untreated Kawasaki disease can cause coronary artery aneurysms. Prompt IVIG therapy is indicated."
+        },
+        {
+          "label": "D",
+          "text": "High-dose corticosteroids as the only initial therapy",
+          "correct": false,
+          "explanation": "Steroids may be used in selected high-risk or IVIG-resistant cases, but they do not replace initial IVIG-based therapy in classic Kawasaki disease."
+        },
+        {
+          "label": "E",
+          "text": "Immediate anticoagulation with warfarin before echocardiography",
+          "correct": false,
+          "explanation": "Anticoagulation is reserved for selected patients with significant coronary aneurysms or thrombosis risk. It is not the initial treatment before assessing coronary involvement."
+        }
+      ]
+    },
+    {
+      "stem": "A 22-year-old woman with type 1 diabetes mellitus is brought to the emergency department with abdominal pain, vomiting, Kussmaul respirations, and confusion. Glucose is 620 mg/dL, arterial pH is 7.08, bicarbonate is 8 mEq/L, and serum beta-hydroxybutyrate is elevated. Initial potassium is 3.1 mEq/L. She has received isotonic intravenous fluids.",
+      "difficulty": "hard",
+      "prompt": "What is the most appropriate next step in management?",
+      "explanation_short": "In DKA with potassium below 3.3 mEq/L, insulin should be held temporarily while potassium is aggressively repleted.",
+      "explanation_long": "This patient has diabetic ketoacidosis. Insulin is required to stop ketogenesis, but insulin drives potassium intracellularly and can precipitate life-threatening hypokalemia when serum potassium is already low. After initial fluid resuscitation, potassium should be repleted first and insulin delayed until potassium rises above the safe threshold.",
+      "bibliography": [
+        {
+          "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report",
+          "source": "Diabetes Care",
+          "url": "https://diabetesjournals.org/care/article/47/8/1257/156808/Hyperglycemic-Crises-in-Adults-With-Diabetes-A"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Start intravenous insulin immediately at a high infusion rate",
+          "correct": false,
+          "explanation": "Insulin is essential in DKA, but starting it before correcting significant hypokalemia can worsen potassium depletion and trigger dangerous arrhythmias."
+        },
+        {
+          "label": "B",
+          "text": "Hold insulin temporarily and give intravenous potassium replacement",
+          "correct": true,
+          "explanation": "Potassium of 3.1 mEq/L requires potassium repletion before insulin. Insulin should begin once potassium is safely above the threshold for treatment."
+        },
+        {
+          "label": "C",
+          "text": "Give sodium bicarbonate because the pH is below 7.20",
+          "correct": false,
+          "explanation": "Bicarbonate is not routinely indicated at this pH and does not address the immediate risk from hypokalemia. It can also worsen potassium shifts."
+        },
+        {
+          "label": "D",
+          "text": "Administer subcutaneous long-acting insulin alone",
+          "correct": false,
+          "explanation": "Severe DKA with altered mental status requires intravenous insulin after potassium correction, frequent monitoring, fluids, and electrolyte management."
+        },
+        {
+          "label": "E",
+          "text": "Restrict fluids to avoid cerebral edema",
+          "correct": false,
+          "explanation": "Fluid replacement is a core component of DKA management. The immediate decision after initial fluids is potassium replacement because the serum potassium is dangerously low."
+        }
+      ]
+    },
+    {
+      "stem": "A 59-year-old woman comes to the emergency department with sudden pleuritic chest pain and dyspnea. She had knee replacement surgery 2 weeks ago. Heart rate is 118/min, oxygen saturation is 91% on room air, and blood pressure is 128/76 mm Hg. The left calf is swollen and tender. ECG shows sinus tachycardia, and chest radiograph is normal.",
+      "difficulty": "medium",
+      "prompt": "What is the most appropriate diagnostic test?",
+      "explanation_short": "A hemodynamically stable patient with high clinical probability of pulmonary embolism should undergo CT pulmonary angiography if there is no contraindication.",
+      "explanation_long": "This patient has high pretest probability for pulmonary embolism due to recent orthopedic surgery, tachycardia, hypoxemia, pleuritic chest pain, and signs of DVT. In high-probability patients, D-dimer testing is not useful as the next diagnostic step because a negative result may be insufficient and a positive result is nonspecific. CT pulmonary angiography is the preferred diagnostic test when the patient is stable and has no contraindication.",
+      "bibliography": [
+        {
+          "title": "American Society of Hematology 2018 Guidelines for Management of Venous Thromboembolism: Diagnosis of Venous Thromboembolism",
+          "source": "American Society of Hematology",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6258916/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Serum troponin as the only initial test",
+          "correct": false,
+          "explanation": "Troponin can help risk-stratify confirmed pulmonary embolism or evaluate myocardial injury, but it does not diagnose PE in a high-probability patient."
+        },
+        {
+          "label": "B",
+          "text": "D-dimer assay before any imaging",
+          "correct": false,
+          "explanation": "D-dimer is most useful in low or intermediate pretest probability. In a high-probability patient, definitive imaging is preferred."
+        },
+        {
+          "label": "C",
+          "text": "Ventilation-perfusion scan as first-line testing in all patients",
+          "correct": false,
+          "explanation": "V/Q scanning is useful in selected patients, such as those with contrast contraindications or pregnancy, but CT pulmonary angiography is generally preferred here."
+        },
+        {
+          "label": "D",
+          "text": "CT pulmonary angiography",
+          "correct": true,
+          "explanation": "The patient is hemodynamically stable with high clinical suspicion for PE and no stated contraindication to contrast CT, making CT pulmonary angiography the appropriate diagnostic test."
+        },
+        {
+          "label": "E",
+          "text": "Exercise stress testing",
+          "correct": false,
+          "explanation": "Stress testing is inappropriate in a patient with suspected acute pulmonary embolism and hypoxemia. The immediate priority is PE diagnosis and treatment."
+        }
+      ]
+    },
+    {
+      "stem": "A 27-year-old woman at 22 weeks of gestation presents with 12 hours of worsening right lower quadrant pain, nausea, and anorexia. Temperature is 38.0 C, and leukocyte count is elevated. Graded-compression ultrasonography does not visualize the appendix and shows no ovarian torsion or hydronephrosis. The pain persists despite observation.",
+      "difficulty": "hard",
+      "prompt": "What is the most appropriate next diagnostic step?",
+      "explanation_short": "When appendicitis is suspected during pregnancy and ultrasound is nondiagnostic, MRI without gadolinium is the preferred next imaging test.",
+      "explanation_long": "Appendicitis in pregnancy can be difficult to diagnose clinically because leukocytosis and abdominal discomfort may overlap with pregnancy-related findings. Ultrasound is commonly used first, but a nondiagnostic study does not exclude appendicitis. MRI without gadolinium provides accurate evaluation without ionizing radiation and is the preferred next test when ultrasound is nondiagnostic.",
+      "bibliography": [
+        {
+          "title": "Right Lower Quadrant Pain - Suspected Appendicitis",
+          "source": "American College of Radiology Appropriateness Criteria",
+          "url": "https://acsearch.acr.org/docs/69357/Narrative"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Discharge home because appendicitis is rare during pregnancy",
+          "correct": false,
+          "explanation": "Appendicitis can occur during pregnancy and delayed diagnosis increases risk of perforation, fetal loss, and maternal morbidity."
+        },
+        {
+          "label": "B",
+          "text": "Repeat ultrasound weekly until the appendix is visualized",
+          "correct": false,
+          "explanation": "Persistent symptoms after nondiagnostic ultrasound require timely additional evaluation, not serial weekly imaging."
+        },
+        {
+          "label": "C",
+          "text": "MRI of the abdomen and pelvis without gadolinium",
+          "correct": true,
+          "explanation": "MRI without gadolinium is appropriate after nondiagnostic ultrasound in a pregnant patient with persistent concern for appendicitis."
+        },
+        {
+          "label": "D",
+          "text": "Barium enema to identify an appendiceal filling defect",
+          "correct": false,
+          "explanation": "Barium enema is obsolete for suspected appendicitis and is not appropriate in this pregnant patient."
+        },
+        {
+          "label": "E",
+          "text": "Diagnostic radiation therapy to localize the inflamed appendix",
+          "correct": false,
+          "explanation": "Radiation therapy has no diagnostic role and would be harmful. Imaging should minimize fetal radiation exposure while achieving diagnosis."
+        }
+      ]
+    },
+    {
+      "stem": "A 42-year-old obese woman comes to the emergency department with 18 hours of constant right upper quadrant pain, fever, nausea, and vomiting. The pain began after a fatty meal and now radiates to the right scapula. Examination shows inspiratory arrest with palpation of the right upper quadrant. Ultrasound shows gallstones, gallbladder wall thickening, and pericholecystic fluid.",
+      "difficulty": "medium",
+      "prompt": "What is the most appropriate management?",
+      "explanation_short": "Acute calculous cholecystitis is treated with hospital admission, intravenous antibiotics, and early laparoscopic cholecystectomy when feasible.",
+      "explanation_long": "This patient has acute calculous cholecystitis, suggested by persistent right upper quadrant pain, fever, positive sonographic and clinical Murphy signs, gallstones, gallbladder wall thickening, and pericholecystic fluid. Management includes supportive care, intravenous antibiotics targeting enteric organisms, and early laparoscopic cholecystectomy in suitable surgical candidates.",
+      "bibliography": [
+        {
+          "title": "Tokyo Guidelines 2018: Initial Management of Acute Biliary Infection and Flowchart for Acute Cholangitis",
+          "source": "Journal of Hepato-Biliary-Pancreatic Sciences",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29090866/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Intravenous antibiotics and early laparoscopic cholecystectomy",
+          "correct": true,
+          "explanation": "This is appropriate for acute calculous cholecystitis in a surgical candidate. Early cholecystectomy reduces recurrence and complications."
+        },
+        {
+          "label": "B",
+          "text": "Reassurance and outpatient low-fat diet alone",
+          "correct": false,
+          "explanation": "Persistent pain, fever, and inflammatory ultrasound findings indicate acute cholecystitis rather than uncomplicated biliary colic."
+        },
+        {
+          "label": "C",
+          "text": "Endoscopic retrograde cholangiopancreatography as first-line therapy",
+          "correct": false,
+          "explanation": "ERCP is used when common bile duct obstruction or cholangitis is suspected. The findings here localize to the gallbladder."
+        },
+        {
+          "label": "D",
+          "text": "Immediate lithotripsy of the gallbladder stones",
+          "correct": false,
+          "explanation": "Lithotripsy is not standard management for acute calculous cholecystitis. Definitive therapy is cholecystectomy when feasible."
+        },
+        {
+          "label": "E",
+          "text": "Oral proton pump inhibitor therapy for presumed gastritis",
+          "correct": false,
+          "explanation": "Gastritis does not explain fever, Murphy sign, gallbladder wall thickening, pericholecystic fluid, and gallstones."
+        }
+      ]
+    },
+    {
+      "stem": "A 34-year-old man is brought to the emergency department by his sister after he sent text messages saying goodbye and gave away several possessions. He has major depressive disorder and says he intends to shoot himself tonight. He owns a firearm at home, refuses to involve family in safety planning, and says he will leave if discharged.",
+      "difficulty": "hard",
+      "prompt": "What is the most appropriate disposition?",
+      "explanation_short": "Active suicidal intent with a specific lethal plan and access to means requires emergency psychiatric hospitalization and immediate safety measures.",
+      "explanation_long": "This patient has high acute suicide risk: active intent, a specific plan, access to a lethal means, preparatory behavior, refusal of safety planning, and inability to collaborate with outpatient care. The appropriate disposition is emergency psychiatric hospitalization, involuntary if necessary according to local law, with measures to restrict access to lethal means.",
+      "bibliography": [
+        {
+          "title": "Practice Guideline for the Assessment and Treatment of Patients With Suicidal Behaviors",
+          "source": "American Psychiatric Association",
+          "url": "https://zerosuicide.edc.org/resources/resource-database/american-psychiatric-association-practice-guideline-assessment-and"
+        },
+        {
+          "title": "Assessment and Management of Patients at Risk for Suicide",
+          "source": "VA/DoD Clinical Practice Guideline",
+          "url": "https://www.healthquality.va.gov/guidelines/mh/srb/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Discharge with routine outpatient psychiatry follow-up in one month",
+          "correct": false,
+          "explanation": "Routine outpatient follow-up is unsafe for a patient with active suicidal intent, a lethal plan, access to a firearm, and refusal of safety planning."
+        },
+        {
+          "label": "B",
+          "text": "Provide a brochure about depression and allow him to leave",
+          "correct": false,
+          "explanation": "Education alone is inadequate for imminent suicide risk. Immediate safety containment and psychiatric evaluation are required."
+        },
+        {
+          "label": "C",
+          "text": "Start an antidepressant and discharge if he promises to return",
+          "correct": false,
+          "explanation": "A no-harm promise is not sufficient protection in high acute suicide risk. Medication may be part of treatment but does not replace hospitalization."
+        },
+        {
+          "label": "D",
+          "text": "Schedule family therapy next week without restricting firearm access",
+          "correct": false,
+          "explanation": "Family therapy may help later, but the immediate issue is imminent lethal risk. Access to firearms must be addressed urgently."
+        },
+        {
+          "label": "E",
+          "text": "Arrange emergency psychiatric hospitalization, involuntarily if necessary",
+          "correct": true,
+          "explanation": "Hospitalization is indicated because he has active intent, a specific lethal plan, access to means, preparatory behaviors, and cannot engage in a safe outpatient plan."
+        }
+      ]
+    }
+  ],
+  "chunkSize": 10,
+  "requireExactlyTen": true,
+  "requireBibliography": true,
+  "allowSeedDevSource": false
+}
