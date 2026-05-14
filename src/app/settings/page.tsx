@@ -678,6 +678,8 @@ export default function SettingsPage() {
                 <option value="step1">Step 1</option>
                 <option value="step2ck">Step 2 CK</option>
                 <option value="step3">Step 3</option>
+                <option value="step2ck">Step 2 CK</option>
+                <option value="step3">Step 3</option>
               </select>
 
               <div style={{ fontSize: 12, color: "#6b7280" }}>
