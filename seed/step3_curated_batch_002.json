@@ -1,0 +1,470 @@
+{
+  "source": "step3_curated_batch_002",
+  "exam": "step3",
+  "questions": [
+    {
+      "stem": "A 72-year-old man is brought to the emergency department from a rehabilitation facility because of fever, confusion, and decreased urine output. He underwent repair of a left hip fracture 10 days ago and has had an indwelling urinary catheter since surgery because of urinary retention. His medical history includes hypertension, chronic kidney disease stage 3, and mild cognitive impairment. Temperature is 39.1 C (102.4 F), blood pressure is 82/46 mm Hg, pulse is 126/min, respirations are 26/min, and oxygen saturation is 94% on 2 L/min by nasal cannula. He is somnolent but arousable. Lungs are clear. There is suprapubic tenderness, and the urinary catheter bag contains cloudy urine. Laboratory studies show leukocyte count 18,600/mm3, serum creatinine 2.4 mg/dL from a baseline of 1.3 mg/dL, and serum lactate 4.1 mmol/L. Two large-bore intravenous lines are placed.",
+      "difficulty": "hard",
+      "prompt": "Which of the following is the most appropriate next step in management?",
+      "explanation_short": "This patient has septic shock, likely from catheter-associated urinary infection, and requires immediate broad-spectrum antibiotics, cultures when feasible without delaying therapy, fluid resuscitation, and source control.",
+      "explanation_long": "This patient has suspected infection with hypotension, altered mental status, acute kidney injury, and elevated lactate, consistent with septic shock. Initial management should not wait for culture results. Blood and urine cultures should be obtained promptly if this does not delay antibiotics, broad-spectrum intravenous antibiotics should be started rapidly, and crystalloid resuscitation should be initiated with reassessment. The urinary catheter should be replaced or removed as part of source control.",
+      "bibliography": [
+        {
+          "title": "Surviving Sepsis Campaign Guidelines 2021",
+          "source": "Society of Critical Care Medicine",
+          "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-guidelines-2021"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Wait for urine culture susceptibilities before starting antimicrobial therapy",
+          "correct": false,
+          "explanation": "Waiting for culture susceptibilities is unsafe in septic shock. Cultures should be obtained promptly when possible, but empiric broad-spectrum antibiotics must not be delayed."
+        },
+        {
+          "label": "B",
+          "text": "Administer oral ciprofloxacin and return him to the rehabilitation facility",
+          "correct": false,
+          "explanation": "He is hemodynamically unstable with organ dysfunction and elevated lactate. Oral outpatient-style therapy is inappropriate."
+        },
+        {
+          "label": "C",
+          "text": "Obtain cultures if this does not delay care, start broad-spectrum intravenous antibiotics, give crystalloid resuscitation, and replace or remove the catheter",
+          "correct": true,
+          "explanation": "This is correct. The patient has septic shock from a likely urinary source and needs immediate sepsis bundle management plus catheter source control."
+        },
+        {
+          "label": "D",
+          "text": "Give a loop diuretic because decreased urine output is the primary cause of the hypotension",
+          "correct": false,
+          "explanation": "Oliguria here is a marker of shock and acute kidney injury, not a reason for diuresis during hypotensive septic shock."
+        },
+        {
+          "label": "E",
+          "text": "Start low-dose corticosteroids before fluids or antibiotics",
+          "correct": false,
+          "explanation": "Corticosteroids may be considered in selected refractory septic shock, but initial management is fluids, antibiotics, hemodynamic support, and source control."
+        }
+      ]
+    },
+    {
+      "stem": "A 61-year-old man is seen 1 week after hospitalization for acute decompensated heart failure. During admission, echocardiography showed left ventricular ejection fraction of 28%. He was treated with intravenous diuretics and is now euvolemic. He has hypertension, type 2 diabetes mellitus, and chronic kidney disease stage 2. Current medications are furosemide, lisinopril, and metoprolol tartrate. Blood pressure is 126/74 mm Hg, pulse is 74/min, serum potassium is 4.4 mEq/L, and estimated glomerular filtration rate is 68 mL/min/1.73 m2. He asks what can be done to reduce the chance that he will be hospitalized again. He has no history of angioedema and can afford medications.",
+      "difficulty": "medium",
+      "prompt": "Which of the following is the most appropriate outpatient medication optimization?",
+      "explanation_short": "Heart failure with reduced ejection fraction should be treated with guideline-directed medical therapy, including ARNI or ACE/ARB, evidence-based beta blocker, mineralocorticoid receptor antagonist, and SGLT2 inhibitor when tolerated.",
+      "explanation_long": "This patient has HFrEF after a hospitalization and should receive comprehensive guideline-directed medical therapy. Metoprolol tartrate should be changed to an evidence-based beta blocker formulation such as metoprolol succinate, carvedilol, or bisoprolol. An ARNI can replace ACE inhibitor after appropriate washout when feasible. A mineralocorticoid receptor antagonist and SGLT2 inhibitor are appropriate given adequate renal function and potassium. Diuretics manage congestion but do not replace disease-modifying therapy.",
+      "bibliography": [
+        {
+          "title": "2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure",
+          "source": "American Heart Association / American College of Cardiology / Heart Failure Society of America",
+          "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000001063"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Continue furosemide alone because he is now euvolemic",
+          "correct": false,
+          "explanation": "Diuretics improve congestion but do not provide the full mortality and hospitalization benefit of HFrEF guideline-directed medical therapy."
+        },
+        {
+          "label": "B",
+          "text": "Stop beta-blocker therapy permanently because beta blockers worsen systolic function",
+          "correct": false,
+          "explanation": "Evidence-based beta blockers improve survival in stable HFrEF. They should not be stopped solely because the ejection fraction is reduced."
+        },
+        {
+          "label": "C",
+          "text": "Use short-acting nifedipine for afterload reduction",
+          "correct": false,
+          "explanation": "Short-acting nifedipine is not guideline-directed HFrEF therapy and can cause hypotension or reflex tachycardia."
+        },
+        {
+          "label": "D",
+          "text": "Optimize HFrEF guideline-directed therapy with evidence-based beta blocker, RAAS-neprilysin pathway therapy when appropriate, mineralocorticoid receptor antagonist, and SGLT2 inhibitor",
+          "correct": true,
+          "explanation": "This is correct. He is stable after decompensated HFrEF and should be transitioned to comprehensive disease-modifying therapy if tolerated."
+        },
+        {
+          "label": "E",
+          "text": "Avoid SGLT2 inhibitors because he has type 2 diabetes mellitus",
+          "correct": false,
+          "explanation": "Diabetes is not a contraindication. SGLT2 inhibitors benefit many patients with HFrEF, including those with type 2 diabetes."
+        }
+      ]
+    },
+    {
+      "stem": "A 67-year-old right-handed woman is brought to the emergency department 80 minutes after sudden onset of difficulty speaking and right arm weakness. Her husband says she was normal at breakfast. She has hypertension and hyperlipidemia and takes amlodipine and atorvastatin. She has no history of intracranial hemorrhage, recent surgery, anticoagulant use, or active bleeding. Blood pressure is 178/96 mm Hg, pulse is 88/min and regular, and serum glucose is 112 mg/dL. Neurologic examination shows expressive aphasia, right facial droop, and right arm drift. Noncontrast CT of the head shows no hemorrhage or established large infarction. CT angiography is being arranged.",
+      "difficulty": "hard",
+      "prompt": "What is the most appropriate immediate management?",
+      "explanation_short": "Eligible patients with disabling acute ischemic stroke presenting within the thrombolysis window should receive intravenous thrombolytic therapy after hemorrhage is excluded.",
+      "explanation_long": "This patient has an acute disabling ischemic stroke syndrome within 4.5 hours of last known well. Noncontrast CT excludes hemorrhage, blood pressure is below the threshold requiring treatment before thrombolysis, glucose is normal, and there are no listed contraindications. Intravenous thrombolytic therapy should be administered promptly. Evaluation for mechanical thrombectomy can continue, but thrombolysis should not be delayed in an eligible patient.",
+      "bibliography": [
+        {
+          "title": "Guidelines for the Early Management of Patients With Acute Ischemic Stroke",
+          "source": "American Heart Association / American Stroke Association",
+          "url": "https://www.ahajournals.org/doi/10.1161/str.0000000000000211"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Administer intravenous thrombolytic therapy now while continuing evaluation for possible thrombectomy",
+          "correct": true,
+          "explanation": "This is correct. She has disabling acute ischemic stroke within the treatment window and no hemorrhage or contraindication on the information provided."
+        },
+        {
+          "label": "B",
+          "text": "Delay treatment until MRI confirms restricted diffusion",
+          "correct": false,
+          "explanation": "MRI is not required before thrombolysis when the clinical syndrome is consistent and CT excludes hemorrhage. Delaying therapy worsens outcomes."
+        },
+        {
+          "label": "C",
+          "text": "Give aspirin immediately before thrombolysis",
+          "correct": false,
+          "explanation": "Antiplatelet therapy is generally withheld for the first 24 hours after thrombolytic therapy pending follow-up imaging."
+        },
+        {
+          "label": "D",
+          "text": "Observe because symptoms may resolve spontaneously",
+          "correct": false,
+          "explanation": "Disabling deficits such as aphasia and arm weakness warrant reperfusion treatment when the patient is eligible."
+        },
+        {
+          "label": "E",
+          "text": "Start therapeutic heparin infusion for presumed embolic stroke",
+          "correct": false,
+          "explanation": "Therapeutic heparin is not the acute reperfusion treatment for eligible ischemic stroke and increases bleeding risk."
+        }
+      ]
+    },
+    {
+      "stem": "A 69-year-old man with diabetic nephropathy is brought to the emergency department because of progressive weakness and nausea. He recently started trimethoprim-sulfamethoxazole for a skin infection while continuing lisinopril and spironolactone. Blood pressure is 104/62 mm Hg, pulse is 48/min, and respirations are 18/min. He is alert but appears uncomfortable. ECG shows peaked T waves and widening of the QRS complex. Laboratory studies show potassium 7.1 mEq/L, bicarbonate 18 mEq/L, serum creatinine 2.8 mg/dL, and glucose 164 mg/dL. A repeat potassium level is being sent, and cardiac monitoring has been initiated.",
+      "difficulty": "medium",
+      "prompt": "Which of the following should be administered first?",
+      "explanation_short": "Severe hyperkalemia with ECG changes requires immediate cardiac membrane stabilization with intravenous calcium before shifting potassium intracellularly.",
+      "explanation_long": "This patient has life-threatening hyperkalemia with ECG changes. The first priority is stabilization of the cardiac membrane with intravenous calcium gluconate or calcium chloride. Insulin with glucose, beta agonists, bicarbonate in selected acidemic patients, potassium binders, diuretics, and dialysis can lower serum potassium, but they do not provide immediate membrane stabilization and should not precede calcium in the presence of ECG changes.",
+      "bibliography": [
+        {
+          "title": "Clinical Practice Guideline: Treatment of Acute Hyperkalaemia in Adults",
+          "source": "UK Kidney Association",
+          "url": "https://www.ukkidney.org/sites/default/files/FINAL%20VERSION%20-%20UKKA%20CLINICAL%20PRACTICE%20GUIDELINE%20-%20MANAGEMENT%20OF%20HYPERKALAEMIA%20IN%20ADULTS%20-%20191223_0.pdf"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Sodium polystyrene sulfonate",
+          "correct": false,
+          "explanation": "Potassium binders do not act quickly enough to stabilize the myocardium in life-threatening hyperkalemia with ECG changes."
+        },
+        {
+          "label": "B",
+          "text": "Intravenous furosemide",
+          "correct": false,
+          "explanation": "Loop diuretics may help remove potassium in selected patients with adequate urine output, but they do not provide immediate protection from arrhythmia."
+        },
+        {
+          "label": "C",
+          "text": "Oral sodium bicarbonate",
+          "correct": false,
+          "explanation": "Bicarbonate may have a role in selected patients with metabolic acidosis, but it is not the first intervention for ECG changes from hyperkalemia."
+        },
+        {
+          "label": "D",
+          "text": "Hemodialysis consultation before any medication",
+          "correct": false,
+          "explanation": "Dialysis may ultimately be needed, but immediate intravenous calcium should be given first to stabilize the myocardium."
+        },
+        {
+          "label": "E",
+          "text": "Intravenous calcium gluconate",
+          "correct": true,
+          "explanation": "This is correct. Hyperkalemia with QRS widening and peaked T waves requires immediate calcium to stabilize cardiac membranes."
+        }
+      ]
+    },
+    {
+      "stem": "A 55-year-old woman is seen in clinic 2 weeks after discharge from the hospital for a pulmonary embolism. She developed pleuritic chest pain and dyspnea 7 days after total knee arthroplasty. CT pulmonary angiography showed segmental pulmonary emboli without right ventricular strain. Lower extremity ultrasound showed a proximal deep venous thrombosis in the operative leg. She was treated with apixaban and is now asymptomatic. She has no personal or family history of venous thromboembolism, no active cancer, and no known thrombophilia. She asks how long she will need anticoagulation and whether a permanent inferior vena cava filter would prevent recurrence.",
+      "difficulty": "medium",
+      "prompt": "Which of the following is the most appropriate management plan?",
+      "explanation_short": "Venous thromboembolism provoked by a major transient risk factor is generally treated with a finite course of anticoagulation, commonly 3 months, and IVC filters are not used when anticoagulation is feasible.",
+      "explanation_long": "This patient has postoperative provoked DVT and PE after total knee arthroplasty, a major transient risk factor. She is stable and can take anticoagulation. A finite 3-month treatment course is appropriate for a provoked event in the absence of persistent risk factors. Inferior vena cava filters are generally reserved for patients with acute VTE who cannot receive anticoagulation or have recurrent embolism despite adequate therapy.",
+      "bibliography": [
+        {
+          "title": "Antithrombotic Therapy for VTE Disease",
+          "source": "CHEST",
+          "url": "https://journal.chestnet.org/article/S0012-3692%2824%2900292-7/fulltext"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Stop apixaban now because her symptoms resolved",
+          "correct": false,
+          "explanation": "Symptom resolution does not mean the acute VTE treatment course is complete. Stopping at 2 weeks would risk recurrence."
+        },
+        {
+          "label": "B",
+          "text": "Continue anticoagulation for approximately 3 months and do not place an IVC filter while anticoagulation is tolerated",
+          "correct": true,
+          "explanation": "This is correct. The VTE was provoked by surgery, and she can take anticoagulation; a finite course is appropriate and an IVC filter is not indicated."
+        },
+        {
+          "label": "C",
+          "text": "Place a permanent IVC filter and discontinue anticoagulation",
+          "correct": false,
+          "explanation": "An IVC filter is not indicated when anticoagulation can be safely given. Filters carry long-term complications and do not treat existing clot."
+        },
+        {
+          "label": "D",
+          "text": "Continue lifelong anticoagulation because all pulmonary emboli require indefinite treatment",
+          "correct": false,
+          "explanation": "Indefinite therapy is not required for every PE. A surgically provoked event often receives a finite treatment course if risk factors have resolved."
+        },
+        {
+          "label": "E",
+          "text": "Switch to aspirin alone after 2 weeks of apixaban",
+          "correct": false,
+          "explanation": "Aspirin is not adequate treatment for acute DVT and PE during the initial treatment phase."
+        }
+      ]
+    },
+    {
+      "stem": "A 24-year-old woman comes to an urgent care clinic because of 3 days of dysuria and a new yellow-green vaginal discharge. She has had two male sexual partners during the past 2 months and uses condoms inconsistently. She has no fever, flank pain, pelvic pain, nausea, or vomiting. Her last menstrual period was 2 weeks ago, and urine pregnancy test is negative. Pelvic examination shows mucopurulent cervical discharge but no cervical motion tenderness, uterine tenderness, or adnexal tenderness. Nucleic acid amplification testing for Neisseria gonorrhoeae and Chlamydia trachomatis is sent, but results will not be available for 48 hours. She asks whether treatment can wait until the results return.",
+      "difficulty": "easy",
+      "prompt": "Which of the following is the most appropriate management?",
+      "explanation_short": "Suspected cervicitis with risk for gonorrhea and chlamydia should be treated empirically when follow-up is uncertain or clinical suspicion is significant; gonorrhea treatment should include ceftriaxone, with doxycycline if chlamydia has not been excluded.",
+      "explanation_long": "This patient has cervicitis with mucopurulent discharge and STI risk. Because gonorrhea and chlamydia are both possible and chlamydia has not been excluded, empiric treatment should include intramuscular ceftriaxone for gonorrhea plus doxycycline for chlamydia. She should also receive counseling on partner notification, abstaining from sex until treatment is completed and partners are treated, and testing for other STIs.",
+      "bibliography": [
+        {
+          "title": "Sexually Transmitted Infections Treatment Guidelines",
+          "source": "Centers for Disease Control and Prevention",
+          "url": "https://www.cdc.gov/std/treatment-guidelines/default.htm"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Treat empirically with ceftriaxone plus doxycycline and counsel regarding partner treatment and STI testing",
+          "correct": true,
+          "explanation": "This is correct. Cervicitis with risk for gonorrhea and chlamydia should be treated empirically when appropriate; doxycycline is added because chlamydia has not been excluded."
+        },
+        {
+          "label": "B",
+          "text": "Prescribe fluconazole alone",
+          "correct": false,
+          "explanation": "Fluconazole treats vulvovaginal candidiasis, not mucopurulent cervicitis due to gonorrhea or chlamydia."
+        },
+        {
+          "label": "C",
+          "text": "Reassure her that cervicitis is viral and self-limited",
+          "correct": false,
+          "explanation": "Mucopurulent cervicitis in a patient with STI risk requires evaluation and often empiric antibacterial therapy."
+        },
+        {
+          "label": "D",
+          "text": "Treat only if the gonorrhea test returns positive",
+          "correct": false,
+          "explanation": "Delaying therapy can increase complications and transmission, especially when clinical suspicion and STI risk are present."
+        },
+        {
+          "label": "E",
+          "text": "Start chronic suppressive antibiotics for 6 months",
+          "correct": false,
+          "explanation": "Chronic suppressive antibiotics are not indicated for acute cervicitis and would increase adverse effects and resistance."
+        }
+      ]
+    },
+    {
+      "stem": "A 10-year-old boy is seen in primary care 3 days after an emergency department visit for wheezing and shortness of breath triggered by a viral upper respiratory infection. In the emergency department, he received nebulized albuterol and oral dexamethasone with improvement. This was his second exacerbation requiring systemic glucocorticoids in 6 months. Between infections, he coughs during soccer practice twice weekly and uses albuterol at least 3 times per week. He wakes at night coughing about twice per month. He has no history of intubation. His mother says he uses albuterol when he feels tight but has never used a controller medication.",
+      "difficulty": "medium",
+      "prompt": "Which of the following is the most appropriate next step in long-term management?",
+      "explanation_short": "A child with recurrent exacerbations and persistent symptoms should receive an inhaled corticosteroid-containing controller regimen, inhaler technique review, written asthma action plan, and follow-up.",
+      "explanation_long": "This patient has persistent asthma features and recurrent exacerbations requiring systemic glucocorticoids. SABA-only treatment is inadequate. Long-term management should include an inhaled corticosteroid-containing controller regimen, assessment of adherence and technique, trigger control, a written action plan, and close follow-up. The exact step depends on severity and local guideline implementation, but controller therapy is indicated.",
+      "bibliography": [
+        {
+          "title": "2020 Focused Updates to the Asthma Management Guidelines",
+          "source": "National Heart, Lung, and Blood Institute",
+          "url": "https://www.nhlbi.nih.gov/health-topics/asthma-management-guidelines-2020-updates"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Continue albuterol alone because symptoms occur mainly with exercise",
+          "correct": false,
+          "explanation": "Recurrent steroid-requiring exacerbations and frequent rescue inhaler use indicate persistent asthma risk. SABA-only management is inadequate."
+        },
+        {
+          "label": "B",
+          "text": "Start an inhaled corticosteroid-containing controller plan, review technique, provide a written action plan, and arrange follow-up",
+          "correct": true,
+          "explanation": "This is correct. Controller therapy and structured follow-up are indicated for persistent symptoms and recurrent exacerbations."
+        },
+        {
+          "label": "C",
+          "text": "Use daily oral prednisone indefinitely",
+          "correct": false,
+          "explanation": "Chronic systemic glucocorticoids are avoided when possible because of major adverse effects and are not first-line controller therapy."
+        },
+        {
+          "label": "D",
+          "text": "Avoid all exercise permanently",
+          "correct": false,
+          "explanation": "Asthma should be controlled to allow normal activity. Exercise avoidance alone does not address airway inflammation."
+        },
+        {
+          "label": "E",
+          "text": "Start antibiotics after every viral upper respiratory infection",
+          "correct": false,
+          "explanation": "Most viral-triggered asthma exacerbations do not require antibiotics. Antibiotics do not treat chronic airway inflammation."
+        }
+      ]
+    },
+    {
+      "stem": "A 47-year-old man is admitted with severe epigastric pain radiating to the back, nausea, and vomiting. He drinks alcohol only rarely. Temperature is 37.8 C (100.0 F), blood pressure is 118/70 mm Hg, pulse is 104/min, and oxygen saturation is 97% on room air. Abdominal examination shows epigastric tenderness without rebound. Serum lipase is 1320 U/L. Alanine aminotransferase is 212 U/L, total bilirubin is 2.1 mg/dL, and leukocyte count is 13,400/mm3. Right upper quadrant ultrasound shows gallstones and a mildly dilated common bile duct but no cholangitis. He receives intravenous fluids, analgesia, and antiemetics and improves over the next 24 hours. There is no evidence of infected necrosis.",
+      "difficulty": "medium",
+      "prompt": "Which of the following is the most appropriate next step to reduce recurrence?",
+      "explanation_short": "Mild gallstone pancreatitis should generally be managed with cholecystectomy during the index hospitalization once clinically improved; prophylactic antibiotics are not indicated without infected necrosis or cholangitis.",
+      "explanation_long": "This patient has mild gallstone pancreatitis and improves with supportive care. To prevent recurrence, cholecystectomy should be performed during the same hospitalization once he is clinically stable. ERCP is urgent if there is cholangitis or persistent biliary obstruction, but routine ERCP is not required for all improving patients. Antibiotics are not used prophylactically for sterile pancreatitis.",
+      "bibliography": [
+        {
+          "title": "Initial Management of Acute Pancreatitis",
+          "source": "American Gastroenterological Association",
+          "url": "https://gastro.org/clinical-guidance/initial-management-of-acute-pancreatitis-ap/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Discharge now and schedule elective cholecystectomy in 1 year",
+          "correct": false,
+          "explanation": "Delaying cholecystectomy after mild gallstone pancreatitis increases risk of recurrent biliary events."
+        },
+        {
+          "label": "B",
+          "text": "Give prophylactic broad-spectrum antibiotics for 14 days",
+          "correct": false,
+          "explanation": "Antibiotics are not indicated for sterile pancreatitis without cholangitis or infected necrosis."
+        },
+        {
+          "label": "C",
+          "text": "Perform cholecystectomy during this hospitalization after clinical improvement",
+          "correct": true,
+          "explanation": "This is correct. Index-admission cholecystectomy reduces recurrence after mild gallstone pancreatitis."
+        },
+        {
+          "label": "D",
+          "text": "Keep him nil per os for 2 weeks regardless of pain improvement",
+          "correct": false,
+          "explanation": "Prolonged fasting is not required for mild pancreatitis once symptoms improve and oral intake is tolerated."
+        },
+        {
+          "label": "E",
+          "text": "Avoid cholecystectomy because gallstones rarely cause recurrent pancreatitis",
+          "correct": false,
+          "explanation": "Gallstones are a common cause of pancreatitis, and recurrence risk remains high without definitive biliary management."
+        }
+      ]
+    },
+    {
+      "stem": "A 64-year-old man comes to the anticoagulation clinic after moving from another state. He had a mechanical mitral valve placed 5 years ago for rheumatic mitral valve disease. He also has hypertension and paroxysmal atrial fibrillation. He has been taking warfarin with regular INR monitoring and has had no major bleeding. A friend recently switched from warfarin to apixaban for atrial fibrillation, and the patient asks whether he can also stop INR checks and use apixaban instead. Physical examination shows a crisp mechanical valve click and no signs of heart failure.",
+      "difficulty": "hard",
+      "prompt": "Which of the following is the most appropriate recommendation?",
+      "explanation_short": "Patients with mechanical heart valves require vitamin K antagonist anticoagulation; direct oral anticoagulants are not used for mechanical valves.",
+      "explanation_long": "Although direct oral anticoagulants are commonly used for nonvalvular atrial fibrillation, this patient has a mechanical mitral valve. Mechanical valves require warfarin with INR monitoring because DOACs have not shown safety and efficacy in this population and may increase thromboembolic risk. The presence of atrial fibrillation does not override the mechanical-valve indication for warfarin.",
+      "bibliography": [
+        {
+          "title": "2020 ACC/AHA Guideline for the Management of Patients With Valvular Heart Disease",
+          "source": "American Heart Association / American College of Cardiology",
+          "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000000923"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Switch to aspirin alone because the valve was placed more than 1 year ago",
+          "correct": false,
+          "explanation": "Mechanical mitral valves require ongoing anticoagulation. Aspirin alone is inadequate for prevention of valve thrombosis and embolism."
+        },
+        {
+          "label": "B",
+          "text": "Switch to apixaban because he also has atrial fibrillation",
+          "correct": false,
+          "explanation": "Atrial fibrillation alone might be treated with a DOAC in eligible patients, but mechanical valve anticoagulation requires warfarin."
+        },
+        {
+          "label": "C",
+          "text": "Stop anticoagulation if echocardiography shows normal valve motion",
+          "correct": false,
+          "explanation": "Normal valve motion does not eliminate lifelong thrombotic risk from a mechanical valve."
+        },
+        {
+          "label": "D",
+          "text": "Continue warfarin with INR monitoring",
+          "correct": true,
+          "explanation": "This is correct. A mechanical mitral valve requires vitamin K antagonist anticoagulation with INR monitoring."
+        },
+        {
+          "label": "E",
+          "text": "Use clopidogrel instead of anticoagulation",
+          "correct": false,
+          "explanation": "Antiplatelet therapy is not an adequate substitute for warfarin in a patient with a mechanical mitral valve."
+        }
+      ]
+    },
+    {
+      "stem": "A 56-year-old woman comes for a preventive health visit. She has hypertension controlled with amlodipine and smoked cigarettes for 20 years but quit 18 years ago. Her mother had breast cancer at age 82. The patient had a normal mammogram 3 years ago and has never had a breast biopsy. She has no breast mass, nipple discharge, skin changes, or weight loss. She asks whether screening is still needed because she feels healthy and has no symptoms. Vital signs and physical examination are normal.",
+      "difficulty": "easy",
+      "prompt": "Which of the following is the most appropriate recommendation?",
+      "explanation_short": "Average-risk women in this age group should continue routine screening mammography even when asymptomatic.",
+      "explanation_long": "This patient is an average-risk woman in the age range for routine breast cancer screening. Screening is intended for asymptomatic patients. A family history of breast cancer in an elderly first-degree relative may modestly affect risk but does not by itself mandate diagnostic imaging or genetic testing in the absence of other high-risk features. The appropriate recommendation is routine screening mammography at the recommended interval.",
+      "bibliography": [
+        {
+          "title": "Recommendation: Breast Cancer: Screening",
+          "source": "United States Preventive Services Task Force",
+          "url": "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/breast-cancer-screening"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "No further breast cancer screening because she has no breast symptoms",
+          "correct": false,
+          "explanation": "Screening mammography is designed for asymptomatic patients in the eligible age range."
+        },
+        {
+          "label": "B",
+          "text": "Diagnostic mammography and breast biopsy today",
+          "correct": false,
+          "explanation": "Diagnostic evaluation is used for symptoms or abnormal screening findings. She has no mass, discharge, skin change, or abnormal current imaging."
+        },
+        {
+          "label": "C",
+          "text": "Annual chest CT to screen for breast cancer",
+          "correct": false,
+          "explanation": "Chest CT is not used for routine breast cancer screening."
+        },
+        {
+          "label": "D",
+          "text": "Genetic testing is mandatory because her mother had breast cancer at age 82",
+          "correct": false,
+          "explanation": "A single elderly first-degree relative with breast cancer does not automatically mandate genetic testing without other high-risk family features."
+        },
+        {
+          "label": "E",
+          "text": "Continue routine screening mammography",
+          "correct": true,
+          "explanation": "This is correct. She is an average-risk, asymptomatic woman in the age range for routine screening mammography."
+        }
+      ]
+    }
+  ],
+  "chunkSize": 10,
+  "requireExactlyTen": true,
+  "requireBibliography": true,
+  "allowSeedDevSource": false
+}
