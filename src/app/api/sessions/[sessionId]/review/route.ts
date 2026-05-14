@@ -61,6 +61,10 @@ type ReviewItemRow = {
   session_item_id: string;
   position: number;
   question_version_id: string;
+  block_index: number;
+  position_in_block: number | null;
+  first_seen_at: string | null;
+  last_seen_at: string | null;
 
   stem: string;
   explanation_short: string | null;
@@ -75,6 +79,8 @@ type ReviewItemRow = {
   time_spent_seconds: number | null;
   confidence: number | null;
   flagged_for_review: boolean | null;
+  attempt_flagged_for_review: boolean | null;
+  item_flagged_for_review: boolean | null;
   answered_at: string | null;
 
   correct_choice_id: string | null;
@@ -119,6 +125,10 @@ type ReviewItem = {
   session_item_id: string;
   position: number;
   question_version_id: string;
+  block_index: number;
+  position_in_block: number | null;
+  first_seen_at: string | null;
+  last_seen_at: string | null;
 
   stem: string;
   explanation_short: string | null;
@@ -133,6 +143,8 @@ type ReviewItem = {
   time_spent_seconds: number | null;
   confidence: number | null;
   flagged_for_review: boolean;
+  attempt_flagged_for_review: boolean;
+  item_flagged_for_review: boolean;
   answered_at: string | null;
 
   correct_choice_id: string | null;
@@ -288,6 +300,10 @@ export async function GET(req: Request, { params }: RouteParams) {
           si.session_item_id,
           si.position,
           si.question_version_id,
+          si.block_index,
+          si.position_in_block,
+          si.first_seen_at,
+          si.last_seen_at,
 
           qv.stem,
           qv.explanation_short,
@@ -301,7 +317,9 @@ export async function GET(req: Request, { params }: RouteParams) {
           a.selected_choice_id,
           a.time_spent_seconds,
           a.confidence,
-          a.flagged_for_review,
+          COALESCE(si.flagged_for_review, a.flagged_for_review, false) AS flagged_for_review,
+          a.flagged_for_review AS attempt_flagged_for_review,
+          si.flagged_for_review AS item_flagged_for_review,
           a.answered_at,
 
           cc.choice_id AS correct_choice_id,
@@ -429,6 +447,10 @@ export async function GET(req: Request, { params }: RouteParams) {
         session_item_id: row.session_item_id,
         position: row.position,
         question_version_id: row.question_version_id,
+        block_index: row.block_index,
+        position_in_block: row.position_in_block,
+        first_seen_at: row.first_seen_at ?? null,
+        last_seen_at: row.last_seen_at ?? null,
 
         stem: row.stem,
         explanation_short: row.explanation_short ?? null,
@@ -443,6 +465,8 @@ export async function GET(req: Request, { params }: RouteParams) {
         time_spent_seconds: row.time_spent_seconds ?? null,
         confidence: row.confidence ?? null,
         flagged_for_review: row.flagged_for_review ?? false,
+        attempt_flagged_for_review: row.attempt_flagged_for_review ?? false,
+        item_flagged_for_review: row.item_flagged_for_review ?? false,
         answered_at: row.answered_at ?? null,
 
         correct_choice_id: row.correct_choice_id ?? null,
