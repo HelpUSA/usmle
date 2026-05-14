@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: src/app/settings/page.tsx
  *
  * Responsibility:
@@ -17,7 +17,8 @@
  * Important behavior:
  * - Does not overwrite saved localStorage values before hydration completes.
  * - Keeps the local settings schema compatible with the rest of the app.
- * - Settings can later migrate to users_profile/settings_json.
+ * - Settings can later migrate to users_profile/settings_json or the
+ *   user_study_preferences/user_excluded_medical_areas tables.
  */
 
 "use client";
@@ -27,6 +28,15 @@ import { signIn, signOut, useSession } from "next-auth/react";
 
 type StudyMode = "practice" | "timed_block" | "exam_sim";
 type ExamType = "step1";
+type DifficultyDefault = "easy" | "medium" | "hard" | "all";
+type DifficultyOrderMode = "random" | "ascending" | "descending";
+type AreaOrderMode = "random" | "by_area";
+
+type MedicalArea = {
+  slug: string;
+  name: string;
+  description: string;
+};
 
 type UserSettings = {
   defaultExam: ExamType;
@@ -35,6 +45,10 @@ type UserSettings = {
   autoOpenReviewAfterSubmit: boolean;
   confirmBeforeLeavingSession: boolean;
   emphasizeTimer: boolean;
+  excludedAreaSlugs: string[];
+  difficultyDefault: DifficultyDefault;
+  difficultyOrderMode: DifficultyOrderMode;
+  areaOrderMode: AreaOrderMode;
 };
 
 type ToggleSettingKey =
@@ -46,6 +60,110 @@ const HELPUS_SITE_URL = "https://helpusbr.com";
 const HELPUS_WHATSAPP_URL = "https://wa.me/5583998721848";
 const SETTINGS_STORAGE_KEY = "usmle_user_settings_v1";
 
+const MEDICAL_AREAS: MedicalArea[] = [
+  {
+    slug: "cardiology",
+    name: "Cardiology",
+    description:
+      "Cardiovascular physiology, pathology, pharmacology, and congenital or acquired heart disease.",
+  },
+  {
+    slug: "pulmonology",
+    name: "Pulmonology",
+    description:
+      "Respiratory physiology, pulmonary pathology, ventilation, and gas exchange.",
+  },
+  {
+    slug: "renal",
+    name: "Renal",
+    description:
+      "Kidney physiology, electrolytes, acid-base, nephrology, and diuretics.",
+  },
+  {
+    slug: "gastroenterology",
+    name: "Gastroenterology",
+    description:
+      "Gastrointestinal physiology, malabsorption, hepatobiliary disease, and nutrition.",
+  },
+  {
+    slug: "endocrinology",
+    name: "Endocrinology",
+    description: "Hormonal physiology and endocrine pathology.",
+  },
+  {
+    slug: "hematology",
+    name: "Hematology",
+    description:
+      "Anemias, coagulation, hemolysis, transfusion medicine, and blood cell disorders.",
+  },
+  {
+    slug: "immunology",
+    name: "Immunology",
+    description:
+      "Immune mechanisms, hypersensitivity, immunodeficiency, and autoimmunity.",
+  },
+  {
+    slug: "microbiology",
+    name: "Microbiology",
+    description:
+      "Bacteria, viruses, fungi, parasites, antimicrobial mechanisms, and infectious disease.",
+  },
+  {
+    slug: "pharmacology",
+    name: "Pharmacology",
+    description:
+      "Drug mechanisms, adverse effects, contraindications, and therapeutic sequencing.",
+  },
+  {
+    slug: "neurology",
+    name: "Neurology",
+    description:
+      "Neuroanatomy, neuromuscular disease, neurologic pathology, and neurophysiology.",
+  },
+  {
+    slug: "biochemistry_genetics",
+    name: "Biochemistry/Genetics",
+    description:
+      "Metabolism, molecular genetics, inherited disease, and biochemical pathways.",
+  },
+  {
+    slug: "pediatrics",
+    name: "Pediatrics",
+    description:
+      "Neonatal and pediatric disease, development, and congenital conditions.",
+  },
+  {
+    slug: "reproductive_gynecology",
+    name: "Reproductive/Gynecology",
+    description:
+      "Reproductive endocrinology, gynecology, pregnancy-related medicine, and menstrual disorders.",
+  },
+  {
+    slug: "pathology",
+    name: "Pathology",
+    description:
+      "Core pathologic mechanisms, biomarkers, tissue injury, and disease patterns.",
+  },
+  {
+    slug: "physiology",
+    name: "Physiology",
+    description:
+      "Normal and abnormal physiologic mechanisms across organ systems.",
+  },
+  {
+    slug: "psychiatry_behavioral",
+    name: "Psychiatry/Behavioral",
+    description:
+      "Psychiatry, behavioral science, substance use, and patient behavior.",
+  },
+  {
+    slug: "biostatistics_ethics",
+    name: "Biostatistics/Ethics",
+    description:
+      "Biostatistics, epidemiology, ethics, patient safety, and communication.",
+  },
+];
+
 const defaultSettings: UserSettings = {
   defaultExam: "step1",
   defaultMode: "practice",
@@ -53,6 +171,10 @@ const defaultSettings: UserSettings = {
   autoOpenReviewAfterSubmit: true,
   confirmBeforeLeavingSession: true,
   emphasizeTimer: true,
+  excludedAreaSlugs: [],
+  difficultyDefault: "easy",
+  difficultyOrderMode: "random",
+  areaOrderMode: "random",
 };
 
 function isStudyMode(value: unknown): value is StudyMode {
@@ -61,6 +183,33 @@ function isStudyMode(value: unknown): value is StudyMode {
 
 function isExamType(value: unknown): value is ExamType {
   return value === "step1";
+}
+
+function isDifficultyDefault(value: unknown): value is DifficultyDefault {
+  return value === "easy" || value === "medium" || value === "hard" || value === "all";
+}
+
+function isDifficultyOrderMode(value: unknown): value is DifficultyOrderMode {
+  return value === "random" || value === "ascending" || value === "descending";
+}
+
+function isAreaOrderMode(value: unknown): value is AreaOrderMode {
+  return value === "random" || value === "by_area";
+}
+
+function isValidAreaSlug(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    MEDICAL_AREAS.some((area) => area.slug === value)
+  );
+}
+
+function normalizeExcludedAreaSlugs(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return Array.from(new Set(value.filter(isValidAreaSlug)));
 }
 
 function clampPracticeQuestionCount(value: unknown): number {
@@ -114,6 +263,20 @@ function loadSettings(): UserSettings {
         typeof parsed.emphasizeTimer === "boolean"
           ? parsed.emphasizeTimer
           : defaultSettings.emphasizeTimer,
+
+      excludedAreaSlugs: normalizeExcludedAreaSlugs(parsed.excludedAreaSlugs),
+
+      difficultyDefault: isDifficultyDefault(parsed.difficultyDefault)
+        ? parsed.difficultyDefault
+        : defaultSettings.difficultyDefault,
+
+      difficultyOrderMode: isDifficultyOrderMode(parsed.difficultyOrderMode)
+        ? parsed.difficultyOrderMode
+        : defaultSettings.difficultyOrderMode,
+
+      areaOrderMode: isAreaOrderMode(parsed.areaOrderMode)
+        ? parsed.areaOrderMode
+        : defaultSettings.areaOrderMode,
     };
   } catch {
     return defaultSettings;
@@ -146,6 +309,51 @@ function examLabel(exam: ExamType): string {
   }
 }
 
+function difficultyDefaultLabel(value: DifficultyDefault): string {
+  switch (value) {
+    case "easy":
+      return "Easy only";
+    case "medium":
+      return "Medium only";
+    case "hard":
+      return "Hard only";
+    case "all":
+      return "All difficulties / balanced";
+    default: {
+      const exhaustiveCheck: never = value;
+      return exhaustiveCheck;
+    }
+  }
+}
+
+function difficultyOrderLabel(value: DifficultyOrderMode): string {
+  switch (value) {
+    case "random":
+      return "Random";
+    case "ascending":
+      return "Ascending: Easy → Medium → Hard";
+    case "descending":
+      return "Descending: Hard → Medium → Easy";
+    default: {
+      const exhaustiveCheck: never = value;
+      return exhaustiveCheck;
+    }
+  }
+}
+
+function areaOrderLabel(value: AreaOrderMode): string {
+  switch (value) {
+    case "random":
+      return "Random";
+    case "by_area":
+      return "Group by medical area";
+    default: {
+      const exhaustiveCheck: never = value;
+      return exhaustiveCheck;
+    }
+  }
+}
+
 export default function SettingsPage() {
   const { data: session, status } = useSession();
 
@@ -156,6 +364,9 @@ export default function SettingsPage() {
   const isAuthLoading = status === "loading";
   const isSignedIn =
     status === "authenticated" && Boolean(session?.user?.email);
+
+  const includedAreaCount =
+    MEDICAL_AREAS.length - settings.excludedAreaSlugs.length;
 
   useEffect(() => {
     setSettings(loadSettings());
@@ -187,11 +398,41 @@ export default function SettingsPage() {
     setSettings(defaultSettings);
   }
 
+  function handleIncludeAllAreas() {
+    setSettings((prev) => ({
+      ...prev,
+      excludedAreaSlugs: [],
+    }));
+  }
+
   function updateToggle(key: ToggleSettingKey, value: boolean) {
     setSettings((prev) => ({
       ...prev,
       [key]: value,
     }));
+  }
+
+  function updateAreaInclusion(areaSlug: string, shouldInclude: boolean) {
+    setSettings((prev) => {
+      const excluded = new Set(prev.excludedAreaSlugs);
+
+      if (shouldInclude) {
+        excluded.delete(areaSlug);
+      } else {
+        const currentlyIncluded = MEDICAL_AREAS.length - excluded.size;
+
+        if (currentlyIncluded <= 1) {
+          return prev;
+        }
+
+        excluded.add(areaSlug);
+      }
+
+      return {
+        ...prev,
+        excludedAreaSlugs: Array.from(excluded).filter(isValidAreaSlug),
+      };
+    });
   }
 
   return (
@@ -502,6 +743,275 @@ export default function SettingsPage() {
               <div style={{ fontSize: 12, color: "#6b7280" }}>
                 Used as the preferred count for daily untimed study. Allowed
                 range: 1 to 200.
+              </div>
+            </div>
+          </section>
+
+          <section
+            style={{
+              padding: 18,
+              borderRadius: 20,
+              border: "1px solid #e5e7eb",
+              background: "white",
+              display: "grid",
+              gap: 14,
+            }}
+          >
+            <div>
+              <div style={{ fontWeight: 900, fontSize: 20 }}>
+                Question filters and order
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  color: "#6b7280",
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                }}
+              >
+                These settings are applied when a new session is generated.
+                Existing sessions keep their original question sequence.
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gap: 12,
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              }}
+            >
+              <div style={{ display: "grid", gap: 6 }}>
+                <label style={{ fontSize: 13, color: "#555" }}>
+                  Default difficulty
+                </label>
+
+                <select
+                  value={settings.difficultyDefault}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+
+                    setSettings((prev) => ({
+                      ...prev,
+                      difficultyDefault: isDifficultyDefault(nextValue)
+                        ? nextValue
+                        : defaultSettings.difficultyDefault,
+                    }));
+                  }}
+                  style={{
+                    padding: "12px 12px",
+                    borderRadius: 12,
+                    border: "1px solid #d1d5db",
+                    background: "white",
+                  }}
+                >
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                  <option value="all">All difficulties / balanced</option>
+                </select>
+
+                <div style={{ fontSize: 12, color: "#6b7280" }}>
+                  Current:{" "}
+                  <strong>
+                    {difficultyDefaultLabel(settings.difficultyDefault)}
+                  </strong>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gap: 6 }}>
+                <label style={{ fontSize: 13, color: "#555" }}>
+                  Difficulty order
+                </label>
+
+                <select
+                  value={settings.difficultyOrderMode}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+
+                    setSettings((prev) => ({
+                      ...prev,
+                      difficultyOrderMode: isDifficultyOrderMode(nextValue)
+                        ? nextValue
+                        : defaultSettings.difficultyOrderMode,
+                    }));
+                  }}
+                  style={{
+                    padding: "12px 12px",
+                    borderRadius: 12,
+                    border: "1px solid #d1d5db",
+                    background: "white",
+                  }}
+                >
+                  <option value="random">Random</option>
+                  <option value="ascending">Ascending: Easy → Medium → Hard</option>
+                  <option value="descending">Descending: Hard → Medium → Easy</option>
+                </select>
+
+                <div style={{ fontSize: 12, color: "#6b7280" }}>
+                  Current:{" "}
+                  <strong>
+                    {difficultyOrderLabel(settings.difficultyOrderMode)}
+                  </strong>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gap: 6 }}>
+                <label style={{ fontSize: 13, color: "#555" }}>
+                  Area order
+                </label>
+
+                <select
+                  value={settings.areaOrderMode}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+
+                    setSettings((prev) => ({
+                      ...prev,
+                      areaOrderMode: isAreaOrderMode(nextValue)
+                        ? nextValue
+                        : defaultSettings.areaOrderMode,
+                    }));
+                  }}
+                  style={{
+                    padding: "12px 12px",
+                    borderRadius: 12,
+                    border: "1px solid #d1d5db",
+                    background: "white",
+                  }}
+                >
+                  <option value="random">Random</option>
+                  <option value="by_area">Group by medical area</option>
+                </select>
+
+                <div style={{ fontSize: 12, color: "#6b7280" }}>
+                  Current:{" "}
+                  <strong>{areaOrderLabel(settings.areaOrderMode)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: 14,
+                borderRadius: 16,
+                border: "1px solid #eef2f7",
+                background: "#fcfcfd",
+                display: "grid",
+                gap: 12,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 900 }}>Medical areas</div>
+
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: 13,
+                      color: "#6b7280",
+                    }}
+                  >
+                    Included by default: {includedAreaCount} of{" "}
+                    {MEDICAL_AREAS.length}. Uncheck areas you do not want to
+                    see.
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleIncludeAllAreas}
+                  disabled={settings.excludedAreaSlugs.length === 0}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 999,
+                    border: "1px solid #d1d5db",
+                    background: "white",
+                    color: "#374151",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    cursor:
+                      settings.excludedAreaSlugs.length === 0
+                        ? "not-allowed"
+                        : "pointer",
+                    opacity: settings.excludedAreaSlugs.length === 0 ? 0.55 : 1,
+                  }}
+                >
+                  Include all areas
+                </button>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gap: 10,
+                  gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+                }}
+              >
+                {MEDICAL_AREAS.map((area) => {
+                  const isIncluded = !settings.excludedAreaSlugs.includes(
+                    area.slug
+                  );
+
+                  return (
+                    <label
+                      key={area.slug}
+                      style={{
+                        display: "flex",
+                        gap: 10,
+                        alignItems: "flex-start",
+                        padding: 12,
+                        borderRadius: 14,
+                        border: isIncluded
+                          ? "1px solid #bfdbfe"
+                          : "1px solid #e5e7eb",
+                        background: isIncluded ? "#f8fbff" : "#f9fafb",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isIncluded}
+                        onChange={(event) =>
+                          updateAreaInclusion(area.slug, event.target.checked)
+                        }
+                        style={{
+                          marginTop: 3,
+                          transform: "scale(1.1)",
+                        }}
+                      />
+
+                      <div style={{ lineHeight: 1.45 }}>
+                        <div style={{ fontWeight: 850 }}>{area.name}</div>
+
+                        <div
+                          style={{
+                            marginTop: 4,
+                            fontSize: 12,
+                            color: "#6b7280",
+                          }}
+                        >
+                          {area.description}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>
+                At least one medical area must remain selected. Areas without
+                available questions will simply not contribute items until
+                content is added.
               </div>
             </div>
           </section>

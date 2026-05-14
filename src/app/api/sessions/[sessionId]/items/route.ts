@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: src/app/api/sessions/[sessionId]/items/route.ts
  *
  * Responsibility:
@@ -8,7 +8,16 @@
  * API contract:
  * - GET  /api/sessions/:sessionId/items
  * - POST /api/sessions/:sessionId/items
- *   Body: { count?: number, include_seed?: boolean }
+ *   Body:
+ *   {
+ *     count?: number,
+ *     include_seed?: boolean,
+ *     includedAreaSlugs?: string[],
+ *     excludedAreaSlugs?: string[],
+ *     difficultyDefault?: "easy" | "medium" | "hard" | "all",
+ *     difficultyOrderMode?: "random" | "ascending" | "descending",
+ *     areaOrderMode?: "random" | "by_area"
+ *   }
  *
  * Auth contract:
  * - User identity is resolved by getUserIdForApi(req).
@@ -21,7 +30,10 @@
  *   - if items already exist, it returns the existing items;
  *   - it does not recreate or reshuffle the session.
  * - Question selection:
- *   - balances by difficulty: 30% easy, 50% medium, 20% hard;
+ *   - supports inclusion/exclusion by medical area;
+ *   - supports a preferred difficulty, defaulting to easy;
+ *   - supports the legacy balanced mode when difficultyDefault="all";
+ *   - supports final ordering by area and/or difficulty;
  *   - prioritizes unseen and less-seen questions;
  *   - excludes seed_dev by default, except when include_seed=true or when
  *     no non-seed published content exists.
@@ -41,14 +53,34 @@ import { getUserIdForApi } from "@/lib/auth";
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const SLUG_RE = /^[a-z0-9]+(?:_[a-z0-9]+)*$/;
+
 const ParamsSchema = z.object({
   sessionId: z.string().regex(UUID_RE, "Invalid sessionId"),
 });
+
+const AreaSlugSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(80)
+  .regex(SLUG_RE, "Invalid area slug");
 
 const BodySchema = z
   .object({
     count: z.coerce.number().int().min(1).max(200).default(10),
     include_seed: z.boolean().optional().default(false),
+    includedAreaSlugs: z.array(AreaSlugSchema).max(100).optional().default([]),
+    excludedAreaSlugs: z.array(AreaSlugSchema).max(100).optional().default([]),
+    difficultyDefault: z
+      .enum(["easy", "medium", "hard", "all"])
+      .optional()
+      .default("easy"),
+    difficultyOrderMode: z
+      .enum(["random", "ascending", "descending"])
+      .optional()
+      .default("random"),
+    areaOrderMode: z.enum(["random", "by_area"]).optional().default("random"),
   })
   .strict();
 
@@ -59,6 +91,9 @@ type RouteParams = {
 };
 
 type Difficulty = "easy" | "medium" | "hard";
+type DifficultyDefault = Difficulty | "all";
+type DifficultyOrderMode = "random" | "ascending" | "descending";
+type AreaOrderMode = "random" | "by_area";
 
 type SessionRow = {
   session_id: string;
@@ -76,8 +111,12 @@ type SessionItemRow = {
   presented_at: string;
 };
 
-type QuestionVersionRow = {
+type QuestionCandidateRow = {
   question_version_id: string;
+  difficulty: Difficulty;
+  primary_area_slug: string | null;
+  primary_area_name: string | null;
+  primary_area_display_order: number | null;
 };
 
 type RouteResult =
@@ -101,6 +140,76 @@ function splitByDifficulty(count: number): Record<Difficulty, number> {
   const medium = Math.max(0, count - easy - hard);
 
   return { easy, medium, hard };
+}
+
+function uniqueSlugs(slugs: string[]): string[] {
+  return Array.from(
+    new Set(
+      slugs
+        .map((slug) => slug.trim())
+        .filter((slug) => slug.length > 0)
+    )
+  );
+}
+
+function difficultyRank(difficulty: Difficulty): number {
+  if (difficulty === "easy") return 1;
+  if (difficulty === "medium") return 2;
+  return 3;
+}
+
+function shuffle<T>(items: T[]): T[] {
+  const copy = [...items];
+
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+  }
+
+  return copy;
+}
+
+function sortPickedCandidates(
+  candidates: QuestionCandidateRow[],
+  difficultyOrderMode: DifficultyOrderMode,
+  areaOrderMode: AreaOrderMode
+): QuestionCandidateRow[] {
+  const randomized = shuffle(candidates);
+
+  if (difficultyOrderMode === "random" && areaOrderMode === "random") {
+    return randomized;
+  }
+
+  return randomized.sort((left, right) => {
+    if (areaOrderMode === "by_area") {
+      const leftArea = left.primary_area_display_order ?? 9999;
+      const rightArea = right.primary_area_display_order ?? 9999;
+
+      if (leftArea !== rightArea) {
+        return leftArea - rightArea;
+      }
+
+      const leftName = left.primary_area_name ?? "";
+      const rightName = right.primary_area_name ?? "";
+
+      if (leftName !== rightName) {
+        return leftName.localeCompare(rightName);
+      }
+    }
+
+    if (difficultyOrderMode !== "random") {
+      const leftDifficulty = difficultyRank(left.difficulty);
+      const rightDifficulty = difficultyRank(right.difficulty);
+
+      if (leftDifficulty !== rightDifficulty) {
+        return difficultyOrderMode === "ascending"
+          ? leftDifficulty - rightDifficulty
+          : rightDifficulty - leftDifficulty;
+      }
+    }
+
+    return 0;
+  });
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -244,6 +353,12 @@ export async function POST(req: Request, { params }: RouteParams) {
     const bodyJson = await req.json().catch(() => ({}));
     const body = BodySchema.parse(bodyJson);
 
+    const includedAreaSlugs = uniqueSlugs(body.includedAreaSlugs);
+    const excludedAreaSlugs = uniqueSlugs(body.excludedAreaSlugs);
+    const difficultyDefault: DifficultyDefault = body.difficultyDefault;
+    const difficultyOrderMode: DifficultyOrderMode = body.difficultyOrderMode;
+    const areaOrderMode: AreaOrderMode = body.areaOrderMode;
+
     const result = await withTx<RouteResult>(async (client) => {
       const sessionRes = await client.query<SessionRow>(
         `
@@ -307,21 +422,30 @@ export async function POST(req: Request, { params }: RouteParams) {
       const allowSeed =
         includeSeedRequested || nonSeedPublished.rows.length === 0;
 
-      const target = splitByDifficulty(body.count);
-
       async function pickByDifficulty(
         difficulty: Difficulty,
         limit: number
-      ): Promise<string[]> {
+      ): Promise<QuestionCandidateRow[]> {
         if (limit <= 0) {
           return [];
         }
 
-        const res = await client.query<QuestionVersionRow>(
+        const res = await client.query<QuestionCandidateRow>(
           `
-          SELECT qv.question_version_id
+          SELECT
+            qv.question_version_id,
+            qv.difficulty,
+            pma.slug AS primary_area_slug,
+            pma.name AS primary_area_name,
+            pma.display_order AS primary_area_display_order
           FROM question_versions qv
-          JOIN questions q ON q.question_id = qv.question_id
+          JOIN questions q
+            ON q.question_id = qv.question_id
+          LEFT JOIN question_version_areas pqva
+            ON pqva.question_version_id = qv.question_version_id
+           AND pqva.is_primary = true
+          LEFT JOIN medical_areas pma
+            ON pma.area_id = pqva.area_id
           LEFT JOIN user_question_state uqs
             ON uqs.user_id = $5
            AND uqs.question_id = q.question_id
@@ -333,6 +457,27 @@ export async function POST(req: Request, { params }: RouteParams) {
             AND (
               $7::boolean = true
               OR q.source <> 'seed_dev'
+            )
+            AND (
+              cardinality($8::text[]) = 0
+              OR EXISTS (
+                SELECT 1
+                FROM question_version_areas qva_include
+                JOIN medical_areas ma_include
+                  ON ma_include.area_id = qva_include.area_id
+                WHERE qva_include.question_version_id = qv.question_version_id
+                  AND ma_include.is_active = true
+                  AND ma_include.slug = ANY($8::text[])
+              )
+            )
+            AND NOT EXISTS (
+              SELECT 1
+              FROM question_version_areas qva_exclude
+              JOIN medical_areas ma_exclude
+                ON ma_exclude.area_id = qva_exclude.area_id
+              WHERE qva_exclude.question_version_id = qv.question_version_id
+                AND ma_exclude.is_active = true
+                AND ma_exclude.slug = ANY($9::text[])
             )
             AND NOT EXISTS (
               SELECT 1
@@ -354,26 +499,48 @@ export async function POST(req: Request, { params }: RouteParams) {
             userId,
             difficulty,
             allowSeed,
+            includedAreaSlugs,
+            excludedAreaSlugs,
           ]
         );
 
-        return res.rows.map((row) => row.question_version_id);
+        return res.rows;
       }
 
-      const picked: string[] = [
-        ...(await pickByDifficulty("easy", target.easy)),
-        ...(await pickByDifficulty("medium", target.medium)),
-        ...(await pickByDifficulty("hard", target.hard)),
-      ];
+      let picked: QuestionCandidateRow[] = [];
+
+      if (difficultyDefault === "all") {
+        const target = splitByDifficulty(body.count);
+
+        picked = [
+          ...(await pickByDifficulty("easy", target.easy)),
+          ...(await pickByDifficulty("medium", target.medium)),
+          ...(await pickByDifficulty("hard", target.hard)),
+        ];
+      } else {
+        picked = await pickByDifficulty(difficultyDefault, body.count);
+      }
 
       if (picked.length < body.count) {
         const remaining = body.count - picked.length;
+        const pickedIds = picked.map((row) => row.question_version_id);
 
-        const fillRes = await client.query<QuestionVersionRow>(
+        const fillRes = await client.query<QuestionCandidateRow>(
           `
-          SELECT qv.question_version_id
+          SELECT
+            qv.question_version_id,
+            qv.difficulty,
+            pma.slug AS primary_area_slug,
+            pma.name AS primary_area_name,
+            pma.display_order AS primary_area_display_order
           FROM question_versions qv
-          JOIN questions q ON q.question_id = qv.question_id
+          JOIN questions q
+            ON q.question_id = qv.question_id
+          LEFT JOIN question_version_areas pqva
+            ON pqva.question_version_id = qv.question_version_id
+           AND pqva.is_primary = true
+          LEFT JOIN medical_areas pma
+            ON pma.area_id = pqva.area_id
           LEFT JOIN user_question_state uqs
             ON uqs.user_id = $5
            AND uqs.question_id = q.question_id
@@ -384,6 +551,27 @@ export async function POST(req: Request, { params }: RouteParams) {
             AND (
               $7::boolean = true
               OR q.source <> 'seed_dev'
+            )
+            AND (
+              cardinality($8::text[]) = 0
+              OR EXISTS (
+                SELECT 1
+                FROM question_version_areas qva_include
+                JOIN medical_areas ma_include
+                  ON ma_include.area_id = qva_include.area_id
+                WHERE qva_include.question_version_id = qv.question_version_id
+                  AND ma_include.is_active = true
+                  AND ma_include.slug = ANY($8::text[])
+              )
+            )
+            AND NOT EXISTS (
+              SELECT 1
+              FROM question_version_areas qva_exclude
+              JOIN medical_areas ma_exclude
+                ON ma_exclude.area_id = qva_exclude.area_id
+              WHERE qva_exclude.question_version_id = qv.question_version_id
+                AND ma_exclude.is_active = true
+                AND ma_exclude.slug = ANY($9::text[])
             )
             AND NOT EXISTS (
               SELECT 1
@@ -404,40 +592,54 @@ export async function POST(req: Request, { params }: RouteParams) {
             sessionId,
             remaining,
             userId,
-            picked,
+            pickedIds,
             allowSeed,
+            includedAreaSlugs,
+            excludedAreaSlugs,
           ]
         );
 
-        picked.push(...fillRes.rows.map((row) => row.question_version_id));
+        picked.push(...fillRes.rows);
       }
 
       if (picked.length === 0) {
         return {
           status: 400,
           payload: {
-            error: "No active question_versions available for this exam/language",
+            error:
+              "No active question_versions available for this exam/language and selected filters",
             debug: {
               exam: session.exam,
               language: session.language,
               allowSeed,
               includeSeedRequested,
+              includedAreaSlugs,
+              excludedAreaSlugs,
+              difficultyDefault,
+              difficultyOrderMode,
+              areaOrderMode,
               note:
-                "If allowSeed=false and your only content is seed_dev, selection will be empty. Check questions.source distribution.",
+                "Check published questions, active question_versions, medical area mappings, and difficulty distribution.",
             },
           },
         };
       }
 
+      const orderedPicked = sortPickedCandidates(
+        picked,
+        difficultyOrderMode,
+        areaOrderMode
+      );
+
       const insertValues: Array<string | number> = [];
       const placeholders: string[] = [];
 
-      picked.forEach((questionVersionId, index) => {
+      orderedPicked.forEach((candidate, index) => {
         const position = index + 1;
         const base = index * 3;
 
         placeholders.push(`($${base + 1}, $${base + 2}, $${base + 3})`);
-        insertValues.push(sessionId, position, questionVersionId);
+        insertValues.push(sessionId, position, candidate.question_version_id);
       });
 
       const inserted = await client.query<SessionItemRow>(

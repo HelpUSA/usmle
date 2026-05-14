@@ -30,7 +30,7 @@
  * - Mobile-first.
  * - Large cards for primary study actions.
  * - Clear distinction between Practice, Timed block, and Exam simulation.
- * - Local Settings are read from localStorage and used only as UI defaults.
+ * - Local Settings are read from localStorage and used as UI/session generation defaults.
  */
 
 "use client";
@@ -44,6 +44,9 @@ import { apiFetch } from "@/lib/apiClient";
 type SessionMode = "practice" | "timed_block" | "exam_sim";
 type ExamType = "step1";
 type KnownSessionStatus = "in_progress" | "submitted" | "abandoned";
+type DifficultyDefault = "easy" | "medium" | "hard" | "all";
+type DifficultyOrderMode = "random" | "ascending" | "descending";
+type AreaOrderMode = "random" | "by_area";
 
 type CreateSessionResponse = {
   session_id: string;
@@ -83,6 +86,10 @@ type UserSettings = {
   autoOpenReviewAfterSubmit: boolean;
   confirmBeforeLeavingSession: boolean;
   emphasizeTimer: boolean;
+  excludedAreaSlugs: string[];
+  difficultyDefault: DifficultyDefault;
+  difficultyOrderMode: DifficultyOrderMode;
+  areaOrderMode: AreaOrderMode;
 };
 
 const SETTINGS_STORAGE_KEY = "usmle_user_settings_v1";
@@ -94,10 +101,42 @@ const defaultSettings: UserSettings = {
   autoOpenReviewAfterSubmit: true,
   confirmBeforeLeavingSession: true,
   emphasizeTimer: true,
+  excludedAreaSlugs: [],
+  difficultyDefault: "easy",
+  difficultyOrderMode: "random",
+  areaOrderMode: "random",
 };
 
 function isSessionMode(value: unknown): value is SessionMode {
   return value === "practice" || value === "timed_block" || value === "exam_sim";
+}
+
+function isDifficultyDefault(value: unknown): value is DifficultyDefault {
+  return value === "easy" || value === "medium" || value === "hard" || value === "all";
+}
+
+function isDifficultyOrderMode(value: unknown): value is DifficultyOrderMode {
+  return value === "random" || value === "ascending" || value === "descending";
+}
+
+function isAreaOrderMode(value: unknown): value is AreaOrderMode {
+  return value === "random" || value === "by_area";
+}
+
+function isValidSlug(value: unknown): value is string {
+  return typeof value === "string" && /^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(value);
+}
+
+function normalizeExcludedAreaSlugs(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return Array.from(
+    new Set(
+      value
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter(isValidSlug)
+    )
+  );
 }
 
 function loadSettings(): UserSettings {
@@ -135,6 +174,16 @@ function loadSettings(): UserSettings {
         typeof parsed.emphasizeTimer === "boolean"
           ? parsed.emphasizeTimer
           : defaultSettings.emphasizeTimer,
+      excludedAreaSlugs: normalizeExcludedAreaSlugs(parsed.excludedAreaSlugs),
+      difficultyDefault: isDifficultyDefault(parsed.difficultyDefault)
+        ? parsed.difficultyDefault
+        : defaultSettings.difficultyDefault,
+      difficultyOrderMode: isDifficultyOrderMode(parsed.difficultyOrderMode)
+        ? parsed.difficultyOrderMode
+        : defaultSettings.difficultyOrderMode,
+      areaOrderMode: isAreaOrderMode(parsed.areaOrderMode)
+        ? parsed.areaOrderMode
+        : defaultSettings.areaOrderMode,
     };
   } catch {
     return defaultSettings;
@@ -151,6 +200,43 @@ function getErrorMessage(error: unknown, fallback: string): string {
   }
 
   return fallback;
+}
+
+function difficultyDefaultLabel(value: DifficultyDefault): string {
+  switch (value) {
+    case "easy":
+      return "Easy";
+    case "medium":
+      return "Medium";
+    case "hard":
+      return "Hard";
+    case "all":
+      return "All difficulties";
+    default:
+      return "Easy";
+  }
+}
+
+function difficultyOrderLabel(value: DifficultyOrderMode): string {
+  switch (value) {
+    case "ascending":
+      return "Ascending";
+    case "descending":
+      return "Descending";
+    case "random":
+    default:
+      return "Random";
+  }
+}
+
+function areaOrderLabel(value: AreaOrderMode): string {
+  switch (value) {
+    case "by_area":
+      return "By medical area";
+    case "random":
+    default:
+      return "Random";
+  }
 }
 
 function modeLabel(mode?: string | null): string {
@@ -327,6 +413,11 @@ export default function StudyPage() {
             method: "POST",
             body: JSON.stringify({
               count: effectiveCount,
+              includedAreaSlugs: [],
+              excludedAreaSlugs: userSettings.excludedAreaSlugs,
+              difficultyDefault: userSettings.difficultyDefault,
+              difficultyOrderMode: userSettings.difficultyOrderMode,
+              areaOrderMode: userSettings.areaOrderMode,
             }),
           }
         );
@@ -517,6 +608,30 @@ export default function StudyPage() {
               <InfoCard
                 label="Default count"
                 value={`${defaultModeCount} questions`}
+              />
+
+              <InfoCard
+                label="Difficulty"
+                value={difficultyDefaultLabel(userSettings.difficultyDefault)}
+              />
+
+              <InfoCard
+                label="Difficulty order"
+                value={difficultyOrderLabel(userSettings.difficultyOrderMode)}
+              />
+
+              <InfoCard
+                label="Area order"
+                value={areaOrderLabel(userSettings.areaOrderMode)}
+              />
+
+              <InfoCard
+                label="Excluded areas"
+                value={
+                  userSettings.excludedAreaSlugs.length === 0
+                    ? "None"
+                    : `${userSettings.excludedAreaSlugs.length} excluded`
+                }
               />
             </div>
 
