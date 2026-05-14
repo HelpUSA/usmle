@@ -48,6 +48,11 @@ type SessionItem = {
   position: number;
   question_version_id: string;
   presented_at: string;
+  block_index: number;
+  position_in_block: number | null;
+  flagged_for_review: boolean;
+  first_seen_at: string | null;
+  last_seen_at: string | null;
 };
 
 type SessionMode = "practice" | "timed_block" | "exam_sim";
@@ -100,6 +105,10 @@ type QuestionResponse = {
     label: string;
     choice_text: string;
   }>;
+};
+
+type SessionItemStateResponse = {
+  item: SessionItem;
 };
 
 type BibliographyItem = {
@@ -402,6 +411,7 @@ export default function SessionPage({
   const [selected, setSelected] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
+  const [savingFlagState, setSavingFlagState] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
   const [loadingSessionMeta, setLoadingSessionMeta] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -658,10 +668,14 @@ export default function SessionPage({
         (a, b) => a.position - b.position
       );
 
+      const initialFlaggedPositions = sortedItems
+        .filter((item) => item.flagged_for_review)
+        .map((item) => item.position);
+
       setItems(sortedItems);
       setIdx(0);
       setAnsweredPositions(new Set());
-      setFlaggedPositions(new Set());
+      setFlaggedPositions(new Set(initialFlaggedPositions));
     } catch (error) {
       setErr(getErrorMessage(error, "Failed to load session items"));
       setItems([]);
@@ -724,6 +738,99 @@ export default function SessionPage({
     };
   }, [currentSessionItemId, router, sessionId, sessionMeta?.status]);
 
+  async function toggleCurrentFlagForReview() {
+    if (!current) return;
+    if (sessionMeta?.status !== "in_progress") return;
+    if (savingFlagState) return;
+
+    const targetSessionItemId = current.session_item_id;
+    const targetPosition = current.position;
+    const nextFlagged = !flaggedPositions.has(targetPosition);
+
+    setErr(null);
+    setSavingFlagState(true);
+
+    setFlaggedPositions((previous) => {
+      const next = new Set(previous);
+
+      if (nextFlagged) {
+        next.add(targetPosition);
+      } else {
+        next.delete(targetPosition);
+      }
+
+      return next;
+    });
+
+    setItems((previous) =>
+      previous.map((item) =>
+        item.session_item_id === targetSessionItemId
+          ? {
+              ...item,
+              flagged_for_review: nextFlagged,
+            }
+          : item
+      )
+    );
+
+    try {
+      const response = await apiFetch<SessionItemStateResponse>(
+        `/api/sessions/${sessionId}/items/${targetSessionItemId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            flagged_for_review: nextFlagged,
+          }),
+        }
+      );
+
+      setItems((previous) =>
+        previous.map((item) =>
+          item.session_item_id === targetSessionItemId ? response.item : item
+        )
+      );
+
+      setFlaggedPositions((previous) => {
+        const next = new Set(previous);
+
+        if (response.item.flagged_for_review) {
+          next.add(response.item.position);
+        } else {
+          next.delete(response.item.position);
+        }
+
+        return next;
+      });
+    } catch (error) {
+      setFlaggedPositions((previous) => {
+        const next = new Set(previous);
+
+        if (nextFlagged) {
+          next.delete(targetPosition);
+        } else {
+          next.add(targetPosition);
+        }
+
+        return next;
+      });
+
+      setItems((previous) =>
+        previous.map((item) =>
+          item.session_item_id === targetSessionItemId
+            ? {
+                ...item,
+                flagged_for_review: !nextFlagged,
+              }
+            : item
+        )
+      );
+
+      setErr(getErrorMessage(error, "Failed to update flag state"));
+    } finally {
+      setSavingFlagState(false);
+    }
+  }
+
   async function finish() {
     if (sessionMeta?.status === "submitted") {
       intentionalNavigationRef.current = true;
@@ -785,6 +892,7 @@ export default function SessionPage({
             selected_choice_id: selected,
             time_spent_seconds: timeSpentSeconds,
             confidence: 3,
+            flagged_for_review: flaggedPositions.has(current.position),
           }),
         }
       );
@@ -888,7 +996,7 @@ export default function SessionPage({
           textAlign: "center",
         };
 
-  const isBusy = saving || autoSubmitting;
+  const isBusy = saving || autoSubmitting || savingFlagState;
   const hasItems = items.length > 0;
   const canSubmitChoice =
     sessionIsInProgress &&
@@ -898,11 +1006,23 @@ export default function SessionPage({
   const blockMinutes = getSessionBlockMinutes(sessionMeta);
   const currentPosition = items.length ? idx + 1 : null;
   const positionInBlock =
-    currentPosition && blockSize ? ((currentPosition - 1) % blockSize) + 1 : currentPosition;
+    current?.position_in_block ??
+    (currentPosition && blockSize
+      ? ((currentPosition - 1) % blockSize) + 1
+      : currentPosition);
   const currentBlock =
-    currentPosition && blockSize ? Math.floor((currentPosition - 1) / blockSize) + 1 : 1;
+    current?.block_index ??
+    (currentPosition && blockSize
+      ? Math.floor((currentPosition - 1) / blockSize) + 1
+      : 1);
   const totalBlocks =
-    blockSize && items.length ? Math.max(1, Math.ceil(items.length / blockSize)) : 1;
+    items.length > 0
+      ? Math.max(
+          1,
+          ...items.map((item) => item.block_index ?? 1),
+          blockSize ? Math.ceil(items.length / blockSize) : 1
+        )
+      : 1;
   const formatProfileLabel = getFormatProfileLabel(sessionMeta);
   const answeredCount = answeredPositions.size;
   const flaggedCount = flaggedPositions.size;
@@ -1235,21 +1355,8 @@ export default function SessionPage({
 
               <button
                 type="button"
-                onClick={() => {
-                  if (!current) return;
-
-                  setFlaggedPositions((previous) => {
-                    const next = new Set(previous);
-
-                    if (next.has(current.position)) {
-                      next.delete(current.position);
-                    } else {
-                      next.add(current.position);
-                    }
-
-                    return next;
-                  });
-                }}
+                onClick={() => void toggleCurrentFlagForReview()}
+                disabled={savingFlagState || !sessionIsInProgress}
                 style={{
                   padding: "8px 12px",
                   borderRadius: 999,
@@ -1261,7 +1368,11 @@ export default function SessionPage({
                   fontWeight: 850,
                 }}
               >
-                {isCurrentFlagged ? "Unflag question" : "Flag for review"}
+                {savingFlagState
+                  ? "Saving flag..."
+                  : isCurrentFlagged
+                  ? "Unflag question"
+                  : "Flag for review"}
               </button>
             </div>
 
@@ -1325,7 +1436,7 @@ export default function SessionPage({
             </div>
 
             <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>
-              Local navigator status: answered and flagged markers help with test-day rhythm. Persistent flag analytics will be added in the database phase.
+              Navigator status now persists flagged markers in session_items.flagged_for_review. Answered markers remain local until attempt summaries are loaded.
             </div>
           </div>
 
