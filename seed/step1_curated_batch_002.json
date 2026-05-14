@@ -47,6 +47,12 @@
           "text": "Reduced beta-globin synthesis causing excess unpaired alpha-globin chains",
           "correct": false,
           "explanation": "This describes beta-thalassemia, which causes chronic microcytic anemia and ineffective erythropoiesis rather than acute oxidant-triggered intravascular hemolysis."
+        },
+        {
+          "label": "E",
+          "text": "Reduced pyruvate kinase activity causing red-cell ATP depletion",
+          "correct": false,
+          "explanation": "Pyruvate kinase deficiency can cause chronic nonspherocytic hemolytic anemia due to impaired ATP production, but it does not classically cause oxidant-triggered hemolysis with bite cells after sulfonamide exposure."
         }
       ]
     },
@@ -96,6 +102,12 @@
           "text": "Retention of unabsorbed lactose in the intestinal lumen increasing osmotic water movement",
           "correct": true,
           "explanation": "This is correct. Lactase deficiency prevents lactose hydrolysis and absorption, leaving an osmotically active carbohydrate in the lumen that draws water into the bowel."
+        },
+        {
+          "label": "E",
+          "text": "Impaired bile acid reabsorption in the terminal ileum causing colonic secretion",
+          "correct": false,
+          "explanation": "Bile acid malabsorption can cause watery diarrhea, often after ileal disease or resection. This patient's reproducible symptoms after lactose exposure are best explained by unabsorbed lactose causing osmotic water retention."
         }
       ]
     },
@@ -145,6 +157,12 @@
           "text": "Defective spectrin causing spherical erythrocytes with reduced deformability",
           "correct": false,
           "explanation": "Hereditary spherocytosis produces spherocytes and extravascular hemolysis, often with splenomegaly, but it does not cause deoxygenation-dependent sickling."
+        },
+        {
+          "label": "E",
+          "text": "Oxidative denaturation of hemoglobin due to impaired glutathione regeneration",
+          "correct": false,
+          "explanation": "This describes glucose-6-phosphate dehydrogenase deficiency, which causes oxidant-triggered hemolysis with Heinz bodies and bite cells. It does not explain recurrent deoxygenation-dependent vaso-occlusive pain crises in sickle cell disease."
         }
       ]
     },
@@ -194,6 +212,12 @@
           "text": "Autoantibodies blocking thyroid peroxidase-mediated iodination of thyroglobulin",
           "correct": false,
           "explanation": "Blocking thyroid hormone synthesis would tend to cause hypothyroidism, not diffuse hyperthyroidism with increased uptake."
+        },
+        {
+          "label": "E",
+          "text": "Somatic activating mutation of the TSH receptor in a solitary thyroid nodule",
+          "correct": false,
+          "explanation": "A toxic adenoma can produce hyperthyroidism, but uptake would be focal rather than diffusely increased. Graves disease is caused by receptor-stimulating autoantibodies affecting the gland diffusely."
         }
       ]
     },
@@ -243,6 +267,12 @@
           "text": "Failure of acetylcholinesterase synthesis causing persistent end-plate depolarization",
           "correct": false,
           "explanation": "Reduced acetylcholinesterase activity would prolong acetylcholine signaling and is not the autoimmune mechanism responsible for myasthenia gravis."
+        },
+        {
+          "label": "E",
+          "text": "Toxin-mediated inhibition of presynaptic acetylcholine release",
+          "correct": false,
+          "explanation": "Botulinum toxin prevents presynaptic acetylcholine release and can cause weakness, but it does not explain thymic hyperplasia, decremental response, and autoimmune postsynaptic acetylcholine receptor dysfunction."
         }
       ]
     },
@@ -292,6 +322,12 @@
           "text": "Unrestrained lipolysis with hepatic production of acetoacetate and beta-hydroxybutyrate",
           "correct": true,
           "explanation": "This is correct. Insulin deficiency permits adipose lipolysis, and the liver converts free fatty acids to acidic ketone bodies."
+        },
+        {
+          "label": "E",
+          "text": "Reduced renal ammonium generation causing retention of fixed acid",
+          "correct": false,
+          "explanation": "Reduced renal acid excretion can cause metabolic acidosis, but this patient has diabetic ketoacidosis from insulin deficiency with increased lipolysis and hepatic ketone body production."
         }
       ]
     },
@@ -341,6 +377,12 @@
           "text": "Osmotic retention of lactose due to isolated brush-border lactase deficiency",
           "correct": false,
           "explanation": "Lactase deficiency causes dairy-triggered osmotic diarrhea but does not cause dermatitis herpetiformis, anti-tTG antibodies, or diffuse villous atrophy."
+        },
+        {
+          "label": "E",
+          "text": "Immune complex deposition in intestinal submucosal vessels causing ischemic injury",
+          "correct": false,
+          "explanation": "Immune complex vasculitis is not the mechanism of celiac disease. Celiac disease is driven by an immune response to modified gliadin peptides with T-cell mediated villous injury."
         }
       ]
     },
@@ -390,6 +432,12 @@
           "text": "Increased conversion of phenylalanine to tyrosine due to excess phenylalanine hydroxylase activity",
           "correct": false,
           "explanation": "This pathway is unrelated to purine metabolism and would not explain urate crystals, hyperuricemia, dystonia, or self-injurious behavior."
+        },
+        {
+          "label": "E",
+          "text": "Adenosine deaminase deficiency causing toxic purine metabolites in lymphocytes",
+          "correct": false,
+          "explanation": "Adenosine deaminase deficiency causes severe combined immunodeficiency. Lesch-Nyhan syndrome is caused by HGPRT deficiency, impaired purine salvage, and increased uric acid production."
         }
       ]
     },
@@ -439,6 +487,12 @@
           "text": "Cigarette smoke-induced centriacinar emphysema from respiratory bronchiole injury",
           "correct": false,
           "explanation": "Smoking commonly causes upper-lobe centriacinar emphysema; this patient is a nonsmoker with basilar panacinar emphysema and liver inclusions."
+        },
+        {
+          "label": "E",
+          "text": "Silica-induced macrophage activation causing nodular pulmonary fibrosis",
+          "correct": false,
+          "explanation": "Silicosis causes upper-lobe nodular pulmonary fibrosis and increased tuberculosis risk. It does not cause basilar panacinar emphysema with PAS-positive diastase-resistant hepatocyte globules."
         }
       ]
     },
@@ -488,6 +542,12 @@
           "text": "Inhibition of carbonic anhydrase in the proximal tubule causing bicarbonaturia",
           "correct": false,
           "explanation": "Carbonic anhydrase inhibitors cause bicarbonate wasting and metabolic acidosis; they do not explain low urinary calcium with thiazide use."
+        },
+        {
+          "label": "E",
+          "text": "Increased paracellular calcium reabsorption from enhanced lumen-positive voltage in the thick ascending limb",
+          "correct": false,
+          "explanation": "A lumen-positive voltage in the thick ascending limb normally promotes paracellular calcium reabsorption, but thiazides act in the distal convoluted tubule by inhibiting the NaCl cotransporter and increasing transcellular calcium reabsorption."
         }
       ]
     }

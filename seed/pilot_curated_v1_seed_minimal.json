@@ -46,6 +46,12 @@
           "text": "Propranolol therapy",
           "correct": false,
           "explanation": "Beta-blockade does not improve mixing or oxygenation in TGA and may worsen hemodynamics in a critically ill neonate."
+        },
+        {
+          "label": "E",
+          "text": "Administration of supplemental oxygen alone",
+          "correct": false,
+          "explanation": "Supplemental oxygen may increase alveolar oxygen content, but in transposition of the great arteries the main problem is inadequate mixing between parallel circulations. Oxygen alone does not reopen the ductus arteriosus or correct the restrictive atrial-level mixing."
         }
       ]
     },
@@ -89,6 +95,12 @@
           "text": "Start labetalol alone as first-line preoperative therapy",
           "correct": false,
           "explanation": "Although labetalol has alpha and beta effects, standard pre-op preparation is reliable irreversible alpha blockade (e.g., phenoxybenzamine) first; beta blockade is secondary."
+        },
+        {
+          "label": "E",
+          "text": "Start metyrosine alone and proceed directly to surgery",
+          "correct": false,
+          "explanation": "Metyrosine can reduce catecholamine synthesis as an adjunct in selected patients, but it does not replace adequate preoperative alpha blockade. Proceeding without reliable alpha blockade risks severe intraoperative hypertension."
         }
       ]
     },
@@ -132,6 +144,12 @@
           "text": "FeNa > 2%",
           "correct": false,
           "explanation": "FeNa > 2% typically indicates intrinsic renal failure such as ATN due to inability to reabsorb sodium."
+        },
+        {
+          "label": "E",
+          "text": "Urine osmolality less than 350 mOsm/kg",
+          "correct": false,
+          "explanation": "Low urine osmolality suggests impaired tubular concentrating ability, as in acute tubular necrosis. In prerenal azotemia, intact tubules conserve water and usually produce concentrated urine."
         }
       ]
     },
@@ -175,6 +193,12 @@
           "text": "Inability to form granulomas via Th1 activation",
           "correct": false,
           "explanation": "Granuloma formation is important for intracellular organisms (e.g., mycobacteria) and does not explain failure to clear encapsulated extracellular bacteria."
+        },
+        {
+          "label": "E",
+          "text": "Defective terminal complement complex formation",
+          "correct": false,
+          "explanation": "Terminal complement deficiency increases susceptibility especially to Neisseria species. Broad susceptibility to encapsulated extracellular bacteria is more directly related to impaired opsonization and splenic clearance."
         }
       ]
     },
@@ -218,6 +242,12 @@
           "text": "Alpha-1 receptor blockade in vascular smooth muscle",
           "correct": false,
           "explanation": "Alpha-1 blockade leads to vasodilation and can cause orthostatic hypotension, not bronchospasm."
+        },
+        {
+          "label": "E",
+          "text": "Histamine H1 receptor blockade in airway mucosa",
+          "correct": false,
+          "explanation": "H1 receptor blockade would generally reduce allergic histamine-mediated symptoms rather than precipitate bronchospasm. The asthma exacerbation after migraine prophylaxis is best explained by beta-2 receptor blockade from a nonselective beta blocker."
         }
       ]
     },
@@ -261,6 +291,12 @@
           "text": "Markedly decreased 1,25-dihydroxyvitamin D",
           "correct": false,
           "explanation": "PTH increases 1Î±-hydroxylase activity, tending to increase rather than decrease 1,25-(OH)2 vitamin D."
+        },
+        {
+          "label": "E",
+          "text": "Elevated 25-hydroxyvitamin D with suppressed PTH",
+          "correct": false,
+          "explanation": "Vitamin D intoxication can cause hypercalcemia with suppressed PTH, but this patient's hypophosphatemia and kidney stones are most consistent with primary hyperparathyroidism, in which PTH is elevated."
         }
       ]
     },
@@ -304,6 +340,12 @@
           "text": "LDH-1 because it peaks early after myocardial necrosis",
           "correct": false,
           "explanation": "LDH-1 rises later and is historically used; it is not the most specific nor the best early marker compared with troponin."
+        },
+        {
+          "label": "E",
+          "text": "Aspartate aminotransferase because it is released during myocardial necrosis",
+          "correct": false,
+          "explanation": "AST can rise after myocardial injury but is nonspecific because it is also present in liver and skeletal muscle. Troponin I is more specific for cardiac muscle injury."
         }
       ]
     },
@@ -347,6 +389,12 @@
           "text": "Normal ferritin and normal TIBC with low MCV",
           "correct": false,
           "explanation": "Normal ferritin/TIBC does not fit iron deficiency; microcytosis with normal iron stores suggests other causes (e.g., thalassemia)."
+        },
+        {
+          "label": "E",
+          "text": "Low serum iron with decreased total iron-binding capacity",
+          "correct": false,
+          "explanation": "Low serum iron with decreased TIBC is more typical of anemia of chronic disease, in which inflammatory hepcidin signaling traps iron and reduces transferrin production. Iron deficiency usually has increased TIBC."
         }
       ]
     },
@@ -390,6 +438,12 @@
           "text": "Type IV hypersensitivity: T-cell mediated delayed response",
           "correct": false,
           "explanation": "Type IV is delayed and T-cell mediated (contact dermatitis, TB test), not antibody-mediated hemolysis with Coombs positivity."
+        },
+        {
+          "label": "E",
+          "text": "Immune complex deposition in small vessels with complement activation",
+          "correct": false,
+          "explanation": "Immune complex deposition is a type III hypersensitivity mechanism, such as serum sickness or some vasculitides. Direct Coombs-positive hemolysis is caused by antibodies binding red blood cell surface antigens, a type II reaction."
         }
       ]
     },
@@ -433,6 +487,12 @@
           "text": "Antigenic variation; Th1 granuloma formation is primary defense",
           "correct": false,
           "explanation": "Antigenic variation and granuloma formation are not central to pneumococcal clearance; opsonization and phagocytosis are key."
+        },
+        {
+          "label": "E",
+          "text": "M protein prevents complement deposition; hepatic Kupffer cells are the main defense",
+          "correct": false,
+          "explanation": "M protein is a virulence factor of Streptococcus pyogenes rather than Streptococcus pneumoniae. In asplenic patients, the key vulnerability is poor splenic clearance of encapsulated bacteria that normally depend on antibody and complement opsonization."
         }
       ]
     }
