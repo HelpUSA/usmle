@@ -1,0 +1,480 @@
+{
+  "source": "step2ck_curated_batch_002",
+  "exam": "step2ck",
+  "questions": [
+    {
+      "stem": "A 3-day-old boy is brought to the newborn clinic because his parents noticed yellowing of his eyes and skin. He was born at 38 weeks' gestation by spontaneous vaginal delivery after an uncomplicated pregnancy. Birth weight was 3.2 kg (7 lb 1 oz), and current weight is 2.9 kg (6 lb 6 oz). He is exclusively breastfed, and his mother says he feeds every 3 to 4 hours but often falls asleep at the breast. He has had two wet diapers and one dark stool during the past 24 hours. The mother is blood type O positive, and the infant is blood type A positive. Direct antiglobulin test is positive. Temperature is 37.0 C (98.6 F), pulse is 142/min, and respirations are 38/min. He is sleepy but arousable and has jaundice to the lower abdomen. Serum total bilirubin is elevated for age, and direct bilirubin is normal.",
+      "difficulty": "medium",
+      "prompt": "Which of the following is the most appropriate next step in management?",
+      "explanation_short": "This newborn has significant unconjugated hyperbilirubinemia with hemolysis risk and inadequate intake; management requires phototherapy when above the treatment threshold plus feeding support and close monitoring.",
+      "explanation_long": "This infant has early significant unconjugated hyperbilirubinemia with risk factors including isoimmune hemolysis and suboptimal breastfeeding intake with weight loss and low urine/stool output. Management is guided by hour-specific bilirubin thresholds and neurotoxicity risk factors. When the bilirubin is above the phototherapy threshold, intensive phototherapy should be started, and feeding support should be provided to improve intake and bilirubin elimination. Exchange transfusion is reserved for more severe hyperbilirubinemia or signs of acute bilirubin encephalopathy.",
+      "bibliography": [
+        {
+          "title": "Clinical Practice Guideline Revision: Management of Hyperbilirubinemia in the Newborn Infant 35 or More Weeks of Gestation",
+          "source": "American Academy of Pediatrics",
+          "url": "https://publications.aap.org/pediatrics/article/150/3/e2022058859/188726/Clinical-Practice-Guideline-Revision-Management-of"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Reassure the parents that jaundice before 24 to 72 hours is always physiologic",
+          "correct": false,
+          "explanation": "Early or significant jaundice, especially with a positive direct antiglobulin test and poor intake, requires evaluation and treatment rather than reassurance alone."
+        },
+        {
+          "label": "B",
+          "text": "Start intensive phototherapy and provide breastfeeding support with close bilirubin monitoring",
+          "correct": true,
+          "explanation": "This is correct. The infant has significant unconjugated hyperbilirubinemia with hemolysis and inadequate intake; phototherapy and feeding support are appropriate when the level exceeds the treatment threshold."
+        },
+        {
+          "label": "C",
+          "text": "Start broad-spectrum antibiotics for presumed neonatal sepsis",
+          "correct": false,
+          "explanation": "The presentation is most consistent with unconjugated hyperbilirubinemia due to hemolysis and poor intake. He has no fever, respiratory distress, or other signs requiring empiric sepsis treatment."
+        },
+        {
+          "label": "D",
+          "text": "Perform immediate exchange transfusion regardless of bilirubin level or neurologic status",
+          "correct": false,
+          "explanation": "Exchange transfusion is reserved for severe hyperbilirubinemia near exchange thresholds or acute bilirubin encephalopathy, not all cases needing phototherapy."
+        },
+        {
+          "label": "E",
+          "text": "Stop breastfeeding permanently and switch to soy formula",
+          "correct": false,
+          "explanation": "Breastfeeding support is preferred. Permanent cessation is not indicated; supplementation may be considered depending on hydration and intake, but soy formula is not the primary treatment."
+        }
+      ]
+    },
+    {
+      "stem": "A 31-year-old woman is brought to the emergency department because of sudden severe lower abdominal pain and dizziness. Her last menstrual period was 7 weeks ago. She has had light vaginal spotting for 2 days and developed right shoulder pain while waiting in triage. Her history includes pelvic inflammatory disease at age 24 and a prior chlamydial infection. Temperature is 36.8 C (98.2 F), blood pressure is 82/48 mm Hg, pulse is 128/min, and respirations are 24/min. She appears pale and diaphoretic. Abdominal examination shows diffuse lower abdominal tenderness with guarding. Pelvic examination shows cervical motion tenderness and right adnexal tenderness. Urine pregnancy test is positive. Bedside transvaginal ultrasonography shows no intrauterine pregnancy and a moderate amount of free fluid in the pelvis.",
+      "difficulty": "hard",
+      "prompt": "Which of the following is the most appropriate next step in management?",
+      "explanation_short": "Hemodynamic instability with suspected ruptured ectopic pregnancy requires immediate surgical management after resuscitation.",
+      "explanation_long": "This patient has a positive pregnancy test, no intrauterine pregnancy on transvaginal ultrasound, adnexal pain, peritoneal signs, free pelvic fluid, hypotension, tachycardia, and shoulder pain, all concerning for ruptured ectopic pregnancy with intra-abdominal bleeding. Hemodynamically unstable ectopic pregnancy is a surgical emergency. Methotrexate is reserved for selected stable patients with nonruptured ectopic pregnancy.",
+      "bibliography": [
+        {
+          "title": "Tubal Ectopic Pregnancy",
+          "source": "American College of Obstetricians and Gynecologists",
+          "url": "https://www.acog.org/clinical/clinical-guidance/practice-bulletin/articles/2018/03/tubal-ectopic-pregnancy"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Administer methotrexate and discharge with serial hCG monitoring",
+          "correct": false,
+          "explanation": "Methotrexate is used only in selected hemodynamically stable patients with nonruptured ectopic pregnancy. This patient is unstable with signs of rupture."
+        },
+        {
+          "label": "B",
+          "text": "Repeat serum hCG in 48 hours before making a treatment decision",
+          "correct": false,
+          "explanation": "Serial hCG testing is inappropriate in an unstable patient with suspected ruptured ectopic pregnancy."
+        },
+        {
+          "label": "C",
+          "text": "Perform dilation and curettage to confirm failed intrauterine pregnancy",
+          "correct": false,
+          "explanation": "Dilation and curettage may be considered in selected stable diagnostic dilemmas, but this patient needs emergency treatment for suspected rupture."
+        },
+        {
+          "label": "D",
+          "text": "Begin resuscitation and proceed to urgent surgical management",
+          "correct": true,
+          "explanation": "This is correct. Hemodynamic instability and free pelvic fluid in early pregnancy strongly suggest ruptured ectopic pregnancy requiring urgent surgery."
+        },
+        {
+          "label": "E",
+          "text": "Treat empirically for pelvic inflammatory disease and observe overnight",
+          "correct": false,
+          "explanation": "Although she has risk factors for PID, the pregnancy test, free fluid, shock, and peritoneal findings point to ruptured ectopic pregnancy, not uncomplicated PID."
+        }
+      ]
+    },
+    {
+      "stem": "A 56-year-old man is brought to the emergency department because of fever, headache, and confusion that began earlier today. His wife says he was well yesterday but became progressively somnolent and complained that light hurt his eyes. He has type 2 diabetes mellitus and underwent splenectomy after a motor vehicle collision 15 years ago. Temperature is 39.4 C (102.9 F), blood pressure is 104/62 mm Hg, pulse is 116/min, and respirations are 22/min. He is disoriented and has nuchal rigidity. There is no papilledema or focal weakness. Blood glucose is 148 mg/dL. Blood cultures are obtained. The emergency department is busy, and the CT scanner is temporarily unavailable.",
+      "difficulty": "medium",
+      "prompt": "Which of the following is the most appropriate next step?",
+      "explanation_short": "Suspected bacterial meningitis requires immediate empiric antibiotics and adjunctive dexamethasone; treatment should not be delayed for imaging or lumbar puncture.",
+      "explanation_long": "This patient has fever, headache, altered mental status, photophobia, and nuchal rigidity, consistent with acute bacterial meningitis. Blood cultures should be obtained promptly, but empiric therapy and dexamethasone should not be delayed for CT or lumbar puncture when access is delayed. In an older adult, empiric coverage should include vancomycin, ceftriaxone or cefotaxime, and ampicillin to cover Listeria.",
+      "bibliography": [
+        {
+          "title": "Bacterial Meningitis",
+          "source": "Infectious Diseases Society of America",
+          "url": "https://www.idsociety.org/practice-guideline/bacterial-meningitis/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Start empiric vancomycin, ceftriaxone, ampicillin, and dexamethasone immediately",
+          "correct": true,
+          "explanation": "This is correct. Suspected bacterial meningitis requires immediate empiric treatment, including Listeria coverage in older adults, with dexamethasone given before or with antibiotics."
+        },
+        {
+          "label": "B",
+          "text": "Wait for CT before giving any antibiotics",
+          "correct": false,
+          "explanation": "Antibiotic delay worsens outcomes. If imaging or lumbar puncture is delayed, empiric therapy should begin after blood cultures are obtained."
+        },
+        {
+          "label": "C",
+          "text": "Give acyclovir alone for presumed viral encephalitis",
+          "correct": false,
+          "explanation": "Acyclovir may be added if encephalitis is suspected, but this presentation requires bacterial meningitis coverage, not antiviral monotherapy."
+        },
+        {
+          "label": "D",
+          "text": "Discharge with oral amoxicillin-clavulanate",
+          "correct": false,
+          "explanation": "This is a life-threatening central nervous system infection requiring inpatient intravenous therapy."
+        },
+        {
+          "label": "E",
+          "text": "Perform lumbar puncture in 24 hours and treat only if cerebrospinal fluid culture is positive",
+          "correct": false,
+          "explanation": "Treatment cannot wait for CSF culture confirmation in suspected bacterial meningitis."
+        }
+      ]
+    },
+    {
+      "stem": "A 27-year-old woman has heavy vaginal bleeding 20 minutes after spontaneous vaginal delivery of a 4100-g (9 lb 1 oz) infant. The pregnancy was complicated by prolonged labor and chorioamnionitis treated with intrapartum antibiotics. The placenta delivered intact. She is awake but anxious. Blood pressure is 96/58 mm Hg, pulse is 118/min, and oxygen saturation is 98% on room air. The uterus is enlarged, soft, and boggy on abdominal examination. Inspection of the cervix and vagina shows no laceration. Estimated blood loss is 1100 mL. Two large-bore intravenous lines are placed, and blood is sent for type and crossmatch.",
+      "difficulty": "easy",
+      "prompt": "Which of the following is the most appropriate initial treatment?",
+      "explanation_short": "Postpartum hemorrhage due to uterine atony is initially managed with uterine massage and uterotonic therapy such as oxytocin, along with resuscitation.",
+      "explanation_long": "The most likely cause of postpartum hemorrhage in this patient is uterine atony, suggested by a soft, boggy uterus after delivery. Risk factors include prolonged labor, chorioamnionitis, and fetal macrosomia. Initial treatment includes uterine massage, oxytocin, and resuscitation with intravenous fluids and blood products as needed. Surgical interventions and intrauterine balloon tamponade are reserved for bleeding that does not respond to initial medical management.",
+      "bibliography": [
+        {
+          "title": "Postpartum Hemorrhage",
+          "source": "American College of Obstetricians and Gynecologists",
+          "url": "https://www.acog.org/clinical/clinical-guidance/practice-bulletin/articles/2017/10/postpartum-hemorrhage"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Immediate hysterectomy",
+          "correct": false,
+          "explanation": "Hysterectomy is reserved for severe hemorrhage refractory to medical and less invasive measures or specific causes such as placenta accreta spectrum."
+        },
+        {
+          "label": "B",
+          "text": "Observation because bleeding is expected after vaginal delivery",
+          "correct": false,
+          "explanation": "Estimated blood loss of 1100 mL with tachycardia and a boggy uterus is postpartum hemorrhage requiring immediate treatment."
+        },
+        {
+          "label": "C",
+          "text": "Magnesium sulfate infusion",
+          "correct": false,
+          "explanation": "Magnesium sulfate is used for seizure prophylaxis or treatment in preeclampsia/eclampsia, not for uterine atony."
+        },
+        {
+          "label": "D",
+          "text": "Methotrexate therapy",
+          "correct": false,
+          "explanation": "Methotrexate is used for selected ectopic pregnancies and has no role in acute postpartum hemorrhage."
+        },
+        {
+          "label": "E",
+          "text": "Uterine massage and oxytocin administration",
+          "correct": true,
+          "explanation": "This is correct. A boggy uterus indicates uterine atony, and first-line therapy includes uterine massage and oxytocin."
+        }
+      ]
+    },
+    {
+      "stem": "A 24-year-old pregnant woman at 18 weeks' gestation comes to clinic because she wants to stop using heroin. She has injected heroin daily for 2 years and last used 14 hours ago. She has rhinorrhea, yawning, abdominal cramping, and anxiety. She has no fever, suicidal ideation, or vaginal bleeding. Urine drug testing is positive for opioids and negative for benzodiazepines and cocaine. She says she has tried to quit by abruptly stopping several times, but each time withdrawal symptoms caused relapse within days. She is worried that any medication for opioid use disorder will harm the fetus and asks for the safest approach.",
+      "difficulty": "medium",
+      "prompt": "Which of the following is the most appropriate management?",
+      "explanation_short": "Pregnant patients with opioid use disorder should be offered medication treatment with methadone or buprenorphine rather than medically supervised withdrawal alone.",
+      "explanation_long": "Medication treatment for opioid use disorder is recommended in pregnancy because it reduces illicit opioid use, withdrawal cycles, overdose risk, and obstetric complications. Buprenorphine or methadone is preferred over abrupt discontinuation or detoxification alone, which has high relapse risk. Treatment should be combined with prenatal care, infectious disease screening, harm-reduction counseling, and behavioral support.",
+      "bibliography": [
+        {
+          "title": "Opioid Use and Opioid Use Disorder in Pregnancy",
+          "source": "American College of Obstetricians and Gynecologists",
+          "url": "https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/08/opioid-use-and-opioid-use-disorder-in-pregnancy"
+        },
+        {
+          "title": "Opioid Use Disorder: Treating",
+          "source": "Centers for Disease Control and Prevention",
+          "url": "https://www.cdc.gov/overdose-prevention/hcp/clinical-care/opioid-use-disorder-treating.html"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Abruptly stop all opioids without medication because agonist therapy is contraindicated in pregnancy",
+          "correct": false,
+          "explanation": "Abrupt cessation and withdrawal-only treatment have high relapse risk and are not preferred. Medication treatment is recommended in pregnancy."
+        },
+        {
+          "label": "B",
+          "text": "Prescribe naltrexone immediately while she is in active opioid withdrawal",
+          "correct": false,
+          "explanation": "Naltrexone can precipitate severe withdrawal if opioids are still present and is not the usual first-line initiation strategy for an actively opioid-dependent pregnant patient."
+        },
+        {
+          "label": "C",
+          "text": "Initiate or refer for buprenorphine or methadone treatment integrated with prenatal care",
+          "correct": true,
+          "explanation": "This is correct. Medication treatment with buprenorphine or methadone is recommended for opioid use disorder in pregnancy."
+        },
+        {
+          "label": "D",
+          "text": "Use benzodiazepines as primary therapy for opioid cravings",
+          "correct": false,
+          "explanation": "Benzodiazepines do not treat opioid use disorder and increase risks of sedation, dependence, and overdose, especially with opioids."
+        },
+        {
+          "label": "E",
+          "text": "Delay treatment until after delivery",
+          "correct": false,
+          "explanation": "Untreated opioid use disorder during pregnancy increases maternal and fetal risk; treatment should begin during pregnancy."
+        }
+      ]
+    },
+    {
+      "stem": "A 36-year-old woman comes for a preventive care visit. She has no medical problems, takes no medications, and has never had an abnormal cervical cancer screening result. She has had two lifetime sexual partners and is currently sexually active with her husband. She received the HPV vaccine series at age 22. She has no history of HIV infection, immunosuppression, diethylstilbestrol exposure, or cervical intraepithelial neoplasia. Her last cervical cytology and high-risk HPV cotest was negative 5 years ago. Pelvic examination is normal. She asks whether HPV vaccination means she no longer needs screening.",
+      "difficulty": "easy",
+      "prompt": "Which of the following is the most appropriate recommendation?",
+      "explanation_short": "Average-risk women aged 30 to 65 should continue routine cervical cancer screening even if vaccinated against HPV.",
+      "explanation_long": "HPV vaccination reduces cervical cancer risk but does not eliminate the need for screening. For average-risk women aged 30 to 65, acceptable screening strategies include high-risk HPV testing every 5 years, cytology every 3 years, or cotesting every 5 years. This patient is due for routine screening because her last cotest was 5 years ago.",
+      "bibliography": [
+        {
+          "title": "Recommendation: Cervical Cancer: Screening",
+          "source": "United States Preventive Services Task Force",
+          "url": "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/cervical-cancer-screening"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Stop all cervical cancer screening because she received HPV vaccination",
+          "correct": false,
+          "explanation": "HPV vaccination does not eliminate the need for routine screening in eligible patients."
+        },
+        {
+          "label": "B",
+          "text": "Perform annual colposcopy",
+          "correct": false,
+          "explanation": "Colposcopy is used for abnormal screening results or suspicious lesions, not routine screening in an average-risk patient with prior negative results."
+        },
+        {
+          "label": "C",
+          "text": "Screen only if she develops postcoital bleeding",
+          "correct": false,
+          "explanation": "Cervical cancer screening is preventive and should occur in asymptomatic eligible patients."
+        },
+        {
+          "label": "D",
+          "text": "Perform routine screening now with an accepted strategy such as high-risk HPV testing or cotesting",
+          "correct": true,
+          "explanation": "This is correct. She is 36 years old, average risk, and due for routine screening despite HPV vaccination."
+        },
+        {
+          "label": "E",
+          "text": "Defer screening until age 65 because her last cotest was negative",
+          "correct": false,
+          "explanation": "A negative cotest allows return to routine interval screening; it does not justify deferral until age 65."
+        }
+      ]
+    },
+    {
+      "stem": "A 7-month-old boy is brought to the emergency department in January because of cough, rhinorrhea, and noisy breathing for 2 days. He was born at term and has no chronic cardiopulmonary disease. He has been feeding less than usual but has had four wet diapers in the past 24 hours. Temperature is 37.9 C (100.2 F), pulse is 148/min, respirations are 46/min, and oxygen saturation is 95% on room air. Examination shows clear nasal discharge, diffuse expiratory wheezing, scattered crackles, and mild subcostal retractions. He is alert and consolable. A rapid viral test is positive for respiratory syncytial virus. His parents ask whether he needs antibiotics, steroids, or albuterol to recover faster.",
+      "difficulty": "medium",
+      "prompt": "Which of the following is the most appropriate management?",
+      "explanation_short": "Bronchiolitis in a stable infant is managed supportively with hydration and nasal suctioning; routine bronchodilators, corticosteroids, and antibiotics are not recommended.",
+      "explanation_long": "This infant has typical RSV bronchiolitis with mild work of breathing, adequate oxygen saturation, and no signs of bacterial infection or dehydration requiring admission. Management is supportive, including nasal suctioning, hydration support, monitoring, and caregiver education. Routine albuterol, systemic corticosteroids, and antibiotics do not improve outcomes in typical bronchiolitis.",
+      "bibliography": [
+        {
+          "title": "Clinical Practice Guideline: The Diagnosis, Management, and Prevention of Bronchiolitis",
+          "source": "American Academy of Pediatrics",
+          "url": "https://publications.aap.org/pediatrics/article/134/5/e1474/75848/Clinical-Practice-Guideline-The-Diagnosis"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Begin amoxicillin-clavulanate for presumed bacterial bronchitis",
+          "correct": false,
+          "explanation": "Typical viral bronchiolitis does not require antibiotics unless there is evidence of bacterial infection."
+        },
+        {
+          "label": "B",
+          "text": "Provide supportive care with nasal suctioning, hydration guidance, monitoring, and return precautions",
+          "correct": true,
+          "explanation": "This is correct. Stable bronchiolitis is treated supportively, not with routine bronchodilators, corticosteroids, or antibiotics."
+        },
+        {
+          "label": "C",
+          "text": "Give systemic corticosteroids routinely",
+          "correct": false,
+          "explanation": "Systemic corticosteroids are not recommended for routine treatment of typical bronchiolitis."
+        },
+        {
+          "label": "D",
+          "text": "Administer scheduled albuterol every 4 hours for 7 days",
+          "correct": false,
+          "explanation": "Routine albuterol is not recommended for bronchiolitis because it does not reliably improve clinically meaningful outcomes."
+        },
+        {
+          "label": "E",
+          "text": "Intubate immediately because wheezing in infancy always indicates impending respiratory failure",
+          "correct": false,
+          "explanation": "He has mild retractions, normal oxygen saturation, and preserved alertness. Immediate intubation is not indicated."
+        }
+      ]
+    },
+    {
+      "stem": "A 16-year-old girl is brought to the emergency department because of sudden severe right lower abdominal pain that began while she was at school. The pain is constant, radiates to the right flank, and is associated with nausea and two episodes of vomiting. She has never been sexually active. Menarche occurred at age 12, and her cycles are regular. Temperature is 37.2 C (99.0 F), blood pressure is 116/70 mm Hg, pulse is 104/min, and respirations are 18/min. Abdominal examination shows right lower quadrant tenderness without rebound. Pelvic ultrasonography shows an enlarged right ovary with peripheral follicles and decreased venous flow; the appendix is not visualized, and there is no free air. Urine pregnancy test is negative.",
+      "difficulty": "hard",
+      "prompt": "Which of the following is the most appropriate next step in management?",
+      "explanation_short": "Suspected ovarian torsion requires urgent diagnostic laparoscopy with detorsion to preserve ovarian function.",
+      "explanation_long": "This adolescent has acute unilateral pelvic pain, nausea/vomiting, tachycardia, and ultrasound findings concerning for ovarian torsion. Ovarian torsion is a surgical emergency because delayed treatment can compromise ovarian viability. Doppler flow may be present or absent, so clinical suspicion remains critical. The appropriate next step is urgent gynecologic surgical evaluation and diagnostic laparoscopy with detorsion when torsion is confirmed.",
+      "bibliography": [
+        {
+          "title": "Adnexal Torsion in Adolescents",
+          "source": "American College of Obstetricians and Gynecologists",
+          "url": "https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2019/08/adnexal-torsion-in-adolescents"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Urgent diagnostic laparoscopy with detorsion if confirmed",
+          "correct": true,
+          "explanation": "This is correct. Suspected ovarian torsion is a surgical emergency requiring prompt operative evaluation to preserve ovarian function."
+        },
+        {
+          "label": "B",
+          "text": "Discharge with nonsteroidal anti-inflammatory drugs and outpatient follow-up in 1 week",
+          "correct": false,
+          "explanation": "Delayed follow-up risks ovarian ischemia and necrosis if torsion is present."
+        },
+        {
+          "label": "C",
+          "text": "Begin methotrexate for presumed ectopic pregnancy",
+          "correct": false,
+          "explanation": "The pregnancy test is negative, and the ultrasound findings point to ovarian torsion, not ectopic pregnancy."
+        },
+        {
+          "label": "D",
+          "text": "Treat empirically for pelvic inflammatory disease",
+          "correct": false,
+          "explanation": "She has no sexual activity history, fever, mucopurulent discharge, or cervical motion tenderness; the acute presentation and ultrasound suggest torsion."
+        },
+        {
+          "label": "E",
+          "text": "Wait for MRI confirmation before consulting gynecology",
+          "correct": false,
+          "explanation": "Further imaging should not delay surgical evaluation when ovarian torsion is suspected."
+        }
+      ]
+    },
+    {
+      "stem": "A 42-year-old woman with acute myeloid leukemia is evaluated in the oncology infusion center 9 days after receiving induction chemotherapy. She reports chills and fatigue but no cough, dyspnea, dysuria, abdominal pain, or skin lesions. She has a tunneled central venous catheter without erythema or tenderness. Temperature is 38.6 C (101.5 F), blood pressure is 112/68 mm Hg, pulse is 108/min, respirations are 18/min, and oxygen saturation is 98% on room air. Laboratory studies show leukocyte count 600/mm3 with absolute neutrophil count 120/mm3, hemoglobin 8.1 g/dL, and platelet count 42,000/mm3. Blood cultures are obtained from the catheter and a peripheral vein. She appears clinically stable.",
+      "difficulty": "medium",
+      "prompt": "Which of the following is the most appropriate next step in management?",
+      "explanation_short": "High-risk febrile neutropenia requires prompt empiric intravenous antipseudomonal beta-lactam therapy even if no source is identified.",
+      "explanation_long": "This patient has fever and profound neutropenia after induction chemotherapy, which is a medical emergency. Initial therapy should include prompt empiric intravenous antipseudomonal coverage such as cefepime, piperacillin-tazobactam, or a carbapenem. Vancomycin is added only for specific indications such as catheter infection, skin/soft tissue infection, pneumonia, hemodynamic instability, or known resistant gram-positive infection.",
+      "bibliography": [
+        {
+          "title": "Neutropenic Patients with Cancer",
+          "source": "Infectious Diseases Society of America",
+          "url": "https://www.idsociety.org/practice-guideline/neutropenic-patients-with-cancer/"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Observe without antibiotics until cultures become positive",
+          "correct": false,
+          "explanation": "Febrile neutropenia requires immediate empiric therapy; waiting for positive cultures can be fatal."
+        },
+        {
+          "label": "B",
+          "text": "Give oral azithromycin alone",
+          "correct": false,
+          "explanation": "Azithromycin alone does not provide adequate antipseudomonal coverage for high-risk febrile neutropenia."
+        },
+        {
+          "label": "C",
+          "text": "Remove the central venous catheter immediately in all cases",
+          "correct": false,
+          "explanation": "Catheter removal is not automatic. It depends on suspected catheter infection, organism, persistence of bacteremia, or complications."
+        },
+        {
+          "label": "D",
+          "text": "Start antiviral therapy alone because viral infection is most likely after chemotherapy",
+          "correct": false,
+          "explanation": "Although viral infections can occur, empiric antibacterial antipseudomonal therapy is the priority in febrile neutropenia."
+        },
+        {
+          "label": "E",
+          "text": "Start intravenous cefepime promptly",
+          "correct": true,
+          "explanation": "This is correct. Cefepime is an appropriate empiric antipseudomonal beta-lactam for high-risk febrile neutropenia."
+        }
+      ]
+    },
+    {
+      "stem": "A 32-year-old woman comes to the emergency department because of a wrist injury. She says she fell down the stairs, but her explanation changes several times during the interview. Her husband answers most questions for her and repeatedly says they need to leave quickly. The patient avoids eye contact and appears anxious. Examination shows bruises on both upper arms in the shape of finger marks and an older yellow-green bruise on the left thigh. Radiographs show a nondisplaced distal radius fracture. She is not pregnant and has no cognitive impairment. When the clinician asks the husband to step out, he refuses and says, \"We do not keep secrets from each other.\"",
+      "difficulty": "hard",
+      "prompt": "Which of the following is the most appropriate next step?",
+      "explanation_short": "Suspected intimate partner violence should be addressed by interviewing the patient privately, assessing immediate safety, validating concerns, and offering resources.",
+      "explanation_long": "This patient has injuries and interaction patterns concerning for intimate partner violence. The clinician should create an opportunity to speak with her alone in a safe, nonjudgmental manner, assess immediate danger, provide support and resources, and document findings carefully. Confronting the partner or forcing disclosure can increase danger. Mandatory reporting requirements vary by jurisdiction and injury type, but the immediate clinical step is private assessment and safety planning.",
+      "bibliography": [
+        {
+          "title": "Intimate Partner Violence",
+          "source": "American College of Obstetricians and Gynecologists",
+          "url": "https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2012/02/intimate-partner-violence"
+        },
+        {
+          "title": "Screening for Intimate Partner Violence and Caregiver Abuse of Older or Vulnerable Adults",
+          "source": "United States Preventive Services Task Force",
+          "url": "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/intimate-partner-violence-and-abuse-of-elderly-and-vulnerable-adults-screening"
+        }
+      ],
+      "choices": [
+        {
+          "label": "A",
+          "text": "Ask the husband directly whether he assaulted her",
+          "correct": false,
+          "explanation": "Confronting the suspected abuser can escalate danger and may prevent the patient from disclosing safely."
+        },
+        {
+          "label": "B",
+          "text": "Document only the fracture because questions about home safety are outside medical care",
+          "correct": false,
+          "explanation": "Assessing safety and intimate partner violence is part of appropriate medical care when concerning signs are present."
+        },
+        {
+          "label": "C",
+          "text": "Arrange to interview the patient alone, assess safety, validate concerns, and offer resources",
+          "correct": true,
+          "explanation": "This is correct. Private, trauma-informed assessment is the appropriate next step when intimate partner violence is suspected."
+        },
+        {
+          "label": "D",
+          "text": "Insist that she leave her husband immediately before treating the fracture",
+          "correct": false,
+          "explanation": "Forcing a specific action can increase danger and undermine autonomy. The clinician should assess safety, provide resources, and support patient-centered planning."
+        },
+        {
+          "label": "E",
+          "text": "Ask about intimate partner violence only if she spontaneously mentions abuse",
+          "correct": false,
+          "explanation": "Patients may not disclose abuse spontaneously, especially when the partner is present. Clinicians should ask privately when warning signs are present."
+        }
+      ]
+    }
+  ],
+  "chunkSize": 10,
+  "requireExactlyTen": true,
+  "requireBibliography": true,
+  "allowSeedDevSource": false
+}
