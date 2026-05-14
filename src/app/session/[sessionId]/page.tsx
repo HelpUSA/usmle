@@ -66,6 +66,12 @@ type SessionSummary = {
     review_strategy?: "immediate" | "deferred";
     timer_visible?: boolean;
     mode_semantics?: string;
+    exam_format_version?: "legacy" | "usmle_2026_new_software";
+    block_size?: number | null;
+    block_minutes?: number | null;
+    pacing_target_seconds_per_item?: number | null;
+    flag_warning_threshold?: number | null;
+    implementation_phase?: "current" | "planned";
   } | null;
   started_at?: string;
   submitted_at?: string | null;
@@ -228,6 +234,111 @@ function isPlayableStatus(status?: SessionStatus | null): boolean {
   return status === "in_progress";
 }
 
+function examLabel(exam?: string | null): string {
+  switch (exam) {
+    case "step1":
+      return "Step 1";
+    case "step2ck":
+      return "Step 2 CK";
+    case "step3":
+      return "Step 3";
+    default:
+      return "USMLE";
+  }
+}
+
+function getSessionBlockSize(
+  sessionMeta: SessionSummary | null,
+  itemCount: number
+): number | null {
+  const configured = sessionMeta?.settings_json?.block_size;
+
+  if (typeof configured === "number" && configured > 0) {
+    return configured;
+  }
+
+  if (sessionMeta?.mode === "timed_block" || sessionMeta?.mode === "exam_sim") {
+    return 20;
+  }
+
+  return itemCount > 0 ? itemCount : null;
+}
+
+function getSessionBlockMinutes(sessionMeta: SessionSummary | null): number | null {
+  const configured = sessionMeta?.settings_json?.block_minutes;
+
+  if (typeof configured === "number" && configured > 0) {
+    return configured;
+  }
+
+  if (sessionMeta?.mode === "timed_block" || sessionMeta?.mode === "exam_sim") {
+    return 30;
+  }
+
+  return null;
+}
+
+function getFormatProfileLabel(sessionMeta: SessionSummary | null): string {
+  if (sessionMeta?.settings_json?.exam_format_version === "usmle_2026_new_software") {
+    return "USMLE 2026 format";
+  }
+
+  if (sessionMeta?.mode === "timed_block" || sessionMeta?.mode === "exam_sim") {
+    return "Official-format block";
+  }
+
+  return "Practice mode";
+}
+
+function SimulatorMetric(props: {
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  const { label, value, detail } = props;
+
+  return (
+    <div
+      style={{
+        padding: 12,
+        borderRadius: 14,
+        border: "1px solid #bfdbfe",
+        background: "rgba(255,255,255,0.78)",
+        minWidth: 0,
+      }}
+    >
+      <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800 }}>
+        {label}
+      </div>
+
+      <div
+        style={{
+          marginTop: 4,
+          fontSize: 18,
+          lineHeight: 1.1,
+          fontWeight: 950,
+          color: "#0f172a",
+          wordBreak: "break-word",
+        }}
+      >
+        {value}
+      </div>
+
+      <div
+        style={{
+          marginTop: 5,
+          fontSize: 11,
+          color: "#64748b",
+          lineHeight: 1.35,
+          wordBreak: "break-word",
+        }}
+      >
+        {detail}
+      </div>
+    </div>
+  );
+}
+
 function AreaBadges({ areas }: { areas: MedicalArea[] }) {
   if (!areas.length) return null;
 
@@ -300,6 +411,12 @@ export default function SessionPage({
 
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [autoSubmitting, setAutoSubmitting] = useState(false);
+  const [answeredPositions, setAnsweredPositions] = useState<Set<number>>(
+    () => new Set()
+  );
+  const [flaggedPositions, setFlaggedPositions] = useState<Set<number>>(
+    () => new Set()
+  );
 
   const autoSubmitTriggeredRef = useRef(false);
   const intentionalNavigationRef = useRef(false);
@@ -543,6 +660,8 @@ export default function SessionPage({
 
       setItems(sortedItems);
       setIdx(0);
+      setAnsweredPositions(new Set());
+      setFlaggedPositions(new Set());
     } catch (error) {
       setErr(getErrorMessage(error, "Failed to load session items"));
       setItems([]);
@@ -670,6 +789,12 @@ export default function SessionPage({
         }
       );
 
+      setAnsweredPositions((previous) => {
+        const next = new Set(previous);
+        next.add(current.position);
+        return next;
+      });
+
       if (showImmediateFeedback) {
         setFeedback(attemptFeedback ?? null);
         setSubmitted(true);
@@ -768,6 +893,31 @@ export default function SessionPage({
   const canSubmitChoice =
     sessionIsInProgress &&
     (Boolean(selected) || (showImmediateFeedback && submitted));
+
+  const blockSize = getSessionBlockSize(sessionMeta, items.length);
+  const blockMinutes = getSessionBlockMinutes(sessionMeta);
+  const currentPosition = items.length ? idx + 1 : null;
+  const positionInBlock =
+    currentPosition && blockSize ? ((currentPosition - 1) % blockSize) + 1 : currentPosition;
+  const currentBlock =
+    currentPosition && blockSize ? Math.floor((currentPosition - 1) / blockSize) + 1 : 1;
+  const totalBlocks =
+    blockSize && items.length ? Math.max(1, Math.ceil(items.length / blockSize)) : 1;
+  const formatProfileLabel = getFormatProfileLabel(sessionMeta);
+  const answeredCount = answeredPositions.size;
+  const flaggedCount = flaggedPositions.size;
+  const isCurrentFlagged = current ? flaggedPositions.has(current.position) : false;
+  const pacingTarget =
+    sessionMeta?.settings_json?.pacing_target_seconds_per_item ??
+    (isTimedMode ? 90 : null);
+  const flagWarningThreshold =
+    sessionMeta?.settings_json?.flag_warning_threshold ?? 5;
+  const pacingLabel =
+    pacingTarget && blockMinutes
+      ? `${pacingTarget}s/question target`
+      : isTimedMode
+      ? "Timed pacing"
+      : "Untimed practice";
 
   return (
     <main
@@ -902,6 +1052,74 @@ export default function SessionPage({
         </div>
       </div>
 
+      <section
+        style={{
+          marginTop: 14,
+          padding: 14,
+          borderRadius: 18,
+          border: "1px solid #dbeafe",
+          background: "linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)",
+          display: "grid",
+          gap: 12,
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gap: 10,
+            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+          }}
+        >
+          <SimulatorMetric
+            label="Exam"
+            value={examLabel(sessionMeta?.exam)}
+            detail={formatProfileLabel}
+          />
+
+          <SimulatorMetric
+            label="Block"
+            value={`${currentBlock}/${totalBlocks}`}
+            detail={
+              blockSize && blockMinutes
+                ? `${blockSize}q · ${blockMinutes} min`
+                : "Practice set"
+            }
+          />
+
+          <SimulatorMetric
+            label="Question"
+            value={
+              currentPosition
+                ? `${positionInBlock ?? currentPosition}/${blockSize ?? items.length}`
+                : "?/?"
+            }
+            detail={items.length ? `${currentPosition ?? "?"}/${items.length} total` : "Loading"}
+          />
+
+          <SimulatorMetric
+            label="Answered"
+            value={`${answeredCount}/${items.length || "?"}`}
+            detail={showImmediateFeedback ? "Immediate review" : "Deferred review"}
+          />
+
+          <SimulatorMetric
+            label="Flagged"
+            value={`${flaggedCount}`}
+            detail={
+              flaggedCount >= flagWarningThreshold
+                ? "High flag load"
+                : `Warning at ${flagWarningThreshold}`
+            }
+          />
+
+          <SimulatorMetric
+            label="Pacing"
+            value={isTimedMode ? "Active" : "Off"}
+            detail={pacingLabel}
+          />
+        </div>
+      </section>
+
       {err && <p style={{ color: "crimson", marginTop: 12 }}>Error: {err}</p>}
 
       {sessionIsSubmitted ? (
@@ -991,6 +1209,126 @@ export default function SessionPage({
         <p style={{ marginTop: 16 }}>Loading question…</p>
       ) : (
         <div style={{ marginTop: 16 }}>
+          <div
+            style={{
+              marginBottom: 14,
+              padding: 12,
+              borderRadius: 16,
+              border: "1px solid #e5e7eb",
+              background: "#fcfcfd",
+              display: "grid",
+              gap: 10,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 10,
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ fontWeight: 900 }}>
+                Question navigator
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!current) return;
+
+                  setFlaggedPositions((previous) => {
+                    const next = new Set(previous);
+
+                    if (next.has(current.position)) {
+                      next.delete(current.position);
+                    } else {
+                      next.add(current.position);
+                    }
+
+                    return next;
+                  });
+                }}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 999,
+                  border: isCurrentFlagged ? "1px solid #f59e0b" : "1px solid #d1d5db",
+                  background: isCurrentFlagged ? "#fffbeb" : "white",
+                  color: isCurrentFlagged ? "#92400e" : "#374151",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 850,
+                }}
+              >
+                {isCurrentFlagged ? "Unflag question" : "Flag for review"}
+              </button>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 6,
+                overflowX: "auto",
+                paddingBottom: 2,
+              }}
+            >
+              {items.map((item) => {
+                const isActive = item.position === current.position;
+                const isAnswered = answeredPositions.has(item.position);
+                const isFlagged = flaggedPositions.has(item.position);
+
+                return (
+                  <button
+                    key={item.session_item_id}
+                    type="button"
+                    onClick={() => {
+                      if (!isBusy) {
+                        setIdx(item.position - 1);
+                      }
+                    }}
+                    disabled={isBusy}
+                    title={`Question ${item.position}${isFlagged ? " · flagged" : ""}`}
+                    style={{
+                      minWidth: 34,
+                      height: 34,
+                      borderRadius: 999,
+                      border: isActive
+                        ? "2px solid #2563eb"
+                        : isFlagged
+                        ? "1px solid #f59e0b"
+                        : "1px solid #d1d5db",
+                      background: isActive
+                        ? "#eff6ff"
+                        : isAnswered
+                        ? "#ecfdf5"
+                        : isFlagged
+                        ? "#fffbeb"
+                        : "white",
+                      color: isActive
+                        ? "#1d4ed8"
+                        : isAnswered
+                        ? "#047857"
+                        : isFlagged
+                        ? "#92400e"
+                        : "#374151",
+                      cursor: isBusy ? "not-allowed" : "pointer",
+                      fontSize: 12,
+                      fontWeight: 900,
+                      flex: "0 0 auto",
+                    }}
+                  >
+                    {item.position}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>
+              Local navigator status: answered and flagged markers help with test-day rhythm. Persistent flag analytics will be added in the database phase.
+            </div>
+          </div>
+
           <AreaBadges areas={q.question.areas ?? []} />
 
           <p
