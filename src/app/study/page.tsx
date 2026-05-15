@@ -626,6 +626,12 @@ export default function StudyPage() {
     stats && stats.overall.flagged > 0
       ? `${stats.overall.flagged} flagged`
       : "Clear";
+  const reviewActionLabel =
+    stats && stats.overall.flagged > 0 ? "Review flags" : "Open progress";
+  const reviewActionHint =
+    stats && stats.overall.flagged > 0
+      ? "Use Progress to prioritize flagged questions."
+      : "Track accuracy, timing, and completed sessions.";
 
   return (
     <main
@@ -948,6 +954,22 @@ export default function StudyPage() {
                 {loading ? "Starting..." : momentumActionLabel}
               </button>
 
+              <button
+                type="button"
+                onClick={() => router.push("/progress")}
+                style={{
+                  border: "1px solid rgba(37, 99, 235, 0.22)",
+                  borderRadius: 999,
+                  padding: "11px 16px",
+                  fontWeight: 950,
+                  color: "#1d4ed8",
+                  background: "rgba(239, 246, 255, 0.95)",
+                  cursor: "pointer",
+                }}
+              >
+                {reviewActionLabel}
+              </button>
+
               <div
                 style={{
                   color: "#475569",
@@ -957,6 +979,8 @@ export default function StudyPage() {
                 }}
               >
                 Momentum action: {momentumHeadline}
+                <br />
+                Review action: {reviewActionHint}
               </div>
             </div>
           </section>
