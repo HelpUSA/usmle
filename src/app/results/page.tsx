@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: src/app/results/page.tsx
  *
  * Responsibility:
@@ -87,12 +87,12 @@ function modeLabel(mode?: string | null): string {
 }
 
 function formatDateTime(value?: string | null): string {
-  if (!value) return "—";
+  if (!value) return "-";
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return "—";
+    return "-";
   }
 
   return date.toLocaleString();
@@ -132,7 +132,6 @@ function statusBorderColor(status?: string | null): string {
   return "#e5e7eb";
 }
 
-
 function toNumber(value: unknown): number {
   const numeric = Number(value ?? 0);
 
@@ -157,7 +156,7 @@ function formatSecondsPerQuestion(value?: number | string | null): string {
   const numeric = toNumber(value);
 
   if (numeric <= 0) {
-    return "—";
+    return "-";
   }
 
   return `${Math.round(numeric)} sec/q`;
@@ -222,7 +221,8 @@ export default function ResultsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const isAuthLoading = sessionStatus === "loading";
-  const isSignedIn = sessionStatus === "authenticated" && !!session?.user?.email;
+  const isSignedIn =
+    sessionStatus === "authenticated" && !!session?.user?.email;
 
   const loadSessions = useCallback(async () => {
     if (isAuthLoading) {
@@ -258,11 +258,11 @@ export default function ResultsPage() {
     return [...sessions].sort((a, b) => {
       const aTime = Math.max(
         getComparableTime(a.submitted_at),
-        getComparableTime(a.started_at)
+        getComparableTime(a.started_at),
       );
       const bTime = Math.max(
         getComparableTime(b.submitted_at),
-        getComparableTime(b.started_at)
+        getComparableTime(b.started_at),
       );
 
       return bTime - aTime;
@@ -283,28 +283,29 @@ export default function ResultsPage() {
 
   const totalSessions = sessions.length;
   const completedSessions = sessions.filter(
-    (sessionItem) => sessionItem.status === "submitted"
+    (sessionItem) => sessionItem.status === "submitted",
   ).length;
   const inProgressSessions = sessions.filter(
-    (sessionItem) => sessionItem.status === "in_progress"
+    (sessionItem) => sessionItem.status === "in_progress",
   ).length;
   const abandonedSessions = sessions.filter(
-    (sessionItem) => sessionItem.status === "abandoned"
+    (sessionItem) => sessionItem.status === "abandoned",
   ).length;
 
   const latestOpenSession = useMemo(
     () =>
       sortedSessions.find(
-        (sessionItem) => sessionItem.status === "in_progress"
+        (sessionItem) => sessionItem.status === "in_progress",
       ) ?? null,
-    [sortedSessions]
+    [sortedSessions],
   );
 
   const latestCompletedSession = useMemo(
     () =>
-      sortedSessions.find((sessionItem) => sessionItem.status === "submitted") ??
-      null,
-    [sortedSessions]
+      sortedSessions.find(
+        (sessionItem) => sessionItem.status === "submitted",
+      ) ?? null,
+    [sortedSessions],
   );
 
   return (
@@ -326,10 +327,10 @@ export default function ResultsPage() {
       >
         <div style={{ fontSize: 12, color: "#6b7280" }}>
           {isAuthLoading
-            ? "Loading session…"
+            ? "Loading session..."
             : isSignedIn
-            ? `Signed in as ${session?.user?.email}`
-            : "Not signed in"}
+              ? `Signed in as ${session?.user?.email}`
+              : "Not signed in"}
         </div>
 
         <h1
@@ -366,7 +367,7 @@ export default function ResultsPage() {
             background: "white",
           }}
         >
-          Loading your account…
+          Loading your account...
         </section>
       ) : !isSignedIn ? (
         <section
@@ -482,9 +483,7 @@ export default function ResultsPage() {
                 flexWrap: "wrap",
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 20 }}>
-                Quick actions
-              </div>
+              <div style={{ fontWeight: 900, fontSize: 20 }}>Quick actions</div>
 
               <button
                 type="button"
@@ -492,7 +491,7 @@ export default function ResultsPage() {
                 disabled={loading}
                 style={buttonStyle(loading)}
               >
-                {loading ? "Refreshing…" : "Refresh"}
+                {loading ? "Refreshing..." : "Refresh"}
               </button>
             </div>
 
@@ -536,7 +535,7 @@ export default function ResultsPage() {
                   type="button"
                   onClick={() =>
                     router.push(
-                      `/session/${latestCompletedSession.session_id}/review`
+                      `/session/${latestCompletedSession.session_id}/review`,
                     )
                   }
                   style={{
@@ -641,13 +640,13 @@ export default function ResultsPage() {
                 }}
               >
                 {loading
-                  ? "Loading your history…"
+                  ? "Loading your history..."
                   : `${filteredSessions.length} session(s) match the current filters.`}
               </div>
             </div>
 
             {loading ? (
-              <p style={{ margin: 0, color: "#555" }}>Loading results…</p>
+              <p style={{ margin: 0, color: "#555" }}>Loading results...</p>
             ) : filteredSessions.length === 0 ? (
               <EmptyHistory
                 hasAnySession={sessions.length > 0}
@@ -673,14 +672,194 @@ export default function ResultsPage() {
           </section>
         </>
       )}
+
+      <section
+        style={{
+          marginTop: 24,
+          borderRadius: 28,
+          border: "1px solid rgba(37, 99, 235, 0.18)",
+          background:
+            "linear-gradient(135deg, rgba(239,246,255,0.96), rgba(250,245,255,0.94))",
+          boxShadow: "0 18px 45px rgba(15, 23, 42, 0.08)",
+          padding: 22,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
+          <div style={{ minWidth: 240, flex: "1 1 320px" }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                borderRadius: 999,
+                background: "rgba(37, 99, 235, 0.1)",
+                color: "#1d4ed8",
+                fontSize: 12,
+                fontWeight: 950,
+                padding: "6px 10px",
+                marginBottom: 10,
+              }}
+            >
+              Results-to-study loop
+            </div>
+
+            <h2
+              style={{
+                margin: 0,
+                color: "#0f172a",
+                fontSize: 26,
+                lineHeight: 1.1,
+                fontWeight: 950,
+              }}
+            >
+              Turn every result into the next block
+            </h2>
+
+            <p
+              style={{
+                margin: "10px 0 0",
+                color: "#475569",
+                lineHeight: 1.55,
+                maxWidth: 720,
+              }}
+            >
+              Use your latest outcomes as feedback: continue studying, inspect
+              progress, and keep each partial practice block connected to the
+              next action.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 10,
+              alignItems: "center",
+            }}
+          >
+            <a
+              href="/study"
+              style={{
+                borderRadius: 999,
+                padding: "11px 16px",
+                color: "white",
+                background:
+                  "linear-gradient(135deg, #0f172a 0%, #2563eb 55%, #7c3aed 100%)",
+                fontWeight: 950,
+                textDecoration: "none",
+                boxShadow: "0 14px 30px rgba(37,99,235,0.26)",
+              }}
+            >
+              Continue studying
+            </a>
+
+            <a
+              href="/progress"
+              style={{
+                borderRadius: 999,
+                padding: "11px 16px",
+                color: "#1d4ed8",
+                background: "rgba(255,255,255,0.86)",
+                border: "1px solid rgba(37, 99, 235, 0.22)",
+                fontWeight: 950,
+                textDecoration: "none",
+              }}
+            >
+              Open progress
+            </a>
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: 18,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.88)",
+              border: "1px solid rgba(148, 163, 184, 0.22)",
+              padding: 16,
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>
+              Study next
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                color: "#0f172a",
+                fontSize: 18,
+                fontWeight: 950,
+              }}
+            >
+              Start another focused block
+            </div>
+          </div>
+
+          <div
+            style={{
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.88)",
+              border: "1px solid rgba(148, 163, 184, 0.22)",
+              padding: 16,
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>
+              Review trends
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                color: "#0f172a",
+                fontSize: 18,
+                fontWeight: 950,
+              }}
+            >
+              Check accuracy and timing
+            </div>
+          </div>
+
+          <div
+            style={{
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.88)",
+              border: "1px solid rgba(148, 163, 184, 0.22)",
+              padding: 16,
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>
+              Simulation guardrail
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                color: "#0f172a",
+                fontSize: 18,
+                fontWeight: 950,
+              }}
+            >
+              Keep partial practice honest
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
 
-function EmptyHistory(props: {
-  hasAnySession: boolean;
-  onStart: () => void;
-}) {
+function EmptyHistory(props: { hasAnySession: boolean; onStart: () => void }) {
   const { hasAnySession, onStart } = props;
 
   return (
@@ -758,7 +937,7 @@ function SessionCard(props: {
               lineHeight: 1.5,
             }}
           >
-            Exam: {sessionItem.exam || "—"}
+            Exam: {sessionItem.exam || "-"}
           </div>
 
           <div
@@ -769,7 +948,10 @@ function SessionCard(props: {
               lineHeight: 1.5,
             }}
           >
-            Timing: {sessionItem.timed ? formatDuration(sessionItem.time_limit_seconds) : "Untimed"}
+            Timing:{" "}
+            {sessionItem.timed
+              ? formatDuration(sessionItem.time_limit_seconds)
+              : "Untimed"}
           </div>
 
           <div
@@ -864,7 +1046,6 @@ function SessionCard(props: {
   );
 }
 
-
 function MetricPill(props: { label: string; value: string }) {
   const { label, value } = props;
 
@@ -928,7 +1109,6 @@ function actionSubtextStyle(): CSSProperties {
     fontWeight: 600,
   };
 }
-
 
 function metricGridStyle(): CSSProperties {
   return {
