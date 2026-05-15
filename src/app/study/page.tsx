@@ -264,7 +264,7 @@ function modeLabel(mode?: string | null): string {
     case "timed_block":
       return "Timed block";
     case "exam_sim":
-      return "Exam simulation";
+      return "Partial simulation";
     default:
       return mode ?? "Unknown mode";
   }
@@ -325,11 +325,26 @@ function officialFormatSummary(exam: ExamType): string {
 function examSimulationDetail(exam: ExamType): string {
   switch (exam) {
     case "step1":
-      return "Official target: 14 x 20. Current safe preset: one 20-question block.";
+      return "Current: 1 x 20-question block / 30 min. Full Step 1 target: 14 x 20, locked until the pool expands.";
     case "step2ck":
-      return "Official target: 16 blocks of 18-20. Current safe preset: one 20-question block.";
+      return "Current: 1 x 20-question block / 30 min. Full Step 2 CK target: 16 timed blocks, locked until the pool expands.";
     case "step3":
-      return "Official target: Day 1/Day 2 profiles. Current safe preset: one 20-question block.";
+      return "Current: 1 x 20-question block / 30 min. Full Step 3 Day 1/Day 2 plus CCS remains planned.";
+    default: {
+      const exhaustiveCheck: never = exam;
+      return exhaustiveCheck;
+    }
+  }
+}
+
+function simulationReadinessLabel(exam: ExamType): string {
+  switch (exam) {
+    case "step1":
+      return "Partial only; full-length Step 1 locked";
+    case "step2ck":
+      return "Partial only; full-length Step 2 CK locked";
+    case "step3":
+      return "Partial only; Step 3 CCS planned";
     default: {
       const exhaustiveCheck: never = exam;
       return exhaustiveCheck;
@@ -528,7 +543,7 @@ export default function StudyPage() {
             maxWidth: 760,
           }}
         >
-          Launch practice, timed blocks, or exam-style training using the newer USMLE block rhythm.
+          Launch practice, timed blocks, or a USMLE 2026 partial simulation using a 20-question, 30-minute block rhythm.
         </div>
       </section>
 
@@ -619,7 +634,7 @@ export default function StudyPage() {
                     lineHeight: 1.5,
                   }}
                 >
-                  Start with your preferred setup from Settings. Timed and simulation modes now use a 20-question official-format block preset.
+                  Start with your preferred setup from Settings. Timed mode and partial simulation both use a 20-question official-format block preset.
                 </div>
               </div>
 
@@ -662,6 +677,11 @@ export default function StudyPage() {
               <InfoCard
                 label="Timed block preset"
                 value="20 questions · 30 min"
+              />
+
+              <InfoCard
+                label="Simulation scope"
+                value={simulationReadinessLabel(userSettings.defaultExam)}
               />
 
               <InfoCard
@@ -890,7 +910,7 @@ export default function StudyPage() {
                   lineHeight: 1.5,
                 }}
               >
-                Choose the format that best matches your study goal. Timed modes are now aligned around 20-question, 30-minute blocks.
+                Choose the format that best matches your study goal. Exam simulation is intentionally partial for now: one official-format block, not a full-length exam.
               </div>
             </div>
 
@@ -926,8 +946,8 @@ export default function StudyPage() {
               />
 
               <StudyModeCard
-                title="Exam simulation"
-                description="Simulation-style flow with deferred review. This phase starts with one official-format block while full multi-block support is prepared."
+                title="USMLE 2026 partial simulation"
+                description="Simulation-style flow with deferred review: one 20-question, 30-minute official-format block. Full-length multi-block simulation stays locked until the question pool is large enough."
                 detail={examSimulationDetail(userSettings.defaultExam)}
                 isDefault={userSettings.defaultMode === "exam_sim"}
                 borderDefault="#fecaca"
