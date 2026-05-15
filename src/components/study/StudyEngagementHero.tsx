@@ -152,7 +152,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
         >
           <div>
             <div style={{ fontWeight: 950, color: "#0f172a" }}>
-              Today&apos;s mission
+              {"Today's mission"}
             </div>
             <div style={{ marginTop: 3, fontSize: 13, color: "#64748b" }}>
               {hasActiveSession
@@ -208,7 +208,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
           ? "Starting..."
           : hasActiveSession
             ? `Continue ${activeSessionLabel}`
-            : "Start today&apos;s block"}
+            : "Start today's block"}
       </button>
     </section>
   );
