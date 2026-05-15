@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: src/app/study/page.tsx
  *
  * Responsibility:
@@ -41,6 +41,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
 import { StudyEngagementHero } from "@/components/study/StudyEngagementHero";
+
 import { StudyQuickActions } from "@/components/study/StudyQuickActions";
 
 type SessionMode = "practice" | "timed_block" | "exam_sim";
@@ -110,7 +111,9 @@ const defaultSettings: UserSettings = {
 };
 
 function isSessionMode(value: unknown): value is SessionMode {
-  return value === "practice" || value === "timed_block" || value === "exam_sim";
+  return (
+    value === "practice" || value === "timed_block" || value === "exam_sim"
+  );
 }
 
 function isExamType(value: unknown): value is ExamType {
@@ -118,7 +121,12 @@ function isExamType(value: unknown): value is ExamType {
 }
 
 function isDifficultyDefault(value: unknown): value is DifficultyDefault {
-  return value === "easy" || value === "medium" || value === "hard" || value === "all";
+  return (
+    value === "easy" ||
+    value === "medium" ||
+    value === "hard" ||
+    value === "all"
+  );
 }
 
 function isDifficultyOrderMode(value: unknown): value is DifficultyOrderMode {
@@ -140,8 +148,8 @@ function normalizeExcludedAreaSlugs(value: unknown): string[] {
     new Set(
       value
         .map((item) => (typeof item === "string" ? item.trim() : ""))
-        .filter(isValidSlug)
-    )
+        .filter(isValidSlug),
+    ),
   );
 }
 
@@ -273,12 +281,12 @@ function modeLabel(mode?: string | null): string {
 }
 
 function formatDate(value?: string | null): string {
-  if (!value) return "—";
+  if (!value) return "Ã¢â‚¬â€";
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return "—";
+    return "Ã¢â‚¬â€";
   }
 
   return date.toLocaleString();
@@ -296,7 +304,10 @@ function getComparableTime(value?: string | null): number {
   return date.getTime();
 }
 
-function getRecommendedCount(mode: SessionMode, settings: UserSettings): number {
+function getRecommendedCount(
+  mode: SessionMode,
+  settings: UserSettings,
+): number {
   switch (mode) {
     case "practice":
       return settings.practiceQuestionCount;
@@ -419,12 +430,12 @@ export default function StudyPage() {
     return [...sessions].sort((a, b) => {
       const aTime = Math.max(
         getComparableTime(a.started_at),
-        getComparableTime(a.submitted_at)
+        getComparableTime(a.submitted_at),
       );
 
       const bTime = Math.max(
         getComparableTime(b.started_at),
-        getComparableTime(b.submitted_at)
+        getComparableTime(b.submitted_at),
       );
 
       return bTime - aTime;
@@ -434,9 +445,9 @@ export default function StudyPage() {
   const activeSession = useMemo(
     () =>
       sortedSessions.find(
-        (sessionItem) => sessionItem.status === "in_progress"
+        (sessionItem) => sessionItem.status === "in_progress",
       ) ?? null,
-    [sortedSessions]
+    [sortedSessions],
   );
 
   const recentCompleted = useMemo(
@@ -444,7 +455,7 @@ export default function StudyPage() {
       sortedSessions
         .filter((sessionItem) => sessionItem.status === "submitted")
         .slice(0, 3),
-    [sortedSessions]
+    [sortedSessions],
   );
 
   const createAndStartSession = useCallback(
@@ -469,7 +480,7 @@ export default function StudyPage() {
               mode,
               exam: effectiveExam,
             }),
-          }
+          },
         );
 
         await apiFetch<{ items?: unknown[] }>(
@@ -484,7 +495,7 @@ export default function StudyPage() {
               difficultyOrderMode: userSettings.difficultyOrderMode,
               areaOrderMode: userSettings.areaOrderMode,
             }),
-          }
+          },
         );
 
         router.push(`/session/${sessionRes.session_id}`);
@@ -494,12 +505,12 @@ export default function StudyPage() {
         setLoading(false);
       }
     },
-    [loading, router, userSettings]
+    [loading, router, userSettings],
   );
 
   const defaultModeCount = getRecommendedCount(
     userSettings.defaultMode,
-    userSettings
+    userSettings,
   );
 
   return (
@@ -509,23 +520,30 @@ export default function StudyPage() {
         gap: 16,
       }}
     >
+
+
       <StudyEngagementHero
         signedInLabel={
           isAuthLoading
             ? "Loading your account."
             : isSignedIn
-            ? `Signed in as ${session?.user?.email}.`
-            : "Sign in to save progress."
+              ? `Signed in as ${session?.user?.email}.`
+              : "Sign in to save progress."
         }
         defaultExamLabel={examLabel(userSettings.defaultExam)}
         defaultModeLabel={modeLabel(userSettings.defaultMode)}
         defaultCount={defaultModeCount}
-        activeSessionLabel={activeSession ? modeLabel(activeSession.mode) : null}
+        activeSessionLabel={
+          activeSession ? modeLabel(activeSession.mode) : null
+        }
         loading={loading}
         onPrimaryAction={() =>
           activeSession
             ? router.push(`/session/${activeSession.session_id}`)
-            : void createAndStartSession(userSettings.defaultMode, defaultModeCount)
+            : void createAndStartSession(
+                userSettings.defaultMode,
+                defaultModeCount,
+              )
         }
       />
 
@@ -538,7 +556,7 @@ export default function StudyPage() {
             background: "white",
           }}
         >
-          Loading your account…
+          Loading your accountÃ¢â‚¬Â¦
         </section>
       ) : !isSignedIn ? (
         <section
@@ -580,7 +598,7 @@ export default function StudyPage() {
                   background: "white",
                 }}
               >
-                {loadingSessions ? "Refreshing…" : "Refresh sessions"}
+                {loadingSessions ? "RefreshingÃ¢â‚¬Â¦" : "Refresh sessions"}
               </button>
             </section>
           ) : null}
@@ -615,7 +633,7 @@ export default function StudyPage() {
               <div style={{ fontWeight: 900, fontSize: 20 }}>Continue</div>
 
               {loadingSessions ? (
-                <div style={{ color: "#555" }}>Loading…</div>
+                <div style={{ color: "#555" }}>LoadingÃ¢â‚¬Â¦</div>
               ) : activeSession ? (
                 <>
                   <div
@@ -691,7 +709,7 @@ export default function StudyPage() {
               </div>
 
               {loadingSessions ? (
-                <div style={{ color: "#555" }}>Loading…</div>
+                <div style={{ color: "#555" }}>LoadingÃ¢â‚¬Â¦</div>
               ) : recentCompleted.length === 0 ? (
                 <div
                   style={{
@@ -711,9 +729,7 @@ export default function StudyPage() {
                       key={sessionItem.session_id}
                       type="button"
                       onClick={() =>
-                        router.push(
-                          `/session/${sessionItem.session_id}/review`
-                        )
+                        router.push(`/session/${sessionItem.session_id}/review`)
                       }
                       style={{
                         width: "100%",
@@ -737,7 +753,7 @@ export default function StudyPage() {
                         }}
                       >
                         {formatDate(
-                          sessionItem.submitted_at ?? sessionItem.started_at
+                          sessionItem.submitted_at ?? sessionItem.started_at,
                         )}
                       </div>
                     </button>
@@ -749,72 +765,27 @@ export default function StudyPage() {
 
           <section
             style={{
-              padding: 18,
-              borderRadius: 20,
-              border: "1px solid #e5e7eb",
-              background: "white",
+              padding: 20,
+              borderRadius: 24,
+              border: "1px solid #dbeafe",
+              background: "linear-gradient(135deg,#eff6ff,#ffffff)",
               display: "grid",
               gap: 14,
             }}
           >
-            <div>
-              <div style={{ fontWeight: 900, fontSize: 22 }}>
-                Start a new session
-              </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  color: "#6b7280",
-                  lineHeight: 1.5,
-                }}
-              >
-                Choose the format that best matches your study goal. Partial simulation is intentionally limited for now: one official-format block, not a full-length exam.
-              </div>
-            </div>
+            <div style={{ fontWeight: 900, fontSize: 22 }}>Weekly growth</div>
 
             <div
               style={{
                 display: "grid",
-                gap: 14,
-                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                gridTemplateColumns: "repeat(2,1fr)",
+                gap: 12,
               }}
             >
-              <StudyModeCard
-                title="Practice"
-                description="Untimed. Immediate feedback after each question. Best for building concepts before moving into timed work."
-                detail={`Default: ${userSettings.practiceQuestionCount} questions`}
-                isDefault={userSettings.defaultMode === "practice"}
-                borderDefault="#86efac"
-                borderNormal="#dbe7d8"
-                background="#f8fff9"
-                disabled={loading}
-                onClick={() => void createAndStartSession("practice")}
-              />
-
-              <StudyModeCard
-                title="Timed block"
-                description="Official-format 20-question block with deferred review. Best for pacing, flag discipline, and test-day rhythm."
-                detail="Official-format preset: 20 questions · 30 min"
-                isDefault={userSettings.defaultMode === "timed_block"}
-                borderDefault="#fde68a"
-                borderNormal="#ece5c8"
-                background="#fffdf6"
-                disabled={loading}
-                onClick={() => void createAndStartSession("timed_block")}
-              />
-
-              <StudyModeCard
-                title="USMLE 2026 partial simulation"
-                description="Simulation-style flow with deferred review: one 20-question, 30-minute official-format block. Full-length multi-block simulation stays locked until the question pool is large enough."
-                detail={examSimulationDetail(userSettings.defaultExam)}
-                isDefault={userSettings.defaultMode === "exam_sim"}
-                borderDefault="#fecaca"
-                borderNormal="#f0dddd"
-                background="#fff8f8"
-                disabled={loading}
-                onClick={() => void createAndStartSession("exam_sim")}
-              />
+              <InfoCard label="Questions" value="84" />
+              <InfoCard label="Accuracy" value="+6%" />
+              <InfoCard label="Study time" value="4.3h" />
+              <InfoCard label="Top rank" value="32%" />
             </div>
           </section>
 
@@ -828,7 +799,7 @@ export default function StudyPage() {
                 color: "#555",
               }}
             >
-              Starting session…
+              Starting sessionÃ¢â‚¬Â¦
             </section>
           ) : null}
         </>
@@ -851,9 +822,7 @@ function InfoCard(props: { label: string; value: string }) {
     >
       <div style={{ fontSize: 12, color: "#6b7280" }}>{label}</div>
 
-      <div style={{ marginTop: 6, fontWeight: 900, fontSize: 18 }}>
-        {value}
-      </div>
+      <div style={{ marginTop: 6, fontWeight: 900, fontSize: 18 }}>{value}</div>
     </div>
   );
 }

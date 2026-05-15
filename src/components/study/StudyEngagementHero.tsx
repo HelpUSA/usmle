@@ -20,7 +20,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
   } = props;
 
   const hasActiveSession = Boolean(activeSessionLabel);
-  const xpProgress = 68;
+  const missionProgress = hasActiveSession ? 72 : 18;
 
   return (
     <section
@@ -134,11 +134,15 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
               Today&apos;s mission
             </div>
             <div style={{ marginTop: 3, fontSize: 13, color: "#64748b" }}>
-              Complete one focused official-format block.
+              {hasActiveSession
+                ? `Continue your ${activeSessionLabel} run.`
+                : "Complete one focused official-format block."}
             </div>
           </div>
 
-          <div style={{ fontWeight: 950, color: "#1d4ed8" }}>14 / 20</div>
+          <div style={{ fontWeight: 950, color: "#1d4ed8" }}>
+            {hasActiveSession ? "Resume" : "0 / 20"}
+          </div>
         </div>
 
         <div
@@ -151,7 +155,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
         >
           <div
             style={{
-              width: `${xpProgress}%`,
+              width: `${missionProgress}%`,
               height: "100%",
               borderRadius: 999,
               background: "linear-gradient(90deg, #2563eb, #22c55e)",
@@ -182,8 +186,8 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
         {loading
           ? "Starting..."
           : hasActiveSession
-          ? `Continue ${activeSessionLabel}`
-          : "Start today's block"}
+            ? `Continue ${activeSessionLabel}`
+            : "Start today&apos;s block"}
       </button>
     </section>
   );
@@ -204,9 +208,7 @@ function MetricPill(props: { label: string; value: string; tone: string }) {
       <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800 }}>
         {label}
       </div>
-      <div style={{ marginTop: 5, fontWeight: 950, color: tone }}>
-        {value}
-      </div>
+      <div style={{ marginTop: 5, fontWeight: 950, color: tone }}>{value}</div>
     </div>
   );
 }
