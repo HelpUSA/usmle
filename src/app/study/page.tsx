@@ -40,6 +40,7 @@ import type { CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
+import { StudyEngagementHero } from "@/components/study/StudyEngagementHero";
 
 type SessionMode = "practice" | "timed_block" | "exam_sim";
 type ExamType = "step1" | "step2ck" | "step3";
@@ -507,45 +508,25 @@ export default function StudyPage() {
         gap: 16,
       }}
     >
-      <section
-        style={{
-          padding: 18,
-          borderRadius: 22,
-          border: "1px solid #e5e7eb",
-          background: "linear-gradient(135deg, #ffffff 0%, #f8fbff 100%)",
-          display: "grid",
-          gap: 10,
-        }}
-      >
-        <div style={{ fontSize: 12, color: "#6b7280" }}>
-          {isAuthLoading
-            ? "Loading session…"
+      <StudyEngagementHero
+        signedInLabel={
+          isAuthLoading
+            ? "Loading your account."
             : isSignedIn
-            ? `Signed in as ${session?.user?.email}`
-            : "Not signed in"}
-        </div>
-
-        <h1
-          style={{
-            margin: 0,
-            fontSize: 30,
-            lineHeight: 1.08,
-            fontWeight: 900,
-          }}
-        >
-          Study
-        </h1>
-
-        <div
-          style={{
-            color: "#4b5563",
-            lineHeight: 1.55,
-            maxWidth: 760,
-          }}
-        >
-          Launch practice, timed blocks, or a USMLE 2026 partial simulation using a 20-question, 30-minute block rhythm.
-        </div>
-      </section>
+            ? `Signed in as ${session?.user?.email}.`
+            : "Sign in to save progress."
+        }
+        defaultExamLabel={examLabel(userSettings.defaultExam)}
+        defaultModeLabel={modeLabel(userSettings.defaultMode)}
+        defaultCount={defaultModeCount}
+        activeSessionLabel={activeSession ? modeLabel(activeSession.mode) : null}
+        loading={loading}
+        onPrimaryAction={() =>
+          activeSession
+            ? router.push(`/session/${activeSession.session_id}`)
+            : void createAndStartSession(userSettings.defaultMode, defaultModeCount)
+        }
+      />
 
       {isAuthLoading ? (
         <section
