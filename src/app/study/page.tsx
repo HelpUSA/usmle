@@ -911,6 +911,54 @@ export default function StudyPage() {
               <InfoCard label="Next action" value={momentumActionLabel} />
               <InfoCard label="Review queue" value={reviewQueueLabel} />
             </div>
+
+            <div
+              style={{
+                marginTop: 16,
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  activeSession
+                    ? router.push(`/session/${activeSession.session_id}`)
+                    : void createAndStartSession(
+                        userSettings.defaultMode,
+                        defaultModeCount,
+                      )
+                }
+                disabled={loading}
+                style={{
+                  border: "none",
+                  borderRadius: 999,
+                  padding: "11px 16px",
+                  fontWeight: 950,
+                  color: "white",
+                  background:
+                    "linear-gradient(135deg, #0f172a 0%, #2563eb 55%, #7c3aed 100%)",
+                  boxShadow: "0 14px 30px rgba(37,99,235,0.28)",
+                  cursor: loading ? "wait" : "pointer",
+                  opacity: loading ? 0.68 : 1,
+                }}
+              >
+                {loading ? "Starting..." : momentumActionLabel}
+              </button>
+
+              <div
+                style={{
+                  color: "#475569",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  lineHeight: 1.45,
+                }}
+              >
+                Momentum action: {momentumHeadline}
+              </div>
+            </div>
           </section>
 
           {loading ? (
