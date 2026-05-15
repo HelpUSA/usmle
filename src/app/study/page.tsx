@@ -604,6 +604,28 @@ export default function StudyPage() {
   const missionProgressLabel = activeSession
     ? "Resume"
     : `${Math.min(weeklyAnswered, defaultModeCount)} / ${defaultModeCount}`;
+  const nextLevelRemaining =
+    weeklyAnswered > 0 && weeklyLevelProgressCurrent === 0
+      ? 0
+      : Math.max(defaultModeCount - weeklyLevelProgressCurrent, 0);
+  const momentumHeadline = activeSession
+    ? "Resume your active block to keep momentum."
+    : weeklyAnswered === 0
+      ? "Start one focused block to open your weekly momentum."
+      : nextLevelRemaining === 0
+        ? "Block complete. Start another block to extend momentum."
+        : `${nextLevelRemaining} questions to next level.`;
+  const momentumActionLabel = activeSession
+    ? `Resume ${modeLabel(activeSession.mode)}`
+    : weeklyAnswered === 0
+      ? "Start now"
+      : nextLevelRemaining === 0
+        ? "Next block"
+        : "Continue";
+  const reviewQueueLabel =
+    stats && stats.overall.flagged > 0
+      ? `${stats.overall.flagged} flagged`
+      : "Clear";
 
   return (
     <main
@@ -871,10 +893,14 @@ export default function StudyPage() {
           >
             <div style={{ fontWeight: 900, fontSize: 22 }}>Weekly growth</div>
 
+            <div style={{ marginTop: -6, color: "#475569", lineHeight: 1.5 }}>
+              {momentumHeadline}
+            </div>
+
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(2,1fr)",
+                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
                 gap: 12,
               }}
             >
@@ -882,6 +908,8 @@ export default function StudyPage() {
               <InfoCard label="Accuracy" value={weeklyAccuracyLabel} />
               <InfoCard label="Study time" value={weeklyStudyTimeLabel} />
               <InfoCard label="Flags" value={weeklyFlaggedLabel} />
+              <InfoCard label="Next action" value={momentumActionLabel} />
+              <InfoCard label="Review queue" value={reviewQueueLabel} />
             </div>
           </section>
 
