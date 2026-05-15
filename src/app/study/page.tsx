@@ -7,7 +7,7 @@
  *   - resume the latest open session;
  *   - start Practice;
  *   - start Timed block;
- *   - start Exam simulation;
+ *   - start partial simulation;
  *   - start a session using local Settings defaults;
  *   - open recently completed reviews.
  *
@@ -29,7 +29,7 @@
  * UX strategy:
  * - Mobile-first.
  * - Large cards for primary study actions.
- * - Clear distinction between Practice, Timed block, and Exam simulation.
+ * - Clear distinction between Practice, Timed block, and Partial simulation.
  * - Local Settings are read from localStorage and used as UI/session generation defaults.
  */
 
@@ -910,7 +910,7 @@ export default function StudyPage() {
                   lineHeight: 1.5,
                 }}
               >
-                Choose the format that best matches your study goal. Exam simulation is intentionally partial for now: one official-format block, not a full-length exam.
+                Choose the format that best matches your study goal. Partial simulation is intentionally limited for now: one official-format block, not a full-length exam.
               </div>
             </div>
 

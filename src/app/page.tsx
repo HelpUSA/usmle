@@ -235,7 +235,7 @@ function getMostUsedMode(
   const entries = [
     { label: "Practice", value: practiceSessions },
     { label: "Timed block", value: timedBlockSessions },
-    { label: "Exam simulation", value: examSimSessions },
+    { label: "Partial simulation", value: examSimSessions },
   ];
 
   entries.sort((a, b) => b.value - a.value);
@@ -1274,7 +1274,7 @@ export default function HomePage() {
                   ? "Loading your current study status…"
                   : activeSession
                   ? "You have an open session waiting for you. Go to Study to resume it or start a new one."
-                  : "Go to Study to start Practice, Timed block, or Exam simulation."}
+                  : "Go to Study to start Practice, Timed block, or Partial simulation."}
               </div>
 
               <button

@@ -107,7 +107,7 @@ function modeLabel(mode?: string | null): string {
     case "timed_block":
       return "Timed block";
     case "exam_sim":
-      return "Exam simulation";
+      return "Partial simulation";
     default:
       return mode ?? "Unknown mode";
   }
@@ -340,7 +340,7 @@ function getMostUsedMode(
   const entries = [
     { label: "Practice", value: practiceSessions },
     { label: "Timed block", value: timedBlockSessions },
-    { label: "Exam simulation", value: examSimSessions },
+    { label: "Partial simulation", value: examSimSessions },
   ];
 
   entries.sort((a, b) => b.value - a.value);
@@ -1068,7 +1068,7 @@ export default function ProgressPage() {
                   color: modeColors[1],
                 },
                 {
-                  label: "Exam simulation",
+                  label: "Partial simulation",
                   value: examSimSessions,
                   color: modeColors[2],
                 },

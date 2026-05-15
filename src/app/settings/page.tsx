@@ -296,7 +296,7 @@ function modeLabel(mode: StudyMode): string {
     case "timed_block":
       return "Timed block";
     case "exam_sim":
-      return "Exam simulation";
+      return "Partial simulation";
     default: {
       const exhaustiveCheck: never = mode;
       return exhaustiveCheck;
@@ -763,7 +763,7 @@ export default function SettingsPage() {
               >
                 <option value="practice">Practice</option>
                 <option value="timed_block">Timed block</option>
-                <option value="exam_sim">Exam simulation</option>
+                <option value="exam_sim">Partial simulation</option>
               </select>
 
               <div style={{ fontSize: 12, color: "#6b7280" }}>
@@ -814,7 +814,7 @@ export default function SettingsPage() {
                 />
 
                 <InfoCard
-                  label="Exam simulation roadmap"
+                  label="Partial simulation roadmap"
                   value={examSimulationPlanningLabel(settings.defaultExam)}
                 />
               </div>
@@ -1151,7 +1151,7 @@ export default function SettingsPage() {
                 key: "emphasizeTimer" as const,
                 label: "Show timer in highlighted mode during timed sessions",
                 description:
-                  "Make the countdown visually stronger in official-format timed blocks and exam simulation.",
+                  "Make the countdown visually stronger in official-format timed blocks and partial simulation.",
               },
             ].map((item) => (
               <label

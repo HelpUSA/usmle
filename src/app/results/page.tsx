@@ -80,7 +80,7 @@ function modeLabel(mode?: string | null): string {
     case "timed_block":
       return "Timed block";
     case "exam_sim":
-      return "Exam simulation";
+      return "Partial simulation";
     default:
       return mode ?? "Unknown mode";
   }
@@ -595,7 +595,7 @@ export default function ResultsPage() {
                   <option value="all">All modes</option>
                   <option value="practice">Practice</option>
                   <option value="timed_block">Timed block</option>
-                  <option value="exam_sim">Exam simulation</option>
+                  <option value="exam_sim">Partial simulation</option>
                 </select>
               </div>
 
