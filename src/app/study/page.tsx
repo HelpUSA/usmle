@@ -41,6 +41,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
 import { StudyEngagementHero } from "@/components/study/StudyEngagementHero";
+import { StudyQuickActions } from "@/components/study/StudyQuickActions";
 
 type SessionMode = "practice" | "timed_block" | "exam_sim";
 type ExamType = "step1" | "step2ck" | "step3";
@@ -584,138 +585,15 @@ export default function StudyPage() {
             </section>
           ) : null}
 
-          <section
-            style={{
-              padding: 18,
-              borderRadius: 20,
-              border: "1px solid #e5e7eb",
-              background: "white",
-              display: "grid",
-              gap: 14,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 12,
-                alignItems: "flex-start",
-                flexWrap: "wrap",
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 900, fontSize: 22 }}>
-                  Use my defaults
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 6,
-                    color: "#6b7280",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Start with your preferred setup from Settings. Timed mode and partial simulation both use a 20-question official-format block preset.
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => router.push("/settings")}
-                style={buttonStyle()}
-              >
-                Open Settings
-              </button>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gap: 12,
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              }}
-            >
-              <InfoCard
-                label="Default exam"
-                value={examLabel(userSettings.defaultExam)}
-              />
-
-              <InfoCard
-                label="Default mode"
-                value={modeLabel(userSettings.defaultMode)}
-              />
-
-              <InfoCard
-                label="Default count"
-                value={`${defaultModeCount} questions`}
-              />
-
-              <InfoCard
-                label="Official 2026 format"
-                value={officialFormatSummary(userSettings.defaultExam)}
-              />
-
-              <InfoCard
-                label="Timed block preset"
-                value="20 questions · 30 min"
-              />
-
-              <InfoCard
-                label="Simulation scope"
-                value={simulationReadinessLabel(userSettings.defaultExam)}
-              />
-
-              <InfoCard
-                label="Difficulty"
-                value={difficultyDefaultLabel(userSettings.difficultyDefault)}
-              />
-
-              <InfoCard
-                label="Difficulty order"
-                value={difficultyOrderLabel(userSettings.difficultyOrderMode)}
-              />
-
-              <InfoCard
-                label="Area order"
-                value={areaOrderLabel(userSettings.areaOrderMode)}
-              />
-
-              <InfoCard
-                label="Excluded areas"
-                value={
-                  userSettings.excludedAreaSlugs.length === 0
-                    ? "None"
-                    : `${userSettings.excludedAreaSlugs.length} excluded`
-                }
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                void createAndStartSession(
-                  userSettings.defaultMode,
-                  defaultModeCount
-                )
-              }
-              disabled={loading}
-              style={{
-                width: "100%",
-                padding: "14px 16px",
-                borderRadius: 16,
-                border: "1px solid #bfdbfe",
-                background: "#eff6ff",
-                cursor: loading ? "not-allowed" : "pointer",
-                fontWeight: 900,
-                fontSize: 16,
-                opacity: loading ? 0.65 : 1,
-              }}
-            >
-              {loading
-                ? "Starting…"
-                : `Start ${modeLabel(userSettings.defaultMode)}`}
-            </button>
-          </section>
+          <StudyQuickActions
+            defaultExamLabel={examLabel(userSettings.defaultExam)}
+            defaultCount={defaultModeCount}
+            loading={loading}
+            onPractice={() => void createAndStartSession("practice")}
+            onTimedBlock={() => void createAndStartSession("timed_block")}
+            onPartialSimulation={() => void createAndStartSession("exam_sim")}
+            onSettings={() => router.push("/settings")}
+          />
 
           <section
             style={{
