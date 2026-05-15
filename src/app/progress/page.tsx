@@ -198,7 +198,7 @@ function getDateKey(value?: string | null): string | null {
 
 function buildDailySeries(
   sessions: SessionSummary[],
-  lastDays = 14
+  lastDays = 14,
 ): DailyPoint[] {
   const today = new Date();
   const activityMap = new Map<string, number>();
@@ -239,7 +239,7 @@ function buildPolylinePoints(
   series: DailyPoint[],
   width: number,
   height: number,
-  padding = 20
+  padding = 20,
 ): string {
   if (series.length === 0) return "";
 
@@ -255,8 +255,7 @@ function buildPolylinePoints(
           ? innerWidth / 2
           : (index / (series.length - 1)) * innerWidth);
 
-      const y =
-        padding + innerHeight - (point.count / maxValue) * innerHeight;
+      const y = padding + innerHeight - (point.count / maxValue) * innerHeight;
 
       return `${x},${y}`;
     })
@@ -267,7 +266,7 @@ function buildBars(
   series: DailyPoint[],
   width: number,
   height: number,
-  padding = 20
+  padding = 20,
 ): BarPoint[] {
   const maxValue = Math.max(...series.map((point) => point.count), 1);
   const innerWidth = width - padding * 2;
@@ -276,7 +275,7 @@ function buildBars(
   const barWidth = Math.max(
     8,
     (innerWidth - barGap * Math.max(series.length - 1, 0)) /
-      Math.max(series.length, 1)
+      Math.max(series.length, 1),
   );
 
   return series.map((point, index) => {
@@ -300,7 +299,7 @@ function getPointCoordinates(
   index: number,
   width: number,
   height: number,
-  padding = 20
+  padding = 20,
 ): { x: number; y: number } {
   const maxValue = Math.max(...series.map((item) => item.count), 1);
   const innerWidth = width - padding * 2;
@@ -335,7 +334,7 @@ function getStrokeDasharray(percent: number, circumference: number): string {
 function getMostUsedMode(
   practiceSessions: number,
   timedBlockSessions: number,
-  examSimSessions: number
+  examSimSessions: number,
 ): string {
   const entries = [
     { label: "Practice", value: practiceSessions },
@@ -417,7 +416,9 @@ export default function ProgressPage() {
         apiFetch<StatsResponse>("/api/me/stats?range=365"),
       ]);
 
-      setSessions(Array.isArray(sessionsRes.sessions) ? sessionsRes.sessions : []);
+      setSessions(
+        Array.isArray(sessionsRes.sessions) ? sessionsRes.sessions : [],
+      );
       setStats(statsRes);
     } catch (error) {
       setErr(getErrorMessage(error, "Failed to load progress data"));
@@ -436,12 +437,12 @@ export default function ProgressPage() {
     return [...sessions].sort((a, b) => {
       const aTime = Math.max(
         getComparableTime(a.started_at),
-        getComparableTime(a.submitted_at)
+        getComparableTime(a.submitted_at),
       );
 
       const bTime = Math.max(
         getComparableTime(b.started_at),
-        getComparableTime(b.submitted_at)
+        getComparableTime(b.submitted_at),
       );
 
       return bTime - aTime;
@@ -450,33 +451,33 @@ export default function ProgressPage() {
 
   const totalSessions = sortedSessions.length;
   const completedSessions = sortedSessions.filter(
-    (sessionItem) => sessionItem.status === "submitted"
+    (sessionItem) => sessionItem.status === "submitted",
   ).length;
   const inProgressSessions = sortedSessions.filter(
-    (sessionItem) => sessionItem.status === "in_progress"
+    (sessionItem) => sessionItem.status === "in_progress",
   ).length;
   const abandonedSessions = sortedSessions.filter(
-    (sessionItem) => sessionItem.status === "abandoned"
+    (sessionItem) => sessionItem.status === "abandoned",
   ).length;
 
   const practiceSessions = sortedSessions.filter(
-    (sessionItem) => sessionItem.mode === "practice"
+    (sessionItem) => sessionItem.mode === "practice",
   ).length;
   const timedBlockSessions = sortedSessions.filter(
-    (sessionItem) => sessionItem.mode === "timed_block"
+    (sessionItem) => sessionItem.mode === "timed_block",
   ).length;
   const examSimSessions = sortedSessions.filter(
-    (sessionItem) => sessionItem.mode === "exam_sim"
+    (sessionItem) => sessionItem.mode === "exam_sim",
   ).length;
 
   const dailySeries = useMemo(
     () => buildDailySeries(sortedSessions, 14),
-    [sortedSessions]
+    [sortedSessions],
   );
 
   const recentSessions = useMemo(
     () => sortedSessions.slice(0, 5),
-    [sortedSessions]
+    [sortedSessions],
   );
 
   const blockAnalytics = useMemo(() => {
@@ -520,7 +521,7 @@ export default function ProgressPage() {
   const polylinePoints = buildPolylinePoints(
     dailySeries,
     chartWidth,
-    chartHeight
+    chartHeight,
   );
   const bars = buildBars(dailySeries, chartWidth, chartHeight);
 
@@ -532,7 +533,7 @@ export default function ProgressPage() {
       dateKey: "",
       label: "—",
       count: 0,
-    }
+    },
   );
 
   const completionRate =
@@ -543,7 +544,7 @@ export default function ProgressPage() {
   const mostUsedMode = getMostUsedMode(
     practiceSessions,
     timedBlockSessions,
-    examSimSessions
+    examSimSessions,
   );
 
   const modePercents = buildDonutSegments([
@@ -587,8 +588,8 @@ export default function ProgressPage() {
           {isAuthLoading
             ? "Loading session…"
             : isSignedIn
-            ? `Signed in as ${session?.user?.email}`
-            : "Not signed in"}
+              ? `Signed in as ${session?.user?.email}`
+              : "Not signed in"}
         </div>
 
         <h1
@@ -701,7 +702,9 @@ export default function ProgressPage() {
               },
               {
                 label: "Avg/question",
-                value: stats ? formatAverageSeconds(stats.overall.avg_time_seconds) : "-",
+                value: stats
+                  ? formatAverageSeconds(stats.overall.avg_time_seconds)
+                  : "-",
               },
               {
                 label: "Flagged answers",
@@ -786,9 +789,7 @@ export default function ProgressPage() {
             </div>
 
             {loading ? (
-              <p style={{ margin: 0, color: "#555" }}>
-                Loading progress data…
-              </p>
+              <p style={{ margin: 0, color: "#555" }}>Loading progress data…</p>
             ) : (
               <div
                 style={{
@@ -849,7 +850,7 @@ export default function ProgressPage() {
                         point,
                         index,
                         chartWidth,
-                        chartHeight
+                        chartHeight,
                       );
 
                       return (
@@ -948,7 +949,9 @@ export default function ProgressPage() {
                 >
                   <div style={analyticsCardStyle()}>
                     <div style={analyticsLabelStyle()}>Tracked blocks</div>
-                    <div style={analyticsValueStyle()}>{blockAnalytics.length}</div>
+                    <div style={analyticsValueStyle()}>
+                      {blockAnalytics.length}
+                    </div>
                   </div>
 
                   <div style={analyticsCardStyle()}>
@@ -957,7 +960,9 @@ export default function ProgressPage() {
                       {weakestBlock ? `Block ${weakestBlock.block_index}` : "-"}
                     </div>
                     <div style={analyticsHintStyle()}>
-                      {weakestBlock ? formatPercent(weakestBlock.accuracy) : "-"}
+                      {weakestBlock
+                        ? formatPercent(weakestBlock.accuracy)
+                        : "-"}
                     </div>
                   </div>
 
@@ -969,7 +974,9 @@ export default function ProgressPage() {
                         : "-"}
                     </div>
                     <div style={analyticsHintStyle()}>
-                      {mostFlaggedBlock ? `${mostFlaggedBlock.flagged} flagged` : "-"}
+                      {mostFlaggedBlock
+                        ? `${mostFlaggedBlock.flagged} flagged`
+                        : "-"}
                     </div>
                   </div>
                 </div>
@@ -1023,13 +1030,22 @@ export default function ProgressPage() {
                             "repeat(auto-fit, minmax(120px, 1fr))",
                         }}
                       >
-                        <MetricMini label="Answered" value={String(block.answered)} />
-                        <MetricMini label="Accuracy" value={formatPercent(block.accuracy)} />
+                        <MetricMini
+                          label="Answered"
+                          value={String(block.answered)}
+                        />
+                        <MetricMini
+                          label="Accuracy"
+                          value={formatPercent(block.accuracy)}
+                        />
                         <MetricMini
                           label="Avg/question"
                           value={formatAverageSeconds(block.avg_time_seconds)}
                         />
-                        <MetricMini label="Flagged" value={String(block.flagged)} />
+                        <MetricMini
+                          label="Flagged"
+                          value={String(block.flagged)}
+                        />
                       </div>
                     </div>
                   ))}
@@ -1126,7 +1142,7 @@ export default function ProgressPage() {
                 value:
                   totalSessions > 0
                     ? `${Math.round(
-                        (timedBlockSessions / totalSessions) * 100
+                        (timedBlockSessions / totalSessions) * 100,
                       )}%`
                     : "0%",
               },
@@ -1179,9 +1195,7 @@ export default function ProgressPage() {
               gap: 12,
             }}
           >
-            <div style={{ fontWeight: 900, fontSize: 18 }}>
-              Recent activity
-            </div>
+            <div style={{ fontWeight: 900, fontSize: 18 }}>Recent activity</div>
 
             {loading ? (
               <p style={{ margin: 0, color: "#555" }}>Loading…</p>
@@ -1245,6 +1259,264 @@ export default function ProgressPage() {
           </section>
         </>
       )}
+
+      <section
+        style={{
+          marginTop: 24,
+          borderRadius: 28,
+          border: "1px solid rgba(37, 99, 235, 0.18)",
+          background:
+            "linear-gradient(135deg, rgba(239,246,255,0.96), rgba(250,245,255,0.94))",
+          boxShadow: "0 18px 45px rgba(15, 23, 42, 0.08)",
+          padding: 22,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
+          <div style={{ minWidth: 240, flex: "1 1 320px" }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                borderRadius: 999,
+                background: "rgba(37, 99, 235, 0.1)",
+                color: "#1d4ed8",
+                fontSize: 12,
+                fontWeight: 950,
+                padding: "6px 10px",
+                marginBottom: 10,
+              }}
+            >
+              365-day real stats
+            </div>
+
+            <h2
+              style={{
+                margin: 0,
+                color: "#0f172a",
+                fontSize: 26,
+                lineHeight: 1.1,
+                fontWeight: 950,
+              }}
+            >
+              Dashboard engagement cockpit
+            </h2>
+
+            <p
+              style={{
+                margin: "10px 0 0",
+                color: "#475569",
+                lineHeight: 1.55,
+                maxWidth: 720,
+              }}
+            >
+              Use your submitted-session history to decide what to do next:
+              continue studying, review flagged questions, or rebalance by mode.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 10,
+              alignItems: "center",
+            }}
+          >
+            <a
+              href="/study"
+              style={{
+                borderRadius: 999,
+                padding: "11px 16px",
+                color: "white",
+                background:
+                  "linear-gradient(135deg, #0f172a 0%, #2563eb 55%, #7c3aed 100%)",
+                fontWeight: 950,
+                textDecoration: "none",
+                boxShadow: "0 14px 30px rgba(37,99,235,0.26)",
+              }}
+            >
+              Continue studying
+            </a>
+
+            <a
+              href="/results"
+              style={{
+                borderRadius: 999,
+                padding: "11px 16px",
+                color: "#1d4ed8",
+                background: "rgba(255,255,255,0.86)",
+                border: "1px solid rgba(37, 99, 235, 0.22)",
+                fontWeight: 950,
+                textDecoration: "none",
+              }}
+            >
+              Review results
+            </a>
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: 18,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.88)",
+              border: "1px solid rgba(148, 163, 184, 0.22)",
+              padding: 16,
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>
+              Answered
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                color: "#0f172a",
+                fontSize: 24,
+                fontWeight: 950,
+              }}
+            >
+              {stats ? String(stats.overall.answered) : "-"}
+            </div>
+          </div>
+
+          <div
+            style={{
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.88)",
+              border: "1px solid rgba(148, 163, 184, 0.22)",
+              padding: 16,
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>
+              Accuracy
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                color: "#0f172a",
+                fontSize: 24,
+                fontWeight: 950,
+              }}
+            >
+              {stats ? formatPercent(stats.overall.accuracy) : "-"}
+            </div>
+          </div>
+
+          <div
+            style={{
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.88)",
+              border: "1px solid rgba(148, 163, 184, 0.22)",
+              padding: 16,
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>
+              Avg time
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                color: "#0f172a",
+                fontSize: 24,
+                fontWeight: 950,
+              }}
+            >
+              {stats
+                ? formatAverageSeconds(stats.overall.avg_time_seconds)
+                : "-"}
+            </div>
+          </div>
+
+          <div
+            style={{
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.88)",
+              border: "1px solid rgba(148, 163, 184, 0.22)",
+              padding: 16,
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>
+              Review queue
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                color: "#0f172a",
+                fontSize: 24,
+                fontWeight: 950,
+              }}
+            >
+              {stats ? `${stats.overall.flagged} flags` : "-"}
+            </div>
+          </div>
+
+          <div
+            style={{
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.88)",
+              border: "1px solid rgba(148, 163, 184, 0.22)",
+              padding: 16,
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>
+              Completion
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                color: "#0f172a",
+                fontSize: 24,
+                fontWeight: 950,
+              }}
+            >
+              {completedSessions}/{totalSessions}
+            </div>
+          </div>
+
+          <div
+            style={{
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.88)",
+              border: "1px solid rgba(148, 163, 184, 0.22)",
+              padding: 16,
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900 }}>
+              Next focus
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                color: "#0f172a",
+                fontSize: 18,
+                lineHeight: 1.25,
+                fontWeight: 950,
+              }}
+            >
+              {stats && stats.overall.flagged > 0
+                ? "Review flags"
+                : completedSessions > 0
+                  ? "Keep momentum"
+                  : "Start first block"}
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
@@ -1255,9 +1527,7 @@ function MetricMini(props: { label: string; value: string }) {
   return (
     <div>
       <div style={{ fontSize: 12, color: "#6b7280" }}>{label}</div>
-      <div style={{ marginTop: 4, fontSize: 18, fontWeight: 900 }}>
-        {value}
-      </div>
+      <div style={{ marginTop: 4, fontSize: 18, fontWeight: 900 }}>{value}</div>
     </div>
   );
 }
@@ -1382,8 +1652,7 @@ function DonutPanel(props: {
               .slice(0, index)
               .reduce((sum, value) => sum + value, 0);
 
-            const offset =
-              circumference - (previous / 100) * circumference;
+            const offset = circumference - (previous / 100) * circumference;
 
             return (
               <circle
