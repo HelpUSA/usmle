@@ -82,6 +82,24 @@ type SessionsResponse = {
   sessions: SessionSummary[];
 };
 
+type StatsAggregate = {
+  answered: number;
+  correct: number;
+  wrong: number;
+  skipped: number;
+  flagged: number;
+  accuracy: number;
+  avg_time_seconds: number;
+};
+
+type StatsResponse = {
+  range_days: number;
+  overall: StatsAggregate;
+  by_exam: Array<StatsAggregate & { exam: string }>;
+  by_mode: Array<StatsAggregate & { mode: string }>;
+  by_block: Array<StatsAggregate & { block_index: number }>;
+};
+
 type UserSettings = {
   defaultExam: ExamType;
   defaultMode: SessionMode;
@@ -281,12 +299,12 @@ function modeLabel(mode?: string | null): string {
 }
 
 function formatDate(value?: string | null): string {
-  if (!value) return "Ã¢â‚¬â€";
+  if (!value) return "-";
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return "Ã¢â‚¬â€";
+    return "-";
   }
 
   return date.toLocaleString();
@@ -365,6 +383,38 @@ function simulationReadinessLabel(exam: ExamType): string {
   }
 }
 
+function formatStudyPercent(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) {
+    return "-";
+  }
+
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatStudyDuration(totalSeconds: number): string {
+  if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
+    return "0m";
+  }
+
+  const minutes = Math.round(totalSeconds / 60);
+
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+
+  const hours = minutes / 60;
+
+  return `${hours.toFixed(hours < 10 ? 1 : 0)}h`;
+}
+
+function clampPercent(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 18;
+  }
+
+  return Math.max(18, Math.min(100, Math.round(value)));
+}
+
 export default function StudyPage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
@@ -373,6 +423,7 @@ export default function StudyPage() {
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [stats, setStats] = useState<StatsResponse | null>(null);
   const [userSettings, setUserSettings] =
     useState<UserSettings>(defaultSettings);
 
@@ -403,6 +454,7 @@ export default function StudyPage() {
 
     if (!isSignedIn) {
       setSessions([]);
+      setStats(null);
       setLoadingSessions(false);
       setErr(null);
       return;
@@ -414,9 +466,19 @@ export default function StudyPage() {
     try {
       const res = await apiFetch<SessionsResponse>("/api/sessions");
       setSessions(Array.isArray(res.sessions) ? res.sessions : []);
+
+      try {
+        const statsRes = await apiFetch<StatsResponse>("/api/me/stats?range=7");
+        setStats(statsRes);
+      } catch {
+        setStats(null);
+      }
     } catch (error) {
       setErr(getErrorMessage(error, "Failed to load study sessions"));
       setSessions([]);
+      setStats(null);
+      setStats(null);
+      setStats(null);
     } finally {
       setLoadingSessions(false);
     }
@@ -513,6 +575,30 @@ export default function StudyPage() {
     userSettings,
   );
 
+  const weeklyAnswered = Math.max(0, Math.trunc(stats?.overall.answered ?? 0));
+  const weeklyAccuracyLabel = stats
+    ? formatStudyPercent(stats.overall.accuracy)
+    : "-";
+  const weeklyStudyTimeLabel = stats
+    ? formatStudyDuration(stats.overall.avg_time_seconds * weeklyAnswered)
+    : "-";
+  const weeklyFlaggedLabel = stats ? String(stats.overall.flagged) : "-";
+  const weeklyLevelLabel = `Level ${Math.max(
+    1,
+    Math.floor(weeklyAnswered / Math.max(defaultModeCount, 1)) + 1,
+  )}`;
+  const weeklyActivityLabel = activeSession
+    ? "Active now"
+    : weeklyAnswered > 0
+      ? "Active week"
+      : "Start today";
+  const missionProgressPercent = activeSession
+    ? 72
+    : clampPercent((weeklyAnswered / Math.max(defaultModeCount, 1)) * 100);
+  const missionProgressLabel = activeSession
+    ? "Resume"
+    : `${Math.min(weeklyAnswered, defaultModeCount)} / ${defaultModeCount}`;
+
   return (
     <main
       style={{
@@ -520,8 +606,6 @@ export default function StudyPage() {
         gap: 16,
       }}
     >
-
-
       <StudyEngagementHero
         signedInLabel={
           isAuthLoading
@@ -533,6 +617,11 @@ export default function StudyPage() {
         defaultExamLabel={examLabel(userSettings.defaultExam)}
         defaultModeLabel={modeLabel(userSettings.defaultMode)}
         defaultCount={defaultModeCount}
+        levelLabel={weeklyLevelLabel}
+        activityLabel={weeklyActivityLabel}
+        weeklyValue={`${weeklyAnswered} Q`}
+        missionProgressPercent={missionProgressPercent}
+        missionProgressLabel={missionProgressLabel}
         activeSessionLabel={
           activeSession ? modeLabel(activeSession.mode) : null
         }
@@ -556,7 +645,7 @@ export default function StudyPage() {
             background: "white",
           }}
         >
-          Loading your accountÃ¢â‚¬Â¦
+          Loading your account...
         </section>
       ) : !isSignedIn ? (
         <section
@@ -598,7 +687,7 @@ export default function StudyPage() {
                   background: "white",
                 }}
               >
-                {loadingSessions ? "RefreshingÃ¢â‚¬Â¦" : "Refresh sessions"}
+                {loadingSessions ? "Refreshing..." : "Refresh sessions"}
               </button>
             </section>
           ) : null}
@@ -633,7 +722,7 @@ export default function StudyPage() {
               <div style={{ fontWeight: 900, fontSize: 20 }}>Continue</div>
 
               {loadingSessions ? (
-                <div style={{ color: "#555" }}>LoadingÃ¢â‚¬Â¦</div>
+                <div style={{ color: "#555" }}>Loading...</div>
               ) : activeSession ? (
                 <>
                   <div
@@ -709,7 +798,7 @@ export default function StudyPage() {
               </div>
 
               {loadingSessions ? (
-                <div style={{ color: "#555" }}>LoadingÃ¢â‚¬Â¦</div>
+                <div style={{ color: "#555" }}>Loading...</div>
               ) : recentCompleted.length === 0 ? (
                 <div
                   style={{
@@ -782,10 +871,10 @@ export default function StudyPage() {
                 gap: 12,
               }}
             >
-              <InfoCard label="Questions" value="84" />
-              <InfoCard label="Accuracy" value="+6%" />
-              <InfoCard label="Study time" value="4.3h" />
-              <InfoCard label="Top rank" value="32%" />
+              <InfoCard label="Questions" value={String(weeklyAnswered)} />
+              <InfoCard label="Accuracy" value={weeklyAccuracyLabel} />
+              <InfoCard label="Study time" value={weeklyStudyTimeLabel} />
+              <InfoCard label="Flags" value={weeklyFlaggedLabel} />
             </div>
           </section>
 
@@ -799,7 +888,7 @@ export default function StudyPage() {
                 color: "#555",
               }}
             >
-              Starting sessionÃ¢â‚¬Â¦
+              Starting session...
             </section>
           ) : null}
         </>

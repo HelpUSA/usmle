@@ -3,6 +3,11 @@ type StudyEngagementHeroProps = {
   defaultExamLabel: string;
   defaultModeLabel: string;
   defaultCount: number;
+  levelLabel: string;
+  activityLabel: string;
+  weeklyValue: string;
+  missionProgressPercent: number;
+  missionProgressLabel: string;
   activeSessionLabel?: string | null;
   loading: boolean;
   onPrimaryAction: () => void;
@@ -14,13 +19,17 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
     defaultExamLabel,
     defaultModeLabel,
     defaultCount,
+    levelLabel,
+    activityLabel,
+    weeklyValue,
+    missionProgressPercent,
+    missionProgressLabel,
     activeSessionLabel,
     loading,
     onPrimaryAction,
   } = props;
 
   const hasActiveSession = Boolean(activeSessionLabel);
-  const missionProgress = hasActiveSession ? 72 : 18;
 
   return (
     <section
@@ -94,7 +103,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
             whiteSpace: "nowrap",
           }}
         >
-          Level 6
+          {levelLabel}
         </div>
       </div>
 
@@ -105,8 +114,8 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
           gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))",
         }}
       >
-        <MetricPill label="Streak" value="7 days" tone="#f97316" />
-        <MetricPill label="This week" value="+120 XP" tone="#16a34a" />
+        <MetricPill label="Activity" value={activityLabel} tone="#f97316" />
+        <MetricPill label="This week" value={weeklyValue} tone="#16a34a" />
         <MetricPill label="Default" value={`${defaultCount}Q`} tone="#7c3aed" />
         <MetricPill label="Mode" value={defaultModeLabel} tone="#0f766e" />
       </div>
@@ -141,7 +150,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
           </div>
 
           <div style={{ fontWeight: 950, color: "#1d4ed8" }}>
-            {hasActiveSession ? "Resume" : "0 / 20"}
+            {missionProgressLabel}
           </div>
         </div>
 
@@ -155,7 +164,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
         >
           <div
             style={{
-              width: `${missionProgress}%`,
+              width: `${missionProgressPercent}%`,
               height: "100%",
               borderRadius: 999,
               background: "linear-gradient(90deg, #2563eb, #22c55e)",
