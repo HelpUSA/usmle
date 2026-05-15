@@ -587,6 +587,12 @@ export default function StudyPage() {
     1,
     Math.floor(weeklyAnswered / Math.max(defaultModeCount, 1)) + 1,
   )}`;
+  const weeklyLevelProgressCurrent =
+    weeklyAnswered % Math.max(defaultModeCount, 1);
+  const weeklyLevelProgressLabel =
+    weeklyAnswered > 0 && weeklyLevelProgressCurrent === 0
+      ? `${defaultModeCount} / ${defaultModeCount} block complete`
+      : `${weeklyLevelProgressCurrent} / ${defaultModeCount} to next level`;
   const weeklyActivityLabel = activeSession
     ? "Active now"
     : weeklyAnswered > 0
@@ -618,6 +624,7 @@ export default function StudyPage() {
         defaultModeLabel={modeLabel(userSettings.defaultMode)}
         defaultCount={defaultModeCount}
         levelLabel={weeklyLevelLabel}
+        levelProgressLabel={weeklyLevelProgressLabel}
         activityLabel={weeklyActivityLabel}
         weeklyValue={`${weeklyAnswered} Q`}
         missionProgressPercent={missionProgressPercent}

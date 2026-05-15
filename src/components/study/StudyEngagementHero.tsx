@@ -4,6 +4,7 @@ type StudyEngagementHeroProps = {
   defaultModeLabel: string;
   defaultCount: number;
   levelLabel: string;
+  levelProgressLabel: string;
   activityLabel: string;
   weeklyValue: string;
   missionProgressPercent: number;
@@ -20,6 +21,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
     defaultModeLabel,
     defaultCount,
     levelLabel,
+    levelProgressLabel,
     activityLabel,
     weeklyValue,
     missionProgressPercent,
@@ -103,7 +105,17 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
             whiteSpace: "nowrap",
           }}
         >
-          {levelLabel}
+          <div>{levelLabel}</div>
+          <div
+            style={{
+              marginTop: 2,
+              fontSize: 11,
+              fontWeight: 800,
+              color: "#64748b",
+            }}
+          >
+            {levelProgressLabel}
+          </div>
         </div>
       </div>
 
