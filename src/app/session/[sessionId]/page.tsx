@@ -955,7 +955,7 @@ export default function SessionPage({
       case "timed_block":
         return "Timed block";
       case "exam_sim":
-        return "Exam simulation";
+        return "Partial simulation";
       default:
         return "Session";
     }
