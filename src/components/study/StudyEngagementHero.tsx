@@ -1,4 +1,4 @@
-﻿type StudyEngagementHeroProps = {
+type StudyEngagementHeroProps = {
   signedInLabel: string;
   defaultExamLabel: string;
   defaultModeLabel: string;
@@ -210,4 +210,3 @@ function MetricPill(props: { label: string; value: string; tone: string }) {
     </div>
   );
 }
-
