@@ -4,6 +4,7 @@
  * Responsibility:
  * - POST: create a new study session for the authenticated API user.
  * - GET: list recent study sessions for the authenticated API user.
+ * - GET also returns per-session attempt aggregates for Results cards.
  *
  * Auth contract:
  * - User identity is resolved by getUserIdForApi(req).
@@ -49,6 +50,52 @@ type DerivedSessionBehavior = {
     implementation_phase: "current" | "planned";
   };
 };
+
+type SessionListRow = {
+  session_id: string;
+  user_id: string;
+  mode: string;
+  exam: string;
+  language: string;
+  timed: boolean;
+  time_limit_seconds: number | null;
+  status: string | null;
+  settings_json: unknown;
+  started_at: string | null;
+  submitted_at: string | null;
+  answered?: number | string | null;
+  correct?: number | string | null;
+  wrong?: number | string | null;
+  skipped?: number | string | null;
+  flagged?: number | string | null;
+  avg_time_seconds?: number | string | null;
+};
+
+function toNumber(value: unknown): number {
+  const numeric = Number(value ?? 0);
+
+  if (!Number.isFinite(numeric)) {
+    return 0;
+  }
+
+  return numeric;
+}
+
+function normalizeSessionListRow(row: SessionListRow) {
+  const answered = toNumber(row.answered);
+  const correct = toNumber(row.correct);
+
+  return {
+    ...row,
+    answered,
+    correct,
+    wrong: toNumber(row.wrong),
+    skipped: toNumber(row.skipped),
+    flagged: toNumber(row.flagged),
+    accuracy: answered > 0 ? correct / answered : 0,
+    avg_time_seconds: toNumber(row.avg_time_seconds),
+  };
+}
 
 function deriveSessionBehavior(mode: SessionMode): DerivedSessionBehavior {
   switch (mode) {
@@ -231,26 +278,52 @@ export async function GET(req: Request) {
     const sessions = await query(
       `
       SELECT
-        session_id,
-        user_id,
-        mode,
-        exam,
-        language,
-        timed,
-        time_limit_seconds,
-        status,
-        settings_json,
-        started_at,
-        submitted_at
-      FROM sessions
-      WHERE user_id = $1
-      ORDER BY started_at DESC
+        s.session_id,
+        s.user_id,
+        s.mode,
+        s.exam,
+        s.language,
+        s.timed,
+        s.time_limit_seconds,
+        s.status,
+        s.settings_json,
+        s.started_at,
+        s.submitted_at,
+        COALESCE(metrics.answered, 0)::int AS answered,
+        COALESCE(metrics.correct, 0)::int AS correct,
+        COALESCE(metrics.wrong, 0)::int AS wrong,
+        COALESCE(metrics.skipped, 0)::int AS skipped,
+        COALESCE(metrics.flagged, 0)::int AS flagged,
+        COALESCE(metrics.avg_time_seconds, 0)::float AS avg_time_seconds
+      FROM sessions s
+      LEFT JOIN (
+        SELECT
+          a.session_id,
+          COUNT(*) FILTER (WHERE a.result IN ('correct', 'wrong', 'skipped'))::int AS answered,
+          COUNT(*) FILTER (WHERE a.result = 'correct')::int AS correct,
+          COUNT(*) FILTER (WHERE a.result = 'wrong')::int AS wrong,
+          COUNT(*) FILTER (WHERE a.result = 'skipped')::int AS skipped,
+          COUNT(*) FILTER (
+            WHERE COALESCE(si.flagged_for_review, a.flagged_for_review, false)
+          )::int AS flagged,
+          COALESCE(AVG(a.time_spent_seconds), 0)::float AS avg_time_seconds
+        FROM attempts a
+        LEFT JOIN session_items si
+          ON si.session_item_id = a.session_item_id
+          AND si.session_id = a.session_id
+        WHERE a.user_id = $1
+        GROUP BY a.session_id
+      ) AS metrics ON metrics.session_id = s.session_id
+      WHERE s.user_id = $1
+      ORDER BY s.started_at DESC
       LIMIT 20
       `,
       [userId]
     );
 
-    return NextResponse.json({ sessions: sessions.rows });
+    return NextResponse.json({
+      sessions: (sessions.rows as SessionListRow[]).map(normalizeSessionListRow),
+    });
   } catch (error: unknown) {
     return NextResponse.json(
       {

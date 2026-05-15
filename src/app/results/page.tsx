@@ -10,10 +10,10 @@
  * API contract used:
  * - GET /api/sessions
  *
- * Current data limitation:
- * - This page still depends only on the sessions endpoint.
- * - It does not calculate per-session accuracy yet because the sessions endpoint
- *   does not currently return attempt-level aggregates.
+ * Current data contract:
+ * - This page depends on GET /api/sessions.
+ * - The sessions endpoint returns base session metadata plus per-session
+ *   aggregate metrics for answered, accuracy, average time, and flags.
  *
  * Important behavior:
  * - This page is client-side because it depends on NextAuth session state and UI filters.
@@ -48,6 +48,13 @@ type SessionSummary = {
   settings_json?: Record<string, unknown> | null;
   started_at?: string | null;
   submitted_at?: string | null;
+  answered?: number | string | null;
+  correct?: number | string | null;
+  wrong?: number | string | null;
+  skipped?: number | string | null;
+  flagged?: number | string | null;
+  accuracy?: number | string | null;
+  avg_time_seconds?: number | string | null;
 };
 
 type SessionsResponse = {
@@ -123,6 +130,37 @@ function statusBorderColor(status?: string | null): string {
   if (status === "in_progress") return "#f0dfab";
   if (status === "abandoned") return "#f5caca";
   return "#e5e7eb";
+}
+
+
+function toNumber(value: unknown): number {
+  const numeric = Number(value ?? 0);
+
+  if (!Number.isFinite(numeric)) {
+    return 0;
+  }
+
+  return numeric;
+}
+
+function formatAccuracy(value?: number | string | null): string {
+  const numeric = toNumber(value);
+
+  if (numeric <= 0) {
+    return "0%";
+  }
+
+  return `${Math.round(numeric * 100)}%`;
+}
+
+function formatSecondsPerQuestion(value?: number | string | null): string {
+  const numeric = toNumber(value);
+
+  if (numeric <= 0) {
+    return "—";
+  }
+
+  return `${Math.round(numeric)} sec/q`;
 }
 
 function formatDuration(seconds?: number | null): string {
@@ -314,9 +352,8 @@ export default function ResultsPage() {
           }}
         >
           Browse your study history, revisit completed sessions, and resume
-          unfinished ones. This version focuses on session history and
-          navigation. Score and deeper analytics can be added when the API
-          returns attempt-level aggregates.
+          unfinished ones. Each completed session now includes answered count,
+          accuracy, average time per question, and flag discipline metrics.
         </p>
       </section>
 
@@ -758,6 +795,25 @@ function SessionCard(props: {
           </div>
         </div>
 
+        <div style={metricGridStyle()}>
+          <MetricPill
+            label="Answered"
+            value={String(toNumber(sessionItem.answered))}
+          />
+          <MetricPill
+            label="Accuracy"
+            value={formatAccuracy(sessionItem.accuracy)}
+          />
+          <MetricPill
+            label="Avg/question"
+            value={formatSecondsPerQuestion(sessionItem.avg_time_seconds)}
+          />
+          <MetricPill
+            label="Flags"
+            value={String(toNumber(sessionItem.flagged))}
+          />
+        </div>
+
         <div
           style={{
             fontSize: 12,
@@ -808,6 +864,38 @@ function SessionCard(props: {
   );
 }
 
+
+function MetricPill(props: { label: string; value: string }) {
+  const { label, value } = props;
+
+  return (
+    <div style={metricPillStyle()}>
+      <div
+        style={{
+          fontSize: 11,
+          color: "#6b7280",
+          fontWeight: 700,
+          textTransform: "uppercase",
+          letterSpacing: 0.4,
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          marginTop: 4,
+          fontSize: 16,
+          color: "#111827",
+          fontWeight: 900,
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
 function buttonStyle(disabled = false): CSSProperties {
   return {
     padding: "12px 12px",
@@ -838,6 +926,24 @@ function actionSubtextStyle(): CSSProperties {
     fontSize: 12,
     color: "#6b7280",
     fontWeight: 600,
+  };
+}
+
+
+function metricGridStyle(): CSSProperties {
+  return {
+    display: "grid",
+    gap: 8,
+    gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+  };
+}
+
+function metricPillStyle(): CSSProperties {
+  return {
+    padding: "10px 12px",
+    borderRadius: 12,
+    border: "1px solid #e5e7eb",
+    background: "white",
   };
 }
 
