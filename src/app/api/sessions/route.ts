@@ -24,6 +24,7 @@ import { NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 import { query } from "@/lib/db";
 import { getUserIdForApi } from "@/lib/auth";
+import { recordActivityEvent } from "@/lib/engagement";
 
 const CreateSessionSchema = z
   .object({
@@ -216,7 +217,7 @@ export async function POST(req: Request) {
       VALUES ($1)
       ON CONFLICT (user_id) DO NOTHING
       `,
-      [userId]
+      [userId],
     );
 
     const created = await query(
@@ -255,10 +256,26 @@ export async function POST(req: Request) {
         derived.timed,
         derived.time_limit_seconds,
         JSON.stringify(derived.settings_json),
-      ]
+      ],
     );
 
-    return NextResponse.json(created.rows[0], { status: 201 });
+    const session = created.rows[0];
+
+    await recordActivityEvent({
+      userId,
+      eventType: "session_started",
+      sessionId: session.session_id,
+      mode: session.mode,
+      exam: session.exam,
+      idempotencyKey: `session_started:${session.session_id}`,
+      metadataJson: {
+        source: "api.sessions.create",
+        mode: session.mode,
+        exam: session.exam,
+      },
+    });
+
+    return NextResponse.json(session, { status: 201 });
   } catch (error: unknown) {
     return NextResponse.json(
       {
@@ -266,7 +283,7 @@ export async function POST(req: Request) {
       },
       {
         status: getErrorStatus(error),
-      }
+      },
     );
   }
 }
@@ -318,11 +335,13 @@ export async function GET(req: Request) {
       ORDER BY s.started_at DESC
       LIMIT 20
       `,
-      [userId]
+      [userId],
     );
 
     return NextResponse.json({
-      sessions: (sessions.rows as SessionListRow[]).map(normalizeSessionListRow),
+      sessions: (sessions.rows as SessionListRow[]).map(
+        normalizeSessionListRow,
+      ),
     });
   } catch (error: unknown) {
     return NextResponse.json(
@@ -331,7 +350,7 @@ export async function GET(req: Request) {
       },
       {
         status: getErrorStatus(error),
-      }
+      },
     );
   }
 }
