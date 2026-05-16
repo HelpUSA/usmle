@@ -11,6 +11,7 @@
  * API contracts used:
  * - GET /api/sessions
  * - GET /api/me/stats?range=365
+ * - GET /api/me/engagement
  *
  * Analytics strategy:
  * - Session-level data drives activity and history visuals.
@@ -21,7 +22,8 @@
  * - Mobile-first.
  * - Visual cards and SVG charts.
  * - No external charting dependency.
- * - Safe fallback when the user is not authenticated or has no sessions.
+ * - Safe fallback when the user is not authenticated, has no sessions,
+ *   or the engagement API is unavailable.
  */
 
 "use client";
@@ -72,6 +74,36 @@ type StatsResponse = {
   by_exam: Array<StatsAggregate & { exam: string }>;
   by_mode: Array<StatsAggregate & { mode: string }>;
   by_block: BlockAggregate[];
+};
+
+type EngagementSummary = {
+  current_streak_days: number;
+  longest_streak_days: number;
+  total_xp: number;
+  level_number: number;
+  level_progress_xp: number;
+  next_level_xp: number;
+  last_activity_date: string | null;
+  last_event_at: string | null;
+};
+
+type EngagementDaily = {
+  activity_date: string;
+  sessions_started: number;
+  sessions_submitted: number;
+  questions_answered: number;
+  questions_correct: number;
+  questions_flagged: number;
+  review_actions: number;
+  xp_total: number;
+  study_seconds: number;
+};
+
+type EngagementResponse = {
+  summary: EngagementSummary;
+  today: EngagementDaily;
+  recent_days: EngagementDaily[];
+  generated_at: string;
 };
 
 type DailyPoint = {
@@ -168,6 +200,19 @@ function getBlockPaceLabel(avgSeconds?: number | null): string {
   return "Slow";
 }
 
+function formatWholeNumber(value?: number | null): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return "0";
+  }
+
+  return String(Math.max(0, Math.trunc(value)));
+}
+
+function formatDayCount(value?: number | null): string {
+  const days = Math.max(0, Math.trunc(value ?? 0));
+  return `${days} day${days === 1 ? "" : "s"}`;
+}
+
 function getComparableTime(value?: string | null): number {
   if (!value) return 0;
 
@@ -194,6 +239,41 @@ function getDateKey(value?: string | null): string | null {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+}
+
+function buildEngagementDailySeries(
+  dailyActivity: EngagementDaily[],
+  days = 30,
+): DailyPoint[] {
+  const normalizedDays = Math.max(1, Math.trunc(days));
+  const countsByDate = new Map<string, number>();
+
+  for (const item of dailyActivity) {
+    if (!item.activity_date) continue;
+
+    countsByDate.set(
+      item.activity_date,
+      Math.max(0, Math.trunc(item.questions_answered ?? 0)),
+    );
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return Array.from({ length: normalizedDays }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (normalizedDays - 1 - index));
+    const dateKey = date.toISOString().slice(0, 10);
+
+    return {
+      dateKey,
+      label: date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      }),
+      count: countsByDate.get(dateKey) ?? 0,
+    };
+  });
 }
 
 function buildDailySeries(
@@ -387,6 +467,7 @@ export default function ProgressPage() {
 
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [stats, setStats] = useState<StatsResponse | null>(null);
+  const [engagement, setEngagement] = useState<EngagementResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -402,6 +483,7 @@ export default function ProgressPage() {
     if (!isSignedIn) {
       setSessions([]);
       setStats(null);
+      setEngagement(null);
       setLoading(false);
       setErr(null);
       return;
@@ -416,14 +498,25 @@ export default function ProgressPage() {
         apiFetch<StatsResponse>("/api/me/stats?range=365"),
       ]);
 
+      let engagementRes: EngagementResponse | null = null;
+
+      try {
+        engagementRes =
+          await apiFetch<EngagementResponse>("/api/me/engagement");
+      } catch {
+        engagementRes = null;
+      }
+
       setSessions(
         Array.isArray(sessionsRes.sessions) ? sessionsRes.sessions : [],
       );
       setStats(statsRes);
+      setEngagement(engagementRes);
     } catch (error) {
       setErr(getErrorMessage(error, "Failed to load progress data"));
       setSessions([]);
       setStats(null);
+      setEngagement(null);
     } finally {
       setLoading(false);
     }
@@ -516,18 +609,32 @@ export default function ProgressPage() {
     }, null);
   }, [blockAnalytics]);
 
+  const engagementSummary = engagement?.summary ?? null;
+  const engagementToday = engagement?.today ?? null;
+  const engagementRecentDays = Array.isArray(engagement?.recent_days)
+    ? engagement.recent_days
+    : [];
+  const engagementDailySeries = buildEngagementDailySeries(
+    engagementRecentDays,
+    30,
+  );
+  const chartDailySeries = engagementSummary
+    ? engagementDailySeries
+    : dailySeries;
+  const chartPeriodLabel = engagementSummary ? "Last 30 days" : "Last 14 days";
+
   const chartWidth = 640;
   const chartHeight = 220;
   const polylinePoints = buildPolylinePoints(
-    dailySeries,
+    chartDailySeries,
     chartWidth,
     chartHeight,
   );
-  const bars = buildBars(dailySeries, chartWidth, chartHeight);
+  const bars = buildBars(chartDailySeries, chartWidth, chartHeight);
 
-  const activeDays = dailySeries.filter((day) => day.count > 0).length;
+  const activeDays = chartDailySeries.filter((day) => day.count > 0).length;
 
-  const peakDay = dailySeries.reduce<DailyPoint>(
+  const peakDay = chartDailySeries.reduce<DailyPoint>(
     (best, current) => (current.count > best.count ? current : best),
     {
       dateKey: "",
@@ -611,9 +718,10 @@ export default function ProgressPage() {
             maxWidth: 760,
           }}
         >
-          Track study activity, completion patterns, and mode distribution.
-          Accuracy, weak-area analysis, and attempt-level trends can be added
-          after the API exposes response aggregates.
+          Track study activity, completion patterns, mode distribution, and
+          persisted engagement signals from completed study actions. Accuracy
+          and block analytics remain descriptive and do not predict exam
+          readiness.
         </p>
       </section>
 
@@ -694,6 +802,32 @@ export default function ProgressPage() {
             }}
           >
             {[
+              ...(engagementSummary
+                ? [
+                    {
+                      label: "Current level",
+                      value: `Level ${formatWholeNumber(
+                        engagementSummary.level_number,
+                      )}`,
+                    },
+                    {
+                      label: "Total XP",
+                      value: formatWholeNumber(engagementSummary.total_xp),
+                    },
+                    {
+                      label: "Current streak",
+                      value: formatDayCount(
+                        engagementSummary.current_streak_days,
+                      ),
+                    },
+                    {
+                      label: "Today",
+                      value: `${formatWholeNumber(
+                        engagementToday?.questions_answered,
+                      )} Q`,
+                    },
+                  ]
+                : []),
               { label: "Total sessions", value: String(totalSessions) },
               { label: "Completion rate", value: `${completionRate}%` },
               {
@@ -769,7 +903,7 @@ export default function ProgressPage() {
                     color: "#6b7280",
                   }}
                 >
-                  Last 14 days
+                  {chartPeriodLabel}
                 </div>
               </div>
 
