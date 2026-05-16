@@ -1,4 +1,4 @@
-﻿/*
+/*
  * File: src/app/study/page.tsx
  *
  * Responsibility:
@@ -98,6 +98,36 @@ type StatsResponse = {
   by_exam: Array<StatsAggregate & { exam: string }>;
   by_mode: Array<StatsAggregate & { mode: string }>;
   by_block: Array<StatsAggregate & { block_index: number }>;
+};
+
+type EngagementSummary = {
+  current_streak_days: number;
+  longest_streak_days: number;
+  total_xp: number;
+  level_number: number;
+  level_progress_xp: number;
+  next_level_xp: number;
+  last_activity_date: string | null;
+  last_event_at: string | null;
+};
+
+type EngagementDaily = {
+  activity_date: string;
+  sessions_started: number;
+  sessions_submitted: number;
+  questions_answered: number;
+  questions_correct: number;
+  questions_flagged: number;
+  review_actions: number;
+  xp_total: number;
+  study_seconds: number;
+};
+
+type EngagementResponse = {
+  summary: EngagementSummary;
+  today: EngagementDaily;
+  recent_days: EngagementDaily[];
+  generated_at: string;
 };
 
 type UserSettings = {
@@ -424,6 +454,7 @@ export default function StudyPage() {
   const [err, setErr] = useState<string | null>(null);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [stats, setStats] = useState<StatsResponse | null>(null);
+  const [engagement, setEngagement] = useState<EngagementResponse | null>(null);
   const [userSettings, setUserSettings] =
     useState<UserSettings>(defaultSettings);
 
@@ -455,6 +486,7 @@ export default function StudyPage() {
     if (!isSignedIn) {
       setSessions([]);
       setStats(null);
+      setEngagement(null);
       setLoadingSessions(false);
       setErr(null);
       return;
@@ -473,12 +505,19 @@ export default function StudyPage() {
       } catch {
         setStats(null);
       }
+
+      try {
+        const engagementRes =
+          await apiFetch<EngagementResponse>("/api/me/engagement");
+        setEngagement(engagementRes);
+      } catch {
+        setEngagement(null);
+      }
     } catch (error) {
       setErr(getErrorMessage(error, "Failed to load study sessions"));
       setSessions([]);
       setStats(null);
-      setStats(null);
-      setStats(null);
+      setEngagement(null);
     } finally {
       setLoadingSessions(false);
     }
@@ -608,6 +647,56 @@ export default function StudyPage() {
     weeklyAnswered > 0 && weeklyLevelProgressCurrent === 0
       ? 0
       : Math.max(defaultModeCount - weeklyLevelProgressCurrent, 0);
+  const persistedSummary = engagement?.summary ?? null;
+  const persistedToday = engagement?.today ?? null;
+  const persistedLevelNumber = Math.max(
+    1,
+    Math.trunc(persistedSummary?.level_number ?? 1),
+  );
+  const persistedProgressXp = Math.max(
+    0,
+    Math.trunc(persistedSummary?.level_progress_xp ?? 0),
+  );
+  const persistedNextLevelXp = Math.max(
+    1,
+    Math.trunc(persistedSummary?.next_level_xp ?? 100),
+  );
+  const persistedTotalXp = Math.max(
+    0,
+    Math.trunc(persistedSummary?.total_xp ?? 0),
+  );
+  const persistedStreak = Math.max(
+    0,
+    Math.trunc(persistedSummary?.current_streak_days ?? 0),
+  );
+  const persistedSessionStarts = Math.max(
+    0,
+    Math.trunc(persistedToday?.sessions_started ?? 0),
+  );
+  const engagementLevelLabel = persistedSummary
+    ? `Level ${persistedLevelNumber}`
+    : weeklyLevelLabel;
+  const engagementLevelProgressLabel = persistedSummary
+    ? `${persistedProgressXp} / ${persistedNextLevelXp} XP to next level`
+    : weeklyLevelProgressLabel;
+  const engagementActivityLabel = activeSession
+    ? "Active now"
+    : persistedSummary
+      ? persistedStreak > 0
+        ? `${persistedStreak} day${persistedStreak === 1 ? "" : "s"} streak`
+        : persistedSessionStarts > 0
+          ? "Active today"
+          : "Start today"
+      : weeklyActivityLabel;
+  const engagementValueLabel = persistedSummary
+    ? `${persistedTotalXp} XP`
+    : `${weeklyAnswered} Q`;
+  const engagementMissionProgressPercent = persistedSummary
+    ? clampPercent((persistedProgressXp / persistedNextLevelXp) * 100)
+    : missionProgressPercent;
+  const engagementMissionProgressLabel = persistedSummary
+    ? `${persistedProgressXp} / ${persistedNextLevelXp} XP`
+    : missionProgressLabel;
   const momentumHeadline = activeSession
     ? "Resume your active block to keep momentum."
     : weeklyAnswered === 0
@@ -651,12 +740,12 @@ export default function StudyPage() {
         defaultExamLabel={examLabel(userSettings.defaultExam)}
         defaultModeLabel={modeLabel(userSettings.defaultMode)}
         defaultCount={defaultModeCount}
-        levelLabel={weeklyLevelLabel}
-        levelProgressLabel={weeklyLevelProgressLabel}
-        activityLabel={weeklyActivityLabel}
-        weeklyValue={`${weeklyAnswered} Q`}
-        missionProgressPercent={missionProgressPercent}
-        missionProgressLabel={missionProgressLabel}
+        levelLabel={engagementLevelLabel}
+        levelProgressLabel={engagementLevelProgressLabel}
+        activityLabel={engagementActivityLabel}
+        weeklyValue={engagementValueLabel}
+        missionProgressPercent={engagementMissionProgressPercent}
+        missionProgressLabel={engagementMissionProgressLabel}
         activeSessionLabel={
           activeSession ? modeLabel(activeSession.mode) : null
         }
