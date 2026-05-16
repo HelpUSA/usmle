@@ -32,6 +32,7 @@ import { NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 import { withTx } from "@/lib/db";
 import { getUserIdForApi } from "@/lib/auth";
+import { recordActivityEvent } from "@/lib/engagement";
 
 const ParamsSchema = z.object({
   sessionId: z.string().uuid("Invalid sessionId"),
@@ -292,13 +293,29 @@ export async function POST(req: Request, { params }: RouteParams) {
         };
       }
 
+      const submittedAt = updatedSessionRes.rows[0].submitted_at;
+
+      await recordActivityEvent(
+        {
+          userId,
+          eventType: "session_submitted",
+          sessionId,
+          idempotencyKey: `session_submitted:${sessionId}`,
+          metadataJson: {
+            submitted_at: submittedAt,
+            total_items: normalizedSummary.total_items,
+            answered: normalizedSummary.answered,
+            correct: normalizedSummary.correct,
+            wrong: normalizedSummary.wrong,
+            skipped: normalizedSummary.skipped,
+          },
+        },
+        client
+      );
+
       return {
         status: 200,
-        payload: buildSubmittedPayload(
-          sessionId,
-          updatedSessionRes.rows[0].submitted_at,
-          summaryRow
-        ),
+        payload: buildSubmittedPayload(sessionId, submittedAt, summaryRow),
       };
     });
 

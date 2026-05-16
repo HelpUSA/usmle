@@ -44,6 +44,7 @@ import { NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 import { withTx } from "@/lib/db";
 import { getUserIdForApi } from "@/lib/auth";
+import { recordActivityEvent } from "@/lib/engagement";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -496,6 +497,75 @@ export async function POST(req: Request, { params }: RouteParams) {
           timesCorrectDelta,
         ]
       );
+
+      if (!previousAttempt) {
+        await recordActivityEvent(
+          {
+            userId,
+            eventType: "answer_submitted",
+            sessionId,
+            sessionItemId,
+            questionId,
+            studySeconds: body.time_spent_seconds ?? 0,
+            idempotencyKey: `answer_submitted:${attemptRow.attempt_id}`,
+            metadataJson: {
+              result: attemptResult,
+              is_correct: attemptRow.is_correct,
+              flagged_for_review: attemptRow.flagged_for_review,
+            },
+          },
+          client
+        );
+
+        if (attemptRow.is_correct === true) {
+          await recordActivityEvent(
+            {
+              userId,
+              eventType: "answer_correct",
+              sessionId,
+              sessionItemId,
+              questionId,
+              idempotencyKey: `answer_correct:${attemptRow.attempt_id}`,
+              metadataJson: {
+                result: attemptResult,
+              },
+            },
+            client
+          );
+        } else if (attemptRow.result === "wrong") {
+          await recordActivityEvent(
+            {
+              userId,
+              eventType: "answer_incorrect",
+              sessionId,
+              sessionItemId,
+              questionId,
+              idempotencyKey: `answer_incorrect:${attemptRow.attempt_id}`,
+              metadataJson: {
+                result: attemptResult,
+              },
+            },
+            client
+          );
+        }
+
+        if (attemptRow.flagged_for_review === true) {
+          await recordActivityEvent(
+            {
+              userId,
+              eventType: "question_flagged",
+              sessionId,
+              sessionItemId,
+              questionId,
+              idempotencyKey: `question_flagged:${attemptRow.attempt_id}`,
+              metadataJson: {
+                result: attemptResult,
+              },
+            },
+            client
+          );
+        }
+      }
 
       const questionVersionContentRes =
         await client.query<QuestionVersionContentRow>(
