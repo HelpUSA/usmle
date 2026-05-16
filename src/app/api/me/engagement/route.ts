@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getUserIdForApi } from "@/lib/auth";
 import { query } from "@/lib/db";
+import { recordActivityEvent } from "@/lib/engagement";
 
 type DbRow = Record<string, unknown>;
 
@@ -28,6 +29,14 @@ function asTimestamp(value: unknown): string | null {
 
 function todayUtcKey(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
+function getErrorStatus(error: unknown): number {
+  return error instanceof Error && error.message === "Unauthorized" ? 401 : 500;
 }
 
 function emptySummary() {
@@ -153,6 +162,60 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       { error: "Failed to load engagement summary" },
       { status: 500 },
+    );
+  }
+}
+
+function isTrackablePageEvent(
+  value: unknown
+): value is "progress_opened" | "results_opened" {
+  return value === "progress_opened" || value === "results_opened";
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const userId = await getUserIdForApi(req);
+    const body: unknown = await req.json().catch(() => null);
+    const eventType =
+      body && typeof body === "object" && "event_type" in body
+        ? (body as { event_type?: unknown }).event_type
+        : null;
+
+    if (!isTrackablePageEvent(eventType)) {
+      return NextResponse.json(
+        { error: "Invalid engagement event" },
+        { status: 400 }
+      );
+    }
+
+    const eventDate = todayUtcKey();
+
+    await recordActivityEvent({
+      userId,
+      eventType,
+      eventDate,
+      idempotencyKey: `${eventType}:${userId}:${eventDate}`,
+      metadataJson: {
+        source: "page_view",
+      },
+    });
+
+    return NextResponse.json(
+      { ok: true, event_type: eventType, event_date: eventDate },
+      { headers: { "Cache-Control": "no-store" } }
+    );
+  } catch (error: unknown) {
+    return NextResponse.json(
+      {
+        error: getErrorMessage(
+          error,
+          "Failed to record engagement event"
+        ),
+      },
+      {
+        status: getErrorStatus(error),
+        headers: { "Cache-Control": "no-store" },
+      }
     );
   }
 }

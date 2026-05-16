@@ -242,6 +242,17 @@ export default function ResultsPage() {
     try {
       const res = await apiFetch<SessionsResponse>("/api/sessions");
       setSessions(Array.isArray(res.sessions) ? res.sessions : []);
+
+      try {
+        await apiFetch<{ ok: boolean }>("/api/me/engagement", {
+          method: "POST",
+          body: JSON.stringify({ event_type: "results_opened" }),
+        });
+      } catch {
+        /*
+         * Page-view engagement should never block results loading.
+         */
+      }
     } catch (error) {
       setErr(getErrorMessage(error, "Failed to load results"));
       setSessions([]);

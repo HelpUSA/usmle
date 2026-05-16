@@ -498,6 +498,17 @@ export default function ProgressPage() {
         apiFetch<StatsResponse>("/api/me/stats?range=365"),
       ]);
 
+      try {
+        await apiFetch<{ ok: boolean }>("/api/me/engagement", {
+          method: "POST",
+          body: JSON.stringify({ event_type: "progress_opened" }),
+        });
+      } catch {
+        /*
+         * Page-view engagement should never block progress loading.
+         */
+      }
+
       let engagementRes: EngagementResponse | null = null;
 
       try {
