@@ -36,6 +36,7 @@ import { NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 import { withTx } from "@/lib/db";
 import { getUserIdForApi } from "@/lib/auth";
+import { recordActivityEvent } from "@/lib/engagement";
 
 const ParamsSchema = z.object({
   sessionId: z.string().uuid("Invalid sessionId"),
@@ -479,6 +480,20 @@ export async function GET(req: Request, { params }: RouteParams) {
         areas: areasByQuestionVersionId[row.question_version_id] ?? [],
         choices: choicesByQuestionVersionId[row.question_version_id] ?? [],
       }));
+
+      await recordActivityEvent(
+        {
+          userId,
+          eventType: "review_opened",
+          sessionId,
+          idempotencyKey: `review_opened:${sessionId}`,
+          metadataJson: {
+            items_count: items.length,
+            submitted_at: session.submitted_at,
+          },
+        },
+        client
+      );
 
       return {
         status: 200,
