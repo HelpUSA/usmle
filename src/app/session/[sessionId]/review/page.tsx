@@ -833,11 +833,24 @@ export default function ReviewPage({
             )}
           >
             {completionState === "saving"
-              ? "Saving..."
+              ? "Saving completion..."
               : completionState === "done"
-                ? "Review complete"
+                ? "Review marked complete"
                 : "Mark review complete"}
           </button>
+
+          {completionState === "done" ? (
+            <div
+              style={{
+                alignSelf: "center",
+                color: "#86efac",
+                fontSize: 12,
+                fontWeight: 700,
+              }}
+            >
+              Review completion saved.
+            </div>
+          ) : null}
 
           {completionState === "error" && completionErr ? (
             <div
