@@ -191,6 +191,11 @@ export default function ReviewPage({
 
   const [data, setData] = useState<ReviewResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [completionState, setCompletionState] = useState<
+    "idle" | "saving" | "done" | "error"
+  >("idle");
+  const [completionErr, setCompletionErr] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(false);
 
   const [activePos, setActivePos] = useState<number>(1);
@@ -273,6 +278,8 @@ export default function ReviewPage({
   const load = useCallback(async () => {
     setLoading(true);
     setErr(null);
+    setCompletionState("idle");
+    setCompletionErr(null);
 
     try {
       const res = await apiFetch<ReviewResponse>(
@@ -311,6 +318,30 @@ export default function ReviewPage({
 
   function goBackToResults() {
     router.push("/results");
+  }
+
+  async function markReviewComplete() {
+    if (!data || completionState === "saving" || completionState === "done") {
+      return;
+    }
+
+    setCompletionState("saving");
+    setCompletionErr(null);
+
+    try {
+      await apiFetch<{ ok: boolean; event_type: "review_completed" }>(
+        `/api/sessions/${sessionId}/review`,
+        {
+          method: "POST",
+        }
+      );
+      setCompletionState("done");
+    } catch (error) {
+      setCompletionState("error");
+      setCompletionErr(
+        getErrorMessage(error, "Failed to mark review complete")
+      );
+    }
   }
 
   return (
@@ -790,6 +821,36 @@ export default function ReviewPage({
           >
             Next
           </button>
+
+          <button
+            onClick={markReviewComplete}
+            disabled={
+              !data || completionState === "saving" || completionState === "done"
+            }
+            style={btnWide(
+              !data || completionState === "saving" || completionState === "done",
+              completionState !== "done"
+            )}
+          >
+            {completionState === "saving"
+              ? "Saving..."
+              : completionState === "done"
+                ? "Review complete"
+                : "Mark review complete"}
+          </button>
+
+          {completionState === "error" && completionErr ? (
+            <div
+              style={{
+                alignSelf: "center",
+                color: "#fca5a5",
+                fontSize: 12,
+                fontWeight: 650,
+              }}
+            >
+              {completionErr}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

@@ -519,3 +519,87 @@ export async function GET(req: Request, { params }: RouteParams) {
     );
   }
 }
+
+export async function POST(req: Request, context: RouteParams) {
+  try {
+    const { sessionId } = ParamsSchema.parse(context.params);
+    const userId = await getUserIdForApi(req);
+
+    const result = await withTx(async (client) => {
+      const sessionRes = await client.query<SessionRow>(
+        `
+        SELECT
+          session_id,
+          user_id,
+          status,
+          exam,
+          language,
+          started_at,
+          submitted_at
+        FROM sessions
+        WHERE session_id = $1
+          AND user_id = $2
+        LIMIT 1
+        `,
+        [sessionId, userId]
+      );
+
+      const session = sessionRes.rows[0];
+
+      if (!session) {
+        return {
+          status: 404,
+          payload: { error: "Session not found" },
+        };
+      }
+
+      if (session.status !== "submitted") {
+        return {
+          status: 409,
+          payload: { error: "Review completion requires a submitted session" },
+        };
+      }
+
+      await recordActivityEvent(
+        {
+          userId,
+          eventType: "review_completed",
+          sessionId,
+          idempotencyKey: `review_completed:${sessionId}`,
+          metadataJson: {
+            submitted_at: session.submitted_at,
+          },
+        },
+        client
+      );
+
+      return {
+        status: 200,
+        payload: {
+          ok: true,
+          event_type: "review_completed",
+          session_id: sessionId,
+        },
+      };
+    });
+
+    return NextResponse.json(result.payload, {
+      status: result.status,
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      {
+        error: getErrorMessage(error, "Failed to mark review complete"),
+      },
+      {
+        status: getErrorStatus(error),
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
+    );
+  }
+}
