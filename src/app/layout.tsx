@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File: src/app/layout.tsx
  *
  * Responsibility:
@@ -24,7 +24,7 @@ import Providers from "./providers";
 import ProtectedNavLink from "./ProtectedNavLink";
 
 export const metadata: Metadata = {
-  title: "HelpUS · USMLE Platform",
+  title: "HelpUS Â· USMLE Platform",
   description: "USMLE-style practice platform",
 };
 
@@ -202,6 +202,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     Study
                   </ProtectedNavLink>
 
+ <ProtectedNavLink href="/flashcards" style={navLinkStyle}>
+ Flashcards
+ </ProtectedNavLink>
+
                   <ProtectedNavLink href="/results" style={navLinkStyle}>
                     Results
                   </ProtectedNavLink>
@@ -236,7 +240,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     background: "white",
                   }}
                 >
-                  ☰
+                  â˜°
                 </div>
               </div>
 
@@ -265,7 +269,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <span>Menu</span>
 
                   <span aria-hidden="true" style={{ fontSize: 20, lineHeight: 1 }}>
-                    ☰
+                    â˜°
                   </span>
                 </summary>
 
@@ -284,6 +288,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <ProtectedNavLink href="/study" style={mobileMenuLinkStyle}>
                     Study
                   </ProtectedNavLink>
+
+ <ProtectedNavLink href="/flashcards" style={mobileMenuLinkStyle}>
+ Flashcards
+ </ProtectedNavLink>
 
                   <ProtectedNavLink href="/results" style={mobileMenuLinkStyle}>
                     Results
@@ -347,9 +355,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 fontWeight: 700,
               }}
             >
-              © {new Date().getFullYear()} HelpUS
+              Â© {new Date().getFullYear()} HelpUS
             </a>{" "}
-            · Built for medical learning
+            Â· Built for medical learning
           </footer>
         </Providers>
       </body>
