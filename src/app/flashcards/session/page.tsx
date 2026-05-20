@@ -58,7 +58,7 @@ export default function FlashcardsSessionPage() {
  </div>
  <div style={counter}>{ratings.length}/{cards.length}</div>
  </header>
- <div style={track}><div style={{ ...fill, width: ${pct}% }} /></div>
+ <div style={track}><div style={{ ...fill, width: `${pct}%` }} /></div>
 
  {done ? (
  <section style={summary}>
@@ -107,4 +107,6 @@ const summary: CSSProperties = { borderRadius: 30, border: '1px solid #bbf7d0', 
 const summaryTitle: CSSProperties = { margin: 0, color: '#111827', fontSize: 30, letterSpacing: '-.04em' };
 const ratingSummary: CSSProperties = { display: 'grid', gap: 4, borderRadius: 16, background: 'white', padding: 12, color: '#374151' };
 const primaryButton: CSSProperties = { marginTop: 22, border: 'none', borderRadius: 16, background: '#2563eb', color: 'white', padding: '13px 18px', fontWeight: 850, cursor: 'pointer' };
+
+
 
