@@ -247,6 +247,10 @@ function getMostUsedMode(
   return entries[0].label;
 }
 
+import HeaderGamificationBar from "@/components/HeaderGamificationBar";
+import BreakTimerModal from "@/components/BreakTimerModal";
+import ScoreLoggerModal from "@/components/ScoreLoggerModal";
+
 export default function HomePage() {
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
@@ -254,6 +258,8 @@ export default function HomePage() {
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [isBreakModalOpen, setIsBreakModalOpen] = useState(false);
+  const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
 
   const isAuthLoading = sessionStatus === "loading";
   const isSignedIn =
@@ -632,6 +638,8 @@ export default function HomePage() {
         </>
       ) : (
         <>
+          <HeaderGamificationBar />
+
           <section
             style={{
               padding: 18,
@@ -1310,6 +1318,7 @@ export default function HomePage() {
 
               {[
                 { label: "Study", href: "/study" },
+                { label: "Flashcards", href: "/flashcards" },
                 { label: "Results", href: "/results" },
                 { label: "Progress", href: "/progress" },
                 { label: "Settings", href: "/settings" },
@@ -1332,8 +1341,62 @@ export default function HomePage() {
                   {item.label}
                 </button>
               ))}
+
+              <button
+                type="button"
+                onClick={() => setIsBreakModalOpen(true)}
+                style={{
+                  width: "100%",
+                  padding: "14px 14px",
+                  borderRadius: 14,
+                  border: "1px solid #cbd5e1",
+                  background: "#f0f9ff",
+                  color: "#0369a1",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  fontWeight: 800,
+                }}
+              >
+                ⏱️ USMLE 2026 Break Timer
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsScoreModalOpen(true)}
+                style={{
+                  width: "100%",
+                  padding: "14px 14px",
+                  borderRadius: 14,
+                  border: "1px solid #cbd5e1",
+                  background: "#f0fdf4",
+                  color: "#15803d",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  fontWeight: 800,
+                }}
+              >
+                📈 Log Practice Exam (NBME / Free 120)
+              </button>
             </div>
           </section>
+
+          <BreakTimerModal
+            isOpen={isBreakModalOpen}
+            onClose={() => setIsBreakModalOpen(false)}
+            onCompleteBreak={() => {
+              setIsBreakModalOpen(false);
+              router.push("/study");
+            }}
+          />
+
+          <ScoreLoggerModal
+            isOpen={isScoreModalOpen}
+            onClose={() => setIsScoreModalOpen(false)}
+            onScoreSaved={() => {
+              setIsScoreModalOpen(false);
+              router.push("/progress");
+            }}
+          />
 
           {err ? (
             <p style={{ margin: 0, color: "crimson" }}>Error: {err}</p>

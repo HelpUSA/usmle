@@ -1,55 +1,175 @@
-﻿/*
- * File: src/app/flashcards/page.tsx
- * Responsibility: render the Flashcards landing page and entry point.
- * Current scope: UI scaffold only. API-backed decks come next.
- */
+"use client";
 
-import Link from 'next/link';
-import type { CSSProperties } from 'react';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import type { CSSProperties } from "react";
+import { apiFetch } from "@/lib/apiClient";
+import type { FlashcardDeckSummary } from "@/lib/flashcards";
 
-const features = [
- ['Active recall', 'Read an incomplete high-yield fact, think first, then reveal the answer.'],
- ['Game loop', 'Rate recall with Again, Hard, Good, or Easy after each reveal.'],
- ['Mobile-first', 'Large card, clear progress, and simple one-hand controls.'],
+const DEFAULT_DECKS: FlashcardDeckSummary[] = [
+  {
+    id: "usmle-starter-rapid-recall",
+    slug: "usmle-starter-rapid-recall",
+    title: "USMLE Rapid Recall Starter",
+    description: "High-yield core concepts across Step 1, Step 2, and Step 3.",
+    exam: "step1",
+    active_cards: 6,
+    due_cards: 6,
+  },
+  {
+    id: "cardiology-high-yield",
+    slug: "cardiology-high-yield",
+    title: "Cardiology & Vascular Medicine",
+    description: "Murmurs, antiarrhythmics, heart failure, and EKG pearls.",
+    exam: "step1",
+    active_cards: 5,
+    due_cards: 5,
+  },
+  {
+    id: "pharmacology-antidotes",
+    slug: "pharmacology-antidotes",
+    title: "Pharmacology Antidotes & Tox",
+    description: "Essential antidotes, toxicities, and mechanism of actions.",
+    exam: "step1",
+    active_cards: 5,
+    due_cards: 5,
+  },
+  {
+    id: "nutrition-science-2026",
+    slug: "nutrition-science-2026",
+    title: "USMLE 2026 Nutrition Science",
+    description: "Vitamin deficiencies, metabolic pathways, and dietetics.",
+    exam: "step1",
+    active_cards: 5,
+    due_cards: 5,
+  },
+  {
+    id: "endocrine-metabolism",
+    slug: "endocrine-metabolism",
+    title: "Endocrine & Metabolic Disorders",
+    description: "Adrenal, thyroid, pituitary, and diabetes high-yield cards.",
+    exam: "step2ck",
+    active_cards: 4,
+    due_cards: 4,
+  },
 ];
 
 export default function FlashcardsPage() {
- return (
- <main style={page}>
- <section style={hero}>
- <div style={pill}>New study mode</div>
- <h1 style={title}>Flashcards for rapid USMLE recall</h1>
- <p style={subtitle}>
- A focused active-recall mode: incomplete prompt on the front,
- answer and pearl on the back, then a quick recall rating.
- </p>
- <div style={actions}>
- <Link href='/flashcards/session' style={primary}>Start quick review</Link>
- <Link href='/study' style={secondary}>Back to Study</Link>
- </div>
- </section>
+  const [decks, setDecks] = useState<FlashcardDeckSummary[]>(DEFAULT_DECKS);
+  const [selectedExam, setSelectedExam] = useState<string>("all");
 
- <section style={grid}>
- {features.map(([name, body]) => (
- <article key={name} style={card}>
- <h2 style={cardTitle}>{name}</h2>
- <p style={cardText}>{body}</p>
- </article>
- ))}
- </section>
- </main>
- );
+  useEffect(() => {
+    async function loadDecks() {
+      try {
+        const res = await apiFetch<{ decks: FlashcardDeckSummary[] }>("/api/flashcards/decks");
+        if (Array.isArray(res.decks) && res.decks.length > 0) {
+          setDecks(res.decks);
+        }
+      } catch {
+        // Fallback decks used
+      }
+    }
+    void loadDecks();
+  }, []);
+
+  const filteredDecks = decks.filter(
+    (deck) => selectedExam === "all" || deck.exam.toLowerCase() === selectedExam.toLowerCase()
+  );
+
+  return (
+    <main style={page}>
+      <section style={hero}>
+        <div style={pill}>USMLE 2026 Active Recall</div>
+        <h1 style={title}>Flashcards for Rapid USMLE Recall</h1>
+        <p style={subtitle}>
+          Active-recall study decks for Step 1, Step 2 CK, Pharmacology, Cardiology, and the new 2026 Nutrition Science standard.
+        </p>
+
+        <div style={{ marginTop: 20, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {["all", "step1", "step2ck"].map((step) => (
+            <button
+              key={step}
+              onClick={() => setSelectedExam(step)}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 999,
+                border: "1px solid #cbd5e1",
+                backgroundColor: selectedExam === step ? "#2563eb" : "#ffffff",
+                color: selectedExam === step ? "#ffffff" : "#475569",
+                fontWeight: 600,
+                fontSize: "0.85rem",
+                cursor: "pointer",
+              }}
+            >
+              {step === "all" ? "All Subjects" : step.toUpperCase()}
+            </button>
+          ))}
+        </div>
+
+        <div style={actions}>
+          <Link href="/flashcards/session?deck=usmle-starter-rapid-recall" style={primary}>
+            ▶ Start Rapid Review
+          </Link>
+          <Link href="/study" style={secondary}>
+            Back to Study
+          </Link>
+        </div>
+      </section>
+
+      <h2 style={{ fontSize: "1.25rem", fontWeight: 800, marginTop: 28, marginBottom: 14, color: "#0f172a" }}>
+        Available Decks ({filteredDecks.length})
+      </h2>
+
+      <section style={grid}>
+        {filteredDecks.map((deck) => (
+          <article key={deck.slug} style={card}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+              <span style={deckExamTag}>{deck.exam.toUpperCase()}</span>
+              <span style={deckCardBadge}>{deck.active_cards} cards</span>
+            </div>
+            <h3 style={cardTitle}>{deck.title}</h3>
+            <p style={cardText}>{deck.description}</p>
+
+            <Link
+              href={`/flashcards/session?deck=${deck.slug}`}
+              style={deckStartBtn}
+            >
+              Start Deck →
+            </Link>
+          </article>
+        ))}
+      </section>
+    </main>
+  );
 }
 
-const page: CSSProperties = { maxWidth: 980, margin: '0 auto', padding: '28px 16px 48px' };
-const hero: CSSProperties = { borderRadius: 28, border: '1px solid #e5e7eb', background: 'linear-gradient(135deg, rgba(37,99,235,.10), rgba(16,185,129,.10)), #fff', padding: '30px 20px', boxShadow: '0 18px 50px rgba(15,23,42,.08)' };
-const pill: CSSProperties = { display: 'inline-flex', borderRadius: 999, padding: '6px 10px', background: '#dbeafe', color: '#1d4ed8', fontSize: 12, fontWeight: 850, marginBottom: 14 };
-const title: CSSProperties = { margin: 0, color: '#111827', fontSize: 'clamp(34px, 8vw, 58px)', lineHeight: 1, letterSpacing: '-.055em' };
-const subtitle: CSSProperties = { maxWidth: 760, margin: '18px 0 0', color: '#4b5563', fontSize: 17, lineHeight: 1.65 };
-const actions: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 26 };
-const primary: CSSProperties = { textDecoration: 'none', borderRadius: 16, padding: '13px 18px', background: '#2563eb', color: 'white', fontWeight: 850 };
-const secondary: CSSProperties = { textDecoration: 'none', borderRadius: 16, padding: '13px 18px', background: 'white', color: '#374151', border: '1px solid #e5e7eb', fontWeight: 800 };
-const grid: CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginTop: 18 };
-const card: CSSProperties = { borderRadius: 22, background: 'white', border: '1px solid #e5e7eb', padding: 18, boxShadow: '0 10px 28px rgba(15,23,42,.05)' };
-const cardTitle: CSSProperties = { margin: 0, color: '#111827', fontSize: 17 };
-const cardText: CSSProperties = { margin: '8px 0 0', color: '#6b7280', lineHeight: 1.55 };
+const page: CSSProperties = { maxWidth: 980, margin: "0 auto", padding: "28px 16px 48px" };
+const hero: CSSProperties = {
+  borderRadius: 24,
+  border: "1px solid #e5e7eb",
+  background: "linear-gradient(135deg, rgba(37,99,235,.08), rgba(16,185,129,.08)), #fff",
+  padding: "30px 20px",
+  boxShadow: "0 10px 30px rgba(15,23,42,.05)",
+};
+const pill: CSSProperties = {
+  display: "inline-flex",
+  borderRadius: 999,
+  padding: "6px 12px",
+  background: "#dbeafe",
+  color: "#1d4ed8",
+  fontSize: 12,
+  fontWeight: 850,
+  marginBottom: 14,
+};
+const title: CSSProperties = { margin: 0, color: "#111827", fontSize: "clamp(30px, 6vw, 48px)", lineHeight: 1.1, letterSpacing: "-.04em" };
+const subtitle: CSSProperties = { maxWidth: 760, margin: "14px 0 0", color: "#4b5563", fontSize: 16, lineHeight: 1.6 };
+const actions: CSSProperties = { display: "flex", flexWrap: "wrap", gap: 12, marginTop: 24 };
+const primary: CSSProperties = { textDecoration: "none", borderRadius: 14, padding: "12px 18px", background: "#2563eb", color: "white", fontWeight: 800 };
+const secondary: CSSProperties = { textDecoration: "none", borderRadius: 14, padding: "12px 18px", background: "white", color: "#374151", border: "1px solid #e5e7eb", fontWeight: 700 };
+const grid: CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 };
+const card: CSSProperties = { borderRadius: 18, background: "white", border: "1px solid #e5e7eb", padding: 18, display: "flex", flexDirection: "column", gap: 8 };
+const cardTitle: CSSProperties = { margin: 0, color: "#111827", fontSize: 17, fontWeight: 700 };
+const cardText: CSSProperties = { margin: 0, color: "#6b7280", fontSize: "0.85rem", lineHeight: 1.5, flex: 1 };
+const deckExamTag: CSSProperties = { fontSize: "0.7rem", fontWeight: 700, color: "#2563eb", backgroundColor: "#eff6ff", padding: "3px 8px", borderRadius: "999px" };
+const deckCardBadge: CSSProperties = { fontSize: "0.75rem", color: "#64748b", fontWeight: 600 };
+const deckStartBtn: CSSProperties = { textDecoration: "none", padding: "10px", borderRadius: "10px", backgroundColor: "#f8fafc", color: "#2563eb", textAlign: "center", fontWeight: 700, fontSize: "0.85rem", border: "1px solid #e2e8f0", marginTop: 12 };

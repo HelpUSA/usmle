@@ -462,12 +462,19 @@ function getStatusBadgeStyle(status?: string | null): CSSProperties {
   };
 }
 
+import { loadExternalScores } from "@/lib/gamification";
+import type { ExternalScoreEntry } from "@/lib/gamification";
+import ScoreLoggerModal from "@/components/ScoreLoggerModal";
+import HeaderGamificationBar from "@/components/HeaderGamificationBar";
+
 export default function ProgressPage() {
   const { data: session, status: sessionStatus } = useSession();
 
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [engagement, setEngagement] = useState<EngagementResponse | null>(null);
+  const [externalScores, setExternalScores] = useState<ExternalScoreEntry[]>([]);
+  const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -535,6 +542,7 @@ export default function ProgressPage() {
 
   useEffect(() => {
     void loadProgress();
+    setExternalScores(loadExternalScores());
   }, [loadProgress]);
 
   const sortedSessions = useMemo(() => {
@@ -774,6 +782,70 @@ export default function ProgressPage() {
         </section>
       ) : (
         <>
+          <HeaderGamificationBar />
+
+          <section
+            style={{
+              padding: 18,
+              borderRadius: 20,
+              border: "1px solid #e5e7eb",
+              background: "#ffffff",
+              display: "grid",
+              gap: 14,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+              <div>
+                <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#166534", backgroundColor: "#f0fdf4", padding: "4px 10px", borderRadius: 999 }}>
+                  NBME & Free 120 Predictor
+                </span>
+                <h2 style={{ margin: "6px 0 0 0", fontSize: 22, fontWeight: 900, color: "#0f172a" }}>
+                  USMLE Exam Readiness & Pass Probability
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsScoreModalOpen(true)}
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: 12,
+                  border: "none",
+                  backgroundColor: "#2563eb",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                }}
+              >
+                + Log NBME / Free 120 Score
+              </button>
+            </div>
+
+            {externalScores.length > 0 ? (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+                {externalScores.map((scoreItem) => (
+                  <div key={scoreItem.id} style={{ padding: 14, borderRadius: 14, border: "1px solid #e2e8f0", backgroundColor: "#f8fafc" }}>
+                    <div style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>{scoreItem.examType}</div>
+                    <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#0f172a", margin: "4px 0" }}>
+                      {scoreItem.score}% <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#10b981" }}>({scoreItem.estimatedPassProbability}% Pass Prob)</span>
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Logged on {scoreItem.date}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                No external practice exams logged yet. Log your NBME or Free 120 score to track your Pass Probability percentage.
+              </div>
+            )}
+          </section>
+
+          <ScoreLoggerModal
+            isOpen={isScoreModalOpen}
+            onClose={() => setIsScoreModalOpen(false)}
+            onScoreSaved={(updated) => setExternalScores(updated)}
+          />
           {err ? (
             <section
               style={{
