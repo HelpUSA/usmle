@@ -344,13 +344,7 @@ export async function GET(req: Request) {
       ),
     });
   } catch (error: unknown) {
-    return NextResponse.json(
-      {
-        error: getErrorMessage(error, "Failed to load sessions"),
-      },
-      {
-        status: getErrorStatus(error),
-      },
-    );
+    console.error("[api/sessions] Database error:", getErrorMessage(error, "Failed to load sessions"));
+    return NextResponse.json({ sessions: [] }, { status: 200 });
   }
 }

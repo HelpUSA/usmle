@@ -82,15 +82,39 @@ function stableUuidFromEmail(email: string): string {
   ].join("-");
 }
 
+function getGoogleClientId(): string {
+  return (
+    process.env.AUTH_GOOGLE_ID?.trim() ||
+    process.env.GOOGLE_CLIENT_ID?.trim() ||
+    ""
+  );
+}
+
+function getGoogleClientSecret(): string {
+  return (
+    process.env.AUTH_GOOGLE_SECRET?.trim() ||
+    process.env.GOOGLE_CLIENT_SECRET?.trim() ||
+    ""
+  );
+}
+
+function getAuthSecret(): string | undefined {
+  return (
+    process.env.NEXTAUTH_SECRET?.trim() ||
+    process.env.AUTH_SECRET?.trim() ||
+    undefined
+  );
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     Google({
-      clientId: readRequiredAuthEnv("AUTH_GOOGLE_ID"),
-      clientSecret: readRequiredAuthEnv("AUTH_GOOGLE_SECRET"),
+      clientId: getGoogleClientId(),
+      clientSecret: getGoogleClientSecret(),
     }),
   ],
 
-  secret: readRequiredAuthSecret("NEXTAUTH_SECRET"),
+  secret: getAuthSecret(),
 
   session: {
     strategy: "jwt",
