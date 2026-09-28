@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { loadGamificationState } from "@/lib/gamification";
 import type { UserGamificationState } from "@/lib/gamification";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 export default function HeaderGamificationBar() {
+  const { t } = useLanguage();
   const [state, setState] = useState<UserGamificationState | null>(null);
 
   useEffect(() => {
@@ -20,7 +23,7 @@ export default function HeaderGamificationBar() {
       <div style={badgeStyle}>
         <span style={{ fontSize: "1rem" }}>🔥</span>
         <span style={{ fontWeight: 700, color: "#ea580c" }}>{state.streakDays}</span>
-        <span style={{ color: "#475569", fontSize: "0.8rem" }}>day streak</span>
+        <span style={{ color: "#475569", fontSize: "0.8rem" }}>{t("day_streak")}</span>
       </div>
 
       <div style={badgeStyle}>
@@ -33,7 +36,7 @@ export default function HeaderGamificationBar() {
 
       <div style={goalContainerStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", fontSize: "0.75rem", fontWeight: 600 }}>
-          <span style={{ color: "#334155" }}>Daily Goal: {state.todayQuestionsCount}/{state.dailyGoalQuestions} Qs</span>
+          <span style={{ color: "#334155" }}>{t("daily_goal")}: {state.todayQuestionsCount}/{state.dailyGoalQuestions} Qs</span>
           <span style={{ color: "#2563eb" }}>{pctGoal}%</span>
         </div>
         <div style={progressTrackStyle}>

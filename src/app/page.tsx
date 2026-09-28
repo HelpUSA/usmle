@@ -250,9 +250,11 @@ function getMostUsedMode(
 import HeaderGamificationBar from "@/components/HeaderGamificationBar";
 import BreakTimerModal from "@/components/BreakTimerModal";
 import ScoreLoggerModal from "@/components/ScoreLoggerModal";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function HomePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { data: session, status: sessionStatus } = useSession();
 
   const [loadingSessions, setLoadingSessions] = useState(false);
@@ -699,7 +701,7 @@ export default function HomePage() {
                       fontWeight: 900,
                     }}
                   >
-                    Welcome back, {userName}
+                    {t("welcome_back")}, {userName}
                   </h1>
                 </div>
               </div>
@@ -724,7 +726,7 @@ export default function HomePage() {
                     fontWeight: 800,
                   }}
                 >
-                  Sign out
+                  {t("sign_out")}
                 </button>
               </div>
             </div>
@@ -737,10 +739,10 @@ export default function HomePage() {
               }}
             >
               {[
-                { label: "Total sessions", value: String(totalSessions) },
-                { label: "Completion rate", value: `${completionRate}%` },
-                { label: "Most used mode", value: mostUsedMode },
-                { label: "Open sessions", value: String(inProgressSessions) },
+                { label: t("total_sessions"), value: String(totalSessions) },
+                { label: t("completion_rate"), value: `${completionRate}%` },
+                { label: t("most_used_mode"), value: mostUsedMode },
+                { label: t("open_sessions"), value: String(inProgressSessions) },
               ].map((card) => (
                 <div
                   key={card.label}
@@ -1313,18 +1315,18 @@ export default function HomePage() {
               }}
             >
               <div style={{ fontWeight: 900, fontSize: 20 }}>
-                Quick navigation
+                {t("quick_navigation")}
               </div>
 
               {[
-                { label: "Study", href: "/study" },
-                { label: "Flashcards", href: "/flashcards" },
-                { label: "Results", href: "/results" },
-                { label: "Progress", href: "/progress" },
-                { label: "Settings", href: "/settings" },
+                { label: t("nav_study"), href: "/study" },
+                { label: t("nav_flashcards"), href: "/flashcards" },
+                { label: t("nav_results"), href: "/results" },
+                { label: t("nav_progress"), href: "/progress" },
+                { label: t("nav_settings"), href: "/settings" },
               ].map((item) => (
                 <button
-                  key={item.label}
+                  key={item.href}
                   type="button"
                   onClick={() => router.push(item.href)}
                   style={{
@@ -1357,7 +1359,7 @@ export default function HomePage() {
                   fontWeight: 800,
                 }}
               >
-                ⏱️ USMLE 2026 Break Timer
+                ⏱️ {t("break_timer")}
               </button>
 
               <button
@@ -1375,7 +1377,7 @@ export default function HomePage() {
                   fontWeight: 800,
                 }}
               >
-                📈 Log Practice Exam (NBME / Free 120)
+                📈 {t("log_practice_exam")}
               </button>
             </div>
           </section>
