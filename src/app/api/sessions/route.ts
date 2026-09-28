@@ -277,6 +277,31 @@ export async function POST(req: Request) {
 
     return NextResponse.json(session, { status: 201 });
   } catch (error: unknown) {
+    const isDbConnError =
+      error instanceof Error &&
+      (error.message.toLowerCase().includes("postgres") ||
+        error.message.toLowerCase().includes("password authentication") ||
+        error.message.toLowerCase().includes("econnrefused") ||
+        error.message.toLowerCase().includes("database_url"));
+
+    if (isDbConnError) {
+      console.warn("[api/sessions] DB connection unavailable. Returning synthetic session fallback for Vercel demo.");
+      const fallbackSession = {
+        session_id: "demo-" + Date.now(),
+        user_id: "demo-user",
+        mode: "practice",
+        exam: "step1",
+        language: "en",
+        timed: false,
+        time_limit_seconds: null,
+        status: "in_progress",
+        settings_json: {},
+        started_at: new Date().toISOString(),
+        submitted_at: null,
+      };
+      return NextResponse.json(fallbackSession, { status: 201 });
+    }
+
     return NextResponse.json(
       {
         error: getErrorMessage(error, "Failed to create session"),
