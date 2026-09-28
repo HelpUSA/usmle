@@ -1,4 +1,4 @@
-﻿/*
+/*
  * File: src/app/layout.tsx
  *
  * Responsibility:
@@ -22,6 +22,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Providers from "./providers";
 import ProtectedNavLink from "./ProtectedNavLink";
+import LanguageSelector from "@/components/LanguageSelector";
 
 export const metadata: Metadata = {
   title: "HelpUS Â· USMLE Platform",
@@ -218,6 +219,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     Settings
                   </ProtectedNavLink>
 
+                  <LanguageSelector />
+
                   <a
                     href={HELPUS_WHATSAPP_URL}
                     target="_blank"
@@ -304,6 +307,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <ProtectedNavLink href="/settings" style={mobileMenuLinkStyle}>
                     Settings
                   </ProtectedNavLink>
+
+                  <LanguageSelector isMobile />
 
                   <a
                     href={HELPUS_SITE_URL}
