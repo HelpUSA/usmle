@@ -1,3 +1,5 @@
+import { useLanguage } from "@/context/LanguageContext";
+
 type StudyEngagementHeroProps = {
   signedInLabel: string;
   defaultExamLabel: string;
@@ -15,6 +17,7 @@ type StudyEngagementHeroProps = {
 };
 
 export function StudyEngagementHero(props: StudyEngagementHeroProps) {
+  const { t } = useLanguage();
   const {
     signedInLabel,
     defaultExamLabel,
@@ -66,7 +69,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
               textTransform: "uppercase",
             }}
           >
-            Daily study arena
+            {t("daily_study_arena")}
           </div>
 
           <h1
@@ -78,7 +81,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
               color: "#0f172a",
             }}
           >
-            Keep your streak alive.
+            {t("keep_streak_alive")}
           </h1>
 
           <div
@@ -90,7 +93,7 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
               fontSize: 14,
             }}
           >
-            {signedInLabel} Your next block is ready for {defaultExamLabel}.
+            {signedInLabel} {t("next_block_ready")} {defaultExamLabel}.
           </div>
         </div>
 
@@ -126,10 +129,10 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
           gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))",
         }}
       >
-        <MetricPill label="Activity" value={activityLabel} tone="#f97316" />
-        <MetricPill label="This week" value={weeklyValue} tone="#16a34a" />
-        <MetricPill label="Default" value={`${defaultCount}Q`} tone="#7c3aed" />
-        <MetricPill label="Mode" value={defaultModeLabel} tone="#0f766e" />
+        <MetricPill label={t("activity")} value={activityLabel} tone="#f97316" />
+        <MetricPill label={t("this_week")} value={weeklyValue} tone="#16a34a" />
+        <MetricPill label={t("default_pill")} value={`${defaultCount}Q`} tone="#7c3aed" />
+        <MetricPill label={t("mode_pill")} value={defaultModeLabel} tone="#0f766e" />
       </div>
 
       <div
@@ -152,12 +155,12 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
         >
           <div>
             <div style={{ fontWeight: 950, color: "#0f172a" }}>
-              {"Today's mission"}
+              {t("todays_mission")}
             </div>
             <div style={{ marginTop: 3, fontSize: 13, color: "#64748b" }}>
               {hasActiveSession
-                ? `Continue your ${activeSessionLabel} run.`
-                : "Complete one focused official-format block."}
+                ? `${t("continue_your_run")} (${activeSessionLabel})`
+                : t("complete_focused_block")}
             </div>
           </div>
 
@@ -205,10 +208,10 @@ export function StudyEngagementHero(props: StudyEngagementHeroProps) {
         }}
       >
         {loading
-          ? "Starting..."
+          ? t("starting_session")
           : hasActiveSession
-            ? `Continue ${activeSessionLabel}`
-            : "Start today's block"}
+            ? `${t("continue_mode")} ${activeSessionLabel}`
+            : t("start_todays_block")}
       </button>
     </section>
   );

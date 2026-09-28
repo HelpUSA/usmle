@@ -1,3 +1,5 @@
+import { useLanguage } from "@/context/LanguageContext";
+
 type StudyQuickActionsProps = {
   defaultExamLabel: string;
   defaultCount: number;
@@ -9,6 +11,7 @@ type StudyQuickActionsProps = {
 };
 
 export function StudyQuickActions(props: StudyQuickActionsProps) {
+  const { t } = useLanguage();
   const {
     defaultExamLabel,
     defaultCount,
@@ -42,7 +45,7 @@ export function StudyQuickActions(props: StudyQuickActionsProps) {
       >
         <div>
           <div style={{ fontWeight: 950, fontSize: 22, color: "#0f172a" }}>
-            Quick start
+            {t("quick_start")}
           </div>
           <div
             style={{
@@ -52,8 +55,7 @@ export function StudyQuickActions(props: StudyQuickActionsProps) {
               fontSize: 14,
             }}
           >
-            Pick the next move for {defaultExamLabel}. Built for short,
-            high-frequency mobile sessions.
+            {t("pick_next_move")} {defaultExamLabel}. {t("built_for_mobile")}
           </div>
         </div>
 
@@ -70,7 +72,7 @@ export function StudyQuickActions(props: StudyQuickActionsProps) {
             fontWeight: 850,
           }}
         >
-          Settings
+          {t("nav_settings")}
         </button>
       </div>
 
@@ -83,15 +85,15 @@ export function StudyQuickActions(props: StudyQuickActionsProps) {
       >
         <ActionCard
           emoji="⚡"
-          title="Practice"
-          subtitle={`${defaultCount} questions`}
+          title={t("practice_title")}
+          subtitle={`${defaultCount} ${t("questions")}`}
           accent="#16a34a"
           disabled={loading}
           onClick={onPractice}
         />
         <ActionCard
           emoji="⏱️"
-          title="Timed block"
+          title={t("timed_blocks_title")}
           subtitle="20Q / 30 min"
           accent="#d97706"
           disabled={loading}
@@ -99,7 +101,7 @@ export function StudyQuickActions(props: StudyQuickActionsProps) {
         />
         <ActionCard
           emoji="🔥"
-          title="Simulation"
+          title={t("simulation_title")}
           subtitle="Partial USMLE 2026"
           accent="#dc2626"
           disabled={loading}
@@ -107,12 +109,12 @@ export function StudyQuickActions(props: StudyQuickActionsProps) {
         />
         <ActionCard
           emoji="🎯"
-          title="Review"
-          subtitle="Missed & recent"
+          title={t("review_card_title")}
+          subtitle={t("review_card_subtitle")}
           accent="#7c3aed"
           disabled={true}
           onClick={() => undefined}
-          badge="Soon"
+          badge={t("soon_badge")}
         />
       </div>
     </section>

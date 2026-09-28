@@ -1,7 +1,6 @@
-﻿/*
+/*
  * File: src/app/flashcards/session/page.tsx
- * Responsibility: render the first Flashcards active-recall session scaffold.
- * Current scope: UI-only starter session. Persistent scheduling comes next.
+ * Responsibility: render the active Flashcards session with full i18n support.
  */
 
 'use client';
@@ -10,6 +9,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/apiClient';
+import { useLanguage } from '@/context/LanguageContext';
 
 type Rating = 'again' | 'hard' | 'good' | 'easy';
 type Flashcard = { id: string; tag: string; front: string; answer: string; explanation: string; pearl: string; review_count?: number; due_at?: string };
@@ -18,105 +18,110 @@ type ReviewResponse = { review: { card_id: string; rating: Rating; review_count:
 
 const DECK_SLUG = 'usmle-starter-rapid-recall';
 
-const ratingCopy: Record<Rating, [string, string]> = { again: ['Again', '<20 min'], hard: ['Hard', '+1 day'], good: ['Good', '+3 days'], easy: ['Easy', '+7 days'] };
-
 export default function FlashcardsSessionPage() {
- const [index, setIndex] = useState(0);
- const [revealed, setRevealed] = useState(false);
- const [ratings, setRatings] = useState<Rating[]>([]);
- const [cards, setCards] = useState<Flashcard[]>([]);
- const [loading, setLoading] = useState(true);
- const [error, setError] = useState<string | null>(null);
- const [rating, setRating] = useState(false);
- const card = cards[index];
- const done = ratings.length >= cards.length;
- const pct = cards.length > 0 ? Math.round((ratings.length / cards.length) * 100) : 0;
- const counts = useMemo(() => ratings.reduce<Record<Rating, number>>((a, r) => ({ ...a, [r]: a[r] + 1 }), { again: 0, hard: 0, good: 0, easy: 0 }), [ratings]);
+  const { t } = useLanguage();
+  const [index, setIndex] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const [ratings, setRatings] = useState<Rating[]>([]);
+  const [cards, setCards] = useState<Flashcard[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [rating, setRating] = useState(false);
+  const card = cards[index];
+  const done = ratings.length >= cards.length;
+  const pct = cards.length > 0 ? Math.round((ratings.length / cards.length) * 100) : 0;
+  const counts = useMemo(() => ratings.reduce<Record<Rating, number>>((a, r) => ({ ...a, [r]: a[r] + 1 }), { again: 0, hard: 0, good: 0, easy: 0 }), [ratings]);
 
+  const ratingCopy: Record<Rating, [string, string]> = {
+    again: [t("rating_again"), '<20 min'],
+    hard: [t("rating_hard"), '+1 day'],
+    good: [t("rating_good"), '+3 days'],
+    easy: [t("rating_easy"), '+7 days']
+  };
 
- async function loadCards() {
- setLoading(true);
- setError(null);
- setRevealed(false);
- setIndex(0);
- setRatings([]);
- try {
- const data = await apiFetch<DueResponse>('/api/flashcards/due?deck=' + DECK_SLUG + '&limit=10');
- setCards(data.cards);
- } catch (err) {
- setError(err instanceof Error ? err.message : 'Unable to load flashcards');
- setCards([]);
- } finally {
- setLoading(false);
- }
- }
+  async function loadCards() {
+    setLoading(true);
+    setError(null);
+    setRevealed(false);
+    setIndex(0);
+    setRatings([]);
+    try {
+      const data = await apiFetch<DueResponse>('/api/flashcards/due?deck=' + DECK_SLUG + '&limit=10');
+      setCards(data.cards);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load flashcards');
+      setCards([]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
- useEffect(() => {
- void loadCards();
- }, []);
+  useEffect(() => {
+    void loadCards();
+  }, []);
 
- useEffect(() => {
- function onKey(event: KeyboardEvent) {
- if (event.code === 'Space' && !done) { event.preventDefault(); setRevealed((v) => !v); }
- }
- window.addEventListener('keydown', onKey);
- return () => window.removeEventListener('keydown', onKey);
- }, [done]);
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.code === 'Space' && !done) { event.preventDefault(); setRevealed((v) => !v); }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [done]);
 
- async function rate(nextRating: Rating) {
- if (!revealed || !card || rating) return;
- setRating(true);
- try {
- await apiFetch<ReviewResponse>('/api/flashcards/review', { method: 'POST', body: JSON.stringify({ cardId: card.id, rating: nextRating }) });
- setRatings((current) => [...current, nextRating]);
- setRevealed(false);
- setIndex((current) => Math.min(current + 1, cards.length));
- } catch (err) {
- setError(err instanceof Error ? err.message : 'Unable to record flashcard review');
- } finally {
- setRating(false);
- }
+  async function rate(nextRating: Rating) {
+    if (!revealed || !card || rating) return;
+    setRating(true);
+    try {
+      await apiFetch<ReviewResponse>('/api/flashcards/review', { method: 'POST', body: JSON.stringify({ cardId: card.id, rating: nextRating }) });
+      setRatings((current) => [...current, nextRating]);
+      setRevealed(false);
+      setIndex((current) => Math.min(current + 1, cards.length));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to record flashcard review');
+    } finally {
+      setRating(false);
+    }
+  }
 
- }
+  function restart() {
+    void loadCards();
+  }
 
- function restart() {
- void loadCards();
- }
- return (
- <main style={page}>
- <header style={header}>
- <div>
- <Link href='/flashcards' style={back}>← Flashcards</Link>
- <h1 style={title}>Quick recall session</h1>
- <p style={muted}>Think first. Tap the card or press Space to reveal.</p>
- </div>
- <div style={counter}>{ratings.length}/{cards.length}</div>
- </header>
- <div style={track}><div style={{ ...fill, width: `${pct}%` }} /></div>
+  return (
+    <main style={page}>
+      <header style={header}>
+        <div>
+          <Link href='/flashcards' style={back}>← {t("nav_flashcards")}</Link>
+          <h1 style={title}>{t("quick_recall_session")}</h1>
+          <p style={muted}>{t("think_first_tap")}</p>
+        </div>
+        <div style={counter}>{ratings.length}/{cards.length}</div>
+      </header>
+      <div style={track}><div style={{ ...fill, width: `${pct}%` }} /></div>
 
- {done ? (
- <section style={summary}>
- <h2 style={summaryTitle}>Session complete</h2>
- <p style={muted}>Starter UI scaffold completed. Persistent due-card scheduling comes next.</p>
- <div style={ratingGrid}>{(Object.keys(ratingCopy) as Rating[]).map((r) => <div key={r} style={ratingSummary}><strong>{counts[r]}</strong><span>{ratingCopy[r][0]}</span></div>)}</div>
- <button onClick={restart} style={primaryButton}>Restart session</button>
- </section>
- ) : card ? (
- <>
- <button type='button' onClick={() => setRevealed(true)} style={flashcard}>
- <div style={tag}>{card.tag}</div>
- <div style={label}>{revealed ? 'Answer' : 'Question'}</div>
- <div style={prompt}>{revealed ? card.answer : card.front}</div>
- {revealed ? <div style={answer}><p>{card.explanation}</p><p><strong>Clinical pearl:</strong> {card.pearl}</p></div> : <div style={hint}>Tap to reveal answer</div>}
- </button>
- <section style={panel}>
- <div style={smallTitle}>{revealed ? 'How well did you remember it?' : 'Reveal the answer before rating.'}</div>
- <div style={ratingGrid}>{(Object.keys(ratingCopy) as Rating[]).map((r) => <button key={r} onClick={() => rate(r)} disabled={!revealed} style={rateButton(!revealed)}><span>{ratingCopy[r][1]}</span><strong>{ratingCopy[r][0]}</strong></button>)}</div>
- </section>
- </>
- ) : null}
- </main>
- );
+      {done ? (
+        <section style={summary}>
+          <h2 style={summaryTitle}>{t("session_complete")}</h2>
+          <p style={muted}>Starter UI scaffold completed.</p>
+          <div style={ratingGrid}>{(Object.keys(ratingCopy) as Rating[]).map((r) => <div key={r} style={ratingSummary}><strong>{counts[r]}</strong><span>{ratingCopy[r][0]}</span></div>)}</div>
+          <button onClick={restart} style={primaryButton}>{t("restart_session")}</button>
+        </section>
+      ) : card ? (
+        <>
+          <button type='button' onClick={() => setRevealed(true)} style={flashcard}>
+            <div style={tag}>{card.tag}</div>
+            <div style={label}>{revealed ? t("Answer") || 'Answer' : t("Question") || 'Question'}</div>
+            <div style={prompt}>{revealed ? card.answer : card.front}</div>
+            {revealed ? <div style={answer}><p>{card.explanation}</p><p><strong>{t("clinical_pearl")}</strong> {card.pearl}</p></div> : <div style={hint}>{t("tap_to_reveal")}</div>}
+          </button>
+          <section style={panel}>
+            <div style={smallTitle}>{revealed ? t("how_well_remember") : t("reveal_before_rating")}</div>
+            <div style={ratingGrid}>{(Object.keys(ratingCopy) as Rating[]).map((r) => <button key={r} onClick={() => rate(r)} disabled={!revealed} style={rateButton(!revealed)}><span>{ratingCopy[r][1]}</span><strong>{ratingCopy[r][0]}</strong></button>)}</div>
+          </section>
+        </>
+      ) : null}
+    </main>
+  );
 }
 
 const page: CSSProperties = { maxWidth: 760, margin: '0 auto', padding: '22px 14px 42px' };
@@ -141,6 +146,3 @@ const summary: CSSProperties = { borderRadius: 30, border: '1px solid #bbf7d0', 
 const summaryTitle: CSSProperties = { margin: 0, color: '#111827', fontSize: 30, letterSpacing: '-.04em' };
 const ratingSummary: CSSProperties = { display: 'grid', gap: 4, borderRadius: 16, background: 'white', padding: 12, color: '#374151' };
 const primaryButton: CSSProperties = { marginTop: 22, border: 'none', borderRadius: 16, background: '#2563eb', color: 'white', padding: '13px 18px', fontWeight: 850, cursor: 'pointer' };
-
-
-

@@ -40,6 +40,7 @@ import type { CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
+import { useLanguage } from "@/context/LanguageContext";
 import { StudyEngagementHero } from "@/components/study/StudyEngagementHero";
 
 import { StudyQuickActions } from "@/components/study/StudyQuickActions";
@@ -447,6 +448,7 @@ function clampPercent(value: number): number {
 
 export default function StudyPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { data: session, status: sessionStatus } = useSession();
 
   const [loading, setLoading] = useState(false);
@@ -843,7 +845,7 @@ export default function StudyPage() {
                 gap: 14,
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 20 }}>Continue</div>
+              <div style={{ fontWeight: 900, fontSize: 20 }}>{t("continue_section")}</div>
 
               {loadingSessions ? (
                 <div style={{ color: "#555" }}>Loading...</div>
@@ -889,7 +891,7 @@ export default function StudyPage() {
                       fontWeight: 900,
                     }}
                   >
-                    Resume current session
+                    {t("resume_current_session")}
                   </button>
                 </>
               ) : (
@@ -902,7 +904,7 @@ export default function StudyPage() {
                     color: "#6b7280",
                   }}
                 >
-                  No open session right now.
+                  {t("no_open_session")}
                 </div>
               )}
             </div>
@@ -918,7 +920,7 @@ export default function StudyPage() {
               }}
             >
               <div style={{ fontWeight: 900, fontSize: 20 }}>
-                Recent completed
+                {t("recent_completed")}
               </div>
 
               {loadingSessions ? (
@@ -933,7 +935,7 @@ export default function StudyPage() {
                     color: "#6b7280",
                   }}
                 >
-                  No completed sessions yet.
+                  {t("no_completed_sessions")}
                 </div>
               ) : (
                 <div style={{ display: "grid", gap: 10 }}>
@@ -986,7 +988,7 @@ export default function StudyPage() {
               gap: 14,
             }}
           >
-            <div style={{ fontWeight: 900, fontSize: 22 }}>Weekly growth</div>
+            <div style={{ fontWeight: 900, fontSize: 22 }}>{t("weekly_growth")}</div>
 
             <div style={{ marginTop: -6, color: "#475569", lineHeight: 1.5 }}>
               {momentumHeadline}
@@ -999,12 +1001,12 @@ export default function StudyPage() {
                 gap: 12,
               }}
             >
-              <InfoCard label="Questions" value={String(weeklyAnswered)} />
-              <InfoCard label="Accuracy" value={weeklyAccuracyLabel} />
-              <InfoCard label="Study time" value={weeklyStudyTimeLabel} />
-              <InfoCard label="Flags" value={weeklyFlaggedLabel} />
-              <InfoCard label="Next action" value={momentumActionLabel} />
-              <InfoCard label="Review queue" value={reviewQueueLabel} />
+              <InfoCard label={t("questions")} value={String(weeklyAnswered)} />
+              <InfoCard label={t("accuracy")} value={weeklyAccuracyLabel} />
+              <InfoCard label={t("study_time")} value={weeklyStudyTimeLabel} />
+              <InfoCard label={t("flags")} value={weeklyFlaggedLabel} />
+              <InfoCard label={t("next_action")} value={momentumActionLabel} />
+              <InfoCard label={t("review_queue")} value={reviewQueueLabel} />
             </div>
 
             <div

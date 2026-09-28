@@ -1,4 +1,4 @@
-﻿/*
+/*
  * File: src/app/results/page.tsx
  *
  * Responsibility:
@@ -29,6 +29,7 @@ import type { CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
+import { useLanguage } from "@/context/LanguageContext";
 
 type SessionMode = "practice" | "timed_block" | "exam_sim";
 type KnownSessionStatus = "in_progress" | "submitted" | "abandoned";
@@ -211,6 +212,7 @@ function parseStatusFilter(value: string): StatusFilter {
 
 export default function ResultsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { data: session, status: sessionStatus } = useSession();
 
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
@@ -340,7 +342,7 @@ export default function ResultsPage() {
           {isAuthLoading
             ? "Loading session..."
             : isSignedIn
-              ? `Signed in as ${session?.user?.email}`
+              ? `${t("signed_in_as")} ${session?.user?.email}`
               : "Not signed in"}
         </div>
 
@@ -352,7 +354,7 @@ export default function ResultsPage() {
             fontWeight: 900,
           }}
         >
-          Results
+          {t("results_title")}
         </h1>
 
         <p
@@ -363,9 +365,7 @@ export default function ResultsPage() {
             maxWidth: 760,
           }}
         >
-          Browse your study history, revisit completed sessions, and resume
-          unfinished ones. Each completed session now includes answered count,
-          accuracy, average time per question, and flag discipline metrics.
+          {t("results_desc")}
         </p>
       </section>
 
@@ -378,7 +378,7 @@ export default function ResultsPage() {
             background: "white",
           }}
         >
-          Loading your account...
+          Loading...
         </section>
       ) : !isSignedIn ? (
         <section
@@ -390,7 +390,7 @@ export default function ResultsPage() {
           }}
         >
           <div style={{ fontWeight: 900, fontSize: 20 }}>
-            Sign in to view your results
+            {t("sign_in_view_results")}
           </div>
 
           <p
@@ -401,9 +401,7 @@ export default function ResultsPage() {
               lineHeight: 1.65,
             }}
           >
-            Your history is personal. Once signed in, this page can show past
-            sessions, completion status, and future session-level performance
-            data.
+            {t("sign_in_save_progress")}
           </p>
         </section>
       ) : (
@@ -443,10 +441,10 @@ export default function ResultsPage() {
             }}
           >
             {[
-              { label: "Total sessions", value: String(totalSessions) },
-              { label: "Completed", value: String(completedSessions) },
-              { label: "In progress", value: String(inProgressSessions) },
-              { label: "Abandoned", value: String(abandonedSessions) },
+              { label: t("total_sessions"), value: String(totalSessions) },
+              { label: t("completed_stat"), value: String(completedSessions) },
+              { label: t("in_progress_stat"), value: String(inProgressSessions) },
+              { label: t("abandoned_stat"), value: String(abandonedSessions) },
             ].map((card) => (
               <div
                 key={card.label}
@@ -494,7 +492,7 @@ export default function ResultsPage() {
                 flexWrap: "wrap",
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 20 }}>Quick actions</div>
+              <div style={{ fontWeight: 900, fontSize: 20 }}>{t("quick_actions")}</div>
 
               <button
                 type="button"
@@ -502,7 +500,7 @@ export default function ResultsPage() {
                 disabled={loading}
                 style={buttonStyle(loading)}
               >
-                {loading ? "Refreshing..." : "Refresh"}
+                {loading ? "..." : t("refresh_button")}
               </button>
             </div>
 
@@ -525,7 +523,7 @@ export default function ResultsPage() {
                     background: "#fffdf6",
                   }}
                 >
-                  <div>Resume latest open session</div>
+                  <div>{t("resume_latest_open")}</div>
                   <div style={actionSubtextStyle()}>
                     {modeLabel(latestOpenSession.mode)}
                   </div>
@@ -536,8 +534,8 @@ export default function ResultsPage() {
                   onClick={() => router.push("/study")}
                   style={actionButtonStyle()}
                 >
-                  <div>Start a new study session</div>
-                  <div style={actionSubtextStyle()}>Open Study</div>
+                  <div>{t("start_new_session")}</div>
+                  <div style={actionSubtextStyle()}>{t("open_study")}</div>
                 </button>
               )}
 
@@ -555,7 +553,7 @@ export default function ResultsPage() {
                     background: "#f8fff9",
                   }}
                 >
-                  <div>Open latest completed review</div>
+                  <div>{t("open_latest_review")}</div>
                   <div style={actionSubtextStyle()}>
                     {modeLabel(latestCompletedSession.mode)}
                   </div>
@@ -566,7 +564,7 @@ export default function ResultsPage() {
                   onClick={() => router.push("/progress")}
                   style={actionButtonStyle()}
                 >
-                  <div>Open Progress</div>
+                  <div>{t("open_progress_action")}</div>
                   <div style={actionSubtextStyle()}>View study trends</div>
                 </button>
               )}
@@ -583,7 +581,7 @@ export default function ResultsPage() {
               gap: 12,
             }}
           >
-            <div style={{ fontWeight: 900, fontSize: 20 }}>Filters</div>
+            <div style={{ fontWeight: 900, fontSize: 20 }}>{t("filters_title")}</div>
 
             <div
               style={{
@@ -593,7 +591,7 @@ export default function ResultsPage() {
               }}
             >
               <div style={{ display: "grid", gap: 6 }}>
-                <label style={{ fontSize: 13, color: "#555" }}>Mode</label>
+                <label style={{ fontSize: 13, color: "#555" }}>{t("mode_pill")}</label>
 
                 <select
                   value={modeFilter}
@@ -602,10 +600,10 @@ export default function ResultsPage() {
                   }
                   style={selectStyle()}
                 >
-                  <option value="all">All modes</option>
-                  <option value="practice">Practice</option>
-                  <option value="timed_block">Timed block</option>
-                  <option value="exam_sim">Partial simulation</option>
+                  <option value="all">{t("all_modes")}</option>
+                  <option value="practice">{t("practice_title")}</option>
+                  <option value="timed_block">{t("timed_blocks_title")}</option>
+                  <option value="exam_sim">{t("simulation_title")}</option>
                 </select>
               </div>
 
@@ -619,10 +617,10 @@ export default function ResultsPage() {
                   }
                   style={selectStyle()}
                 >
-                  <option value="all">All statuses</option>
-                  <option value="submitted">Completed</option>
-                  <option value="in_progress">In progress</option>
-                  <option value="abandoned">Abandoned</option>
+                  <option value="all">{t("all_statuses")}</option>
+                  <option value="submitted">{t("completed_stat")}</option>
+                  <option value="in_progress">{t("in_progress_stat")}</option>
+                  <option value="abandoned">{t("abandoned_stat")}</option>
                 </select>
               </div>
             </div>

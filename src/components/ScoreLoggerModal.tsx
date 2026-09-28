@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { saveExternalScore, calculatePassProbability } from "@/lib/gamification";
 import type { ExternalScoreEntry } from "@/lib/gamification";
+import { useLanguage } from "@/context/LanguageContext";
 
 type ScoreLoggerModalProps = {
   isOpen: boolean;
@@ -22,6 +23,7 @@ const EXAM_OPTIONS: ExternalScoreEntry["examType"][] = [
 ];
 
 export default function ScoreLoggerModal({ isOpen, onClose, onScoreSaved }: ScoreLoggerModalProps) {
+  const { t } = useLanguage();
   const [examType, setExamType] = useState<ExternalScoreEntry["examType"]>("NBME Form 30");
   const [score, setScore] = useState<number>(68);
 
@@ -44,18 +46,18 @@ export default function ScoreLoggerModal({ isOpen, onClose, onScoreSaved }: Scor
     <div style={overlayStyle}>
       <div style={modalStyle}>
         <div style={{ textAlign: "center" }}>
-          <span style={badgeStyle}>USMLE Readiness Predictor</span>
+          <span style={badgeStyle}>{t("readiness_predictor")}</span>
           <h2 style={{ margin: "8px 0 4px 0", fontSize: "1.25rem", color: "#0f172a" }}>
-            Log External Practice Exam
+            {t("log_external_exam")}
           </h2>
           <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b" }}>
-            Enter your NBME Form or Free 120 score to estimate your official Pass Probability.
+            {t("enter_nbme_score")}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
-            <label style={labelStyle}>Select Exam / Practice Test</label>
+            <label style={labelStyle}>{t("select_exam")}</label>
             <select
               value={examType}
               onChange={(e) => setExamType(e.target.value as ExternalScoreEntry["examType"])}
@@ -70,7 +72,7 @@ export default function ScoreLoggerModal({ isOpen, onClose, onScoreSaved }: Scor
           </div>
 
           <div>
-            <label style={labelStyle}>Correct Answers Percentage (%)</label>
+            <label style={labelStyle}>{t("correct_percentage")}</label>
             <input
               type="number"
               min="0"
@@ -82,21 +84,21 @@ export default function ScoreLoggerModal({ isOpen, onClose, onScoreSaved }: Scor
           </div>
 
           <div style={previewBoxStyle}>
-            <div style={{ fontSize: "0.8rem", color: "#64748b" }}>Estimated USMLE Pass Probability</div>
+            <div style={{ fontSize: "0.8rem", color: "#64748b" }}>{t("estimated_pass_prob")}</div>
             <div style={{ fontSize: "2rem", fontWeight: 700, color: currentProbability >= 90 ? "#10b981" : "#f59e0b" }}>
               {currentProbability}%
             </div>
             <div style={{ fontSize: "0.75rem", color: "#64748b" }}>
-              Based on official NBME & Free 120 correlation data.
+              {t("based_on_correlation")}
             </div>
           </div>
 
           <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
             <button type="submit" style={submitButtonStyle}>
-              ✓ Save Exam Score
+              {t("save_exam_score")}
             </button>
             <button type="button" onClick={onClose} style={cancelButtonStyle}>
-              Cancel
+              {t("cancel_button")}
             </button>
           </div>
         </form>

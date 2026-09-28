@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { apiFetch } from "@/lib/apiClient";
 import type { FlashcardDeckSummary } from "@/lib/flashcards";
+import { useLanguage } from "@/context/LanguageContext";
 
 const DEFAULT_DECKS: FlashcardDeckSummary[] = [
   {
@@ -55,6 +56,7 @@ const DEFAULT_DECKS: FlashcardDeckSummary[] = [
 ];
 
 export default function FlashcardsPage() {
+  const { t } = useLanguage();
   const [decks, setDecks] = useState<FlashcardDeckSummary[]>(DEFAULT_DECKS);
   const [selectedExam, setSelectedExam] = useState<string>("all");
 
@@ -79,10 +81,10 @@ export default function FlashcardsPage() {
   return (
     <main style={page}>
       <section style={hero}>
-        <div style={pill}>USMLE 2026 Active Recall</div>
-        <h1 style={title}>Flashcards for Rapid USMLE Recall</h1>
+        <div style={pill}>{t("flashcards_hero_tag")}</div>
+        <h1 style={title}>{t("flashcards_hero_title")}</h1>
         <p style={subtitle}>
-          Active-recall study decks for Step 1, Step 2 CK, Pharmacology, Cardiology, and the new 2026 Nutrition Science standard.
+          {t("flashcards_hero_subtitle")}
         </p>
 
         <div style={{ marginTop: 20, display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -101,23 +103,23 @@ export default function FlashcardsPage() {
                 cursor: "pointer",
               }}
             >
-              {step === "all" ? "All Subjects" : step.toUpperCase()}
+              {step === "all" ? t("all_subjects") : step.toUpperCase()}
             </button>
           ))}
         </div>
 
         <div style={actions}>
           <Link href="/flashcards/session?deck=usmle-starter-rapid-recall" style={primary}>
-            ▶ Start Rapid Review
+            {t("start_rapid_review")}
           </Link>
           <Link href="/study" style={secondary}>
-            Back to Study
+            {t("back_to_study")}
           </Link>
         </div>
       </section>
 
       <h2 style={{ fontSize: "1.25rem", fontWeight: 800, marginTop: 28, marginBottom: 14, color: "#0f172a" }}>
-        Available Decks ({filteredDecks.length})
+        {t("available_decks")} ({filteredDecks.length})
       </h2>
 
       <section style={grid}>
@@ -125,7 +127,7 @@ export default function FlashcardsPage() {
           <article key={deck.slug} style={card}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
               <span style={deckExamTag}>{deck.exam.toUpperCase()}</span>
-              <span style={deckCardBadge}>{deck.active_cards} cards</span>
+              <span style={deckCardBadge}>{deck.active_cards} {t("cards_count")}</span>
             </div>
             <h3 style={cardTitle}>{deck.title}</h3>
             <p style={cardText}>{deck.description}</p>
@@ -134,7 +136,7 @@ export default function FlashcardsPage() {
               href={`/flashcards/session?deck=${deck.slug}`}
               style={deckStartBtn}
             >
-              Start Deck →
+              {t("start_deck")}
             </Link>
           </article>
         ))}

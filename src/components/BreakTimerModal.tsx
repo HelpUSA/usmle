@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 type BreakTimerModalProps = {
   isOpen: boolean;
@@ -11,6 +12,7 @@ type BreakTimerModalProps = {
 const TOTAL_BREAK_SECONDS = 55 * 60; // 55 minutes standard USMLE 2026 break pool
 
 export default function BreakTimerModal({ isOpen, onClose, onCompleteBreak }: BreakTimerModalProps) {
+  const { t } = useLanguage();
   const [secondsRemaining, setSecondsRemaining] = useState(TOTAL_BREAK_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
 
@@ -39,10 +41,10 @@ export default function BreakTimerModal({ isOpen, onClose, onCompleteBreak }: Br
     <div style={overlayStyle}>
       <div style={modalStyle}>
         <div style={headerStyle}>
-          <span style={badgeStyle}>USMLE 2026 Official Break</span>
-          <h2 style={{ margin: "8px 0 4px 0", fontSize: "1.25rem", color: "#0f172a" }}>Cumulative Break Time</h2>
+          <span style={badgeStyle}>{t("official_break_title")}</span>
+          <h2 style={{ margin: "8px 0 4px 0", fontSize: "1.25rem", color: "#0f172a" }}>{t("cumulative_break_time")}</h2>
           <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b" }}>
-            Track your official 55-minute break pool between 20-question exam blocks.
+            {t("track_break_pool")}
           </p>
         </div>
 
@@ -52,7 +54,7 @@ export default function BreakTimerModal({ isOpen, onClose, onCompleteBreak }: Br
             <div style={{ ...progressInnerStyle, width: `${percentage}%` }} />
           </div>
           <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "6px" }}>
-            {55 - Math.floor(secondsRemaining / 60)} minutes used of 55 minutes total
+            {55 - Math.floor(secondsRemaining / 60)} {t("minutes_used_of")}
           </div>
         </div>
 
@@ -62,14 +64,14 @@ export default function BreakTimerModal({ isOpen, onClose, onCompleteBreak }: Br
               onClick={() => setIsRunning(true)}
               style={{ ...buttonStyle, backgroundColor: "#2563eb", color: "#ffffff" }}
             >
-              ▶ Start Break
+              {t("start_break")}
             </button>
           ) : (
             <button
               onClick={() => setIsRunning(false)}
               style={{ ...buttonStyle, backgroundColor: "#f59e0b", color: "#ffffff" }}
             >
-              ⏸ Pause Break
+              {t("pause_break")}
             </button>
           )}
 
@@ -81,14 +83,14 @@ export default function BreakTimerModal({ isOpen, onClose, onCompleteBreak }: Br
             }}
             style={{ ...buttonStyle, backgroundColor: "#10b981", color: "#ffffff" }}
           >
-            ✓ Finish Break & Start Next Block
+            {t("finish_break")}
           </button>
 
           <button
             onClick={onClose}
             style={{ ...buttonStyle, backgroundColor: "#f1f5f9", color: "#475569" }}
           >
-            Close
+            {t("close_button")}
           </button>
         </div>
       </div>

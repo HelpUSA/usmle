@@ -32,6 +32,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSession } from "next-auth/react";
 import { apiFetch } from "@/lib/apiClient";
+import { useLanguage } from "@/context/LanguageContext";
 
 type SessionMode = "practice" | "timed_block" | "exam_sim";
 type KnownSessionStatus = "in_progress" | "submitted" | "abandoned";
@@ -468,6 +469,7 @@ import ScoreLoggerModal from "@/components/ScoreLoggerModal";
 import HeaderGamificationBar from "@/components/HeaderGamificationBar";
 
 export default function ProgressPage() {
+  const { t } = useLanguage();
   const { data: session, status: sessionStatus } = useSession();
 
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
@@ -712,9 +714,9 @@ export default function ProgressPage() {
       >
         <div style={{ fontSize: 12, color: "#6b7280" }}>
           {isAuthLoading
-            ? "Loading session…"
+            ? "Loading..."
             : isSignedIn
-              ? `Signed in as ${session?.user?.email}`
+              ? `${t("signed_in_as")} ${session?.user?.email}`
               : "Not signed in"}
         </div>
 
@@ -726,7 +728,7 @@ export default function ProgressPage() {
             fontWeight: 900,
           }}
         >
-          Progress
+          {t("progress_title")}
         </h1>
 
         <p
@@ -737,10 +739,7 @@ export default function ProgressPage() {
             maxWidth: 760,
           }}
         >
-          Track study activity, completion patterns, mode distribution, and
-          persisted engagement signals from completed study actions. Accuracy
-          and block analytics remain descriptive and do not predict exam
-          readiness.
+          {t("progress_desc")}
         </p>
       </section>
 

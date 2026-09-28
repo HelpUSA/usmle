@@ -25,6 +25,7 @@
 
 import { useEffect, useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { useLanguage } from "@/context/LanguageContext";
 
 type StudyMode = "practice" | "timed_block" | "exam_sim";
 type ExamType = "step1" | "step2ck" | "step3";
@@ -410,6 +411,7 @@ function examSimulationPlanningLabel(exam: ExamType): string {
 }
 
 export default function SettingsPage() {
+  const { t } = useLanguage();
   const { data: session, status } = useSession();
 
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
@@ -509,9 +511,9 @@ export default function SettingsPage() {
       >
         <div style={{ fontSize: 12, color: "#6b7280" }}>
           {isAuthLoading
-            ? "Loading session…"
+            ? "Loading..."
             : isSignedIn
-            ? `Signed in as ${session?.user?.email}`
+            ? `${t("signed_in_as")} ${session?.user?.email}`
             : "Not signed in"}
         </div>
 
@@ -533,7 +535,7 @@ export default function SettingsPage() {
                 fontWeight: 900,
               }}
             >
-              Settings
+              {t("settings_title")}
             </h1>
 
             <div
@@ -543,7 +545,7 @@ export default function SettingsPage() {
                 lineHeight: 1.55,
               }}
             >
-              Personalize your study defaults, official-format timing, and question filters.
+              {t("settings_desc")}
             </div>
           </div>
 
@@ -571,7 +573,7 @@ export default function SettingsPage() {
                 opacity: hasLoadedSettings ? 1 : 0.55,
               }}
             >
-              Reset defaults
+              {t("reset_defaults")}
             </button>
 
             <div
@@ -591,7 +593,7 @@ export default function SettingsPage() {
                 ? "Loading"
                 : saved
                 ? "Saved"
-                : "Local settings"}
+                : t("local_settings")}
             </div>
           </div>
         </div>
@@ -658,7 +660,7 @@ export default function SettingsPage() {
               gap: 14,
             }}
           >
-            <div style={{ fontWeight: 900, fontSize: 20 }}>Account</div>
+            <div style={{ fontWeight: 900, fontSize: 20 }}>{t("account_section")}</div>
 
             <div
               style={{
@@ -667,9 +669,9 @@ export default function SettingsPage() {
                 gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
               }}
             >
-              <InfoCard label="Name" value={session?.user?.name ?? "—"} />
+              <InfoCard label={t("name_label")} value={session?.user?.name ?? "—"} />
 
-              <InfoCard label="Email" value={session?.user?.email ?? "—"} />
+              <InfoCard label={t("email_label")} value={session?.user?.email ?? "—"} />
             </div>
 
             <button
@@ -686,7 +688,7 @@ export default function SettingsPage() {
                 fontWeight: 800,
               }}
             >
-              Sign out
+              {t("sign_out")}
             </button>
           </section>
 
@@ -700,11 +702,11 @@ export default function SettingsPage() {
               gap: 14,
             }}
           >
-            <div style={{ fontWeight: 900, fontSize: 20 }}>Study defaults</div>
+            <div style={{ fontWeight: 900, fontSize: 20 }}>{t("study_defaults_section")}</div>
 
             <div style={{ display: "grid", gap: 6 }}>
               <label style={{ fontSize: 13, color: "#555" }}>
-                Default exam
+                {t("default_exam")}
               </label>
 
               <select
@@ -739,7 +741,7 @@ export default function SettingsPage() {
 
             <div style={{ display: "grid", gap: 6 }}>
               <label style={{ fontSize: 13, color: "#555" }}>
-                Default mode
+                {t("default_mode")}
               </label>
 
               <select
@@ -761,9 +763,9 @@ export default function SettingsPage() {
                   background: "white",
                 }}
               >
-                <option value="practice">Practice</option>
-                <option value="timed_block">Timed block</option>
-                <option value="exam_sim">Partial simulation</option>
+                <option value="practice">{t("practice_title")}</option>
+                <option value="timed_block">{t("timed_blocks_title")}</option>
+                <option value="exam_sim">{t("simulation_title")}</option>
               </select>
 
               <div style={{ fontSize: 12, color: "#6b7280" }}>
@@ -783,7 +785,7 @@ export default function SettingsPage() {
               }}
             >
               <div>
-                <div style={{ fontWeight: 900 }}>Official 2026 exam format</div>
+                <div style={{ fontWeight: 900 }}>{t("official_2026_format")}</div>
                 <div
                   style={{
                     marginTop: 4,
