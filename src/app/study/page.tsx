@@ -252,7 +252,7 @@ function loadSettings(): UserSettings {
   }
 }
 
-function getErrorMessage(error: unknown, fallback: string): string {
+function getErrorMessage(error: unknown, fallback: string, t?: (key: string) => string): string {
   let msg = fallback;
   if (error instanceof Error && error.message) {
     msg = error.message;
@@ -265,7 +265,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
     msg.toLowerCase().includes("password authentication") ||
     msg.toLowerCase().includes("econnrefused")
   ) {
-    return "Falha temporária de conexão. Clique em recarregar.";
+    return t ? t("temp_connection_failure") : "Falha temporária de conexão. Clique em recarregar.";
   }
 
   return msg;
@@ -323,14 +323,14 @@ function areaOrderLabel(value: AreaOrderMode): string {
   }
 }
 
-function modeLabel(mode?: string | null): string {
+function modeLabel(mode?: string | null, t?: (key: string) => string): string {
   switch (mode) {
     case "practice":
-      return "Practice";
+      return t ? t("practice_title") : "Practice";
     case "timed_block":
-      return "Timed block";
+      return t ? t("timed_blocks_title") : "Timed block";
     case "exam_sim":
-      return "Partial simulation";
+      return t ? t("simulation_title") : "Partial simulation";
     default:
       return mode ?? "Unknown mode";
   }
@@ -523,14 +523,14 @@ export default function StudyPage() {
         setEngagement(null);
       }
     } catch (error) {
-      setErr(getErrorMessage(error, "Failed to load study sessions"));
+      setErr(getErrorMessage(error, "Failed to load study sessions", t));
       setSessions([]);
       setStats(null);
       setEngagement(null);
     } finally {
       setLoadingSessions(false);
     }
-  }, [isAuthLoading, isSignedIn]);
+  }, [isAuthLoading, isSignedIn, t]);
 
   useEffect(() => {
     void loadSessions();
@@ -610,12 +610,12 @@ export default function StudyPage() {
 
         router.push(`/session/${sessionRes.session_id}`);
       } catch (error) {
-        setErr(getErrorMessage(error, "Failed to start study session"));
+        setErr(getErrorMessage(error, "Failed to start study session", t));
       } finally {
         setLoading(false);
       }
     },
-    [loading, router, userSettings],
+    [loading, router, userSettings, t],
   );
 
   const defaultModeCount = getRecommendedCount(
@@ -714,7 +714,7 @@ export default function StudyPage() {
         ? t("block_complete_extend")
         : `${nextLevelRemaining} ${t("questions_to_next_level")}`;
   const momentumActionLabel = activeSession
-    ? `${t("resume_mode")} ${modeLabel(activeSession.mode)}`
+    ? `${t("resume_mode")} ${modeLabel(activeSession.mode, t)}`
     : weeklyAnswered === 0
       ? t("start_now")
       : nextLevelRemaining === 0
@@ -741,13 +741,13 @@ export default function StudyPage() {
       <StudyEngagementHero
         signedInLabel={
           isAuthLoading
-            ? "Loading your account."
+            ? t("loading_account")
             : isSignedIn
-              ? `Signed in as ${session?.user?.email}.`
-              : "Sign in to save progress."
+              ? `${t("signed_in_as")} ${session?.user?.email}.`
+              : t("sign_in_save_progress")
         }
         defaultExamLabel={examLabel(userSettings.defaultExam)}
-        defaultModeLabel={modeLabel(userSettings.defaultMode)}
+        defaultModeLabel={modeLabel(userSettings.defaultMode, t)}
         defaultCount={defaultModeCount}
         levelLabel={engagementLevelLabel}
         levelProgressLabel={engagementLevelProgressLabel}
@@ -756,7 +756,7 @@ export default function StudyPage() {
         missionProgressPercent={engagementMissionProgressPercent}
         missionProgressLabel={engagementMissionProgressLabel}
         activeSessionLabel={
-          activeSession ? modeLabel(activeSession.mode) : null
+          activeSession ? modeLabel(activeSession.mode, t) : null
         }
         loading={loading}
         onPrimaryAction={() =>
@@ -778,7 +778,7 @@ export default function StudyPage() {
             background: "white",
           }}
         >
-          Loading your account...
+          {t("loading_account")}
         </section>
       ) : !isSignedIn ? (
         <section
@@ -789,10 +789,10 @@ export default function StudyPage() {
             background: "white",
           }}
         >
-          <div style={{ fontWeight: 900, fontSize: 20 }}>Sign in to study</div>
+          <div style={{ fontWeight: 900, fontSize: 20 }}>{t("sign_in_to_study")}</div>
 
           <div style={{ marginTop: 8, color: "#555", lineHeight: 1.6 }}>
-            You need to be signed in to create or resume sessions.
+            {t("sign_in_required_desc")}
           </div>
         </section>
       ) : (
@@ -807,7 +807,7 @@ export default function StudyPage() {
                 color: "#9f1239",
               }}
             >
-              <div style={{ fontWeight: 900 }}>Error</div>
+              <div style={{ fontWeight: 900 }}>{t("error_label")}</div>
               <div style={{ marginTop: 6 }}>{err}</div>
 
               <button
@@ -820,7 +820,7 @@ export default function StudyPage() {
                   background: "white",
                 }}
               >
-                {loadingSessions ? "Refreshing..." : "Refresh sessions"}
+                {loadingSessions ? t("refreshing_label") : t("refresh_sessions")}
               </button>
             </section>
           ) : null}
@@ -869,7 +869,7 @@ export default function StudyPage() {
                     }}
                   >
                     <div style={{ fontWeight: 800 }}>
-                      {modeLabel(activeSession.mode)}
+                      {modeLabel(activeSession.mode, t)}
                     </div>
 
                     <div
@@ -964,7 +964,7 @@ export default function StudyPage() {
                       }}
                     >
                       <div style={{ fontWeight: 800 }}>
-                        {modeLabel(sessionItem.mode)}
+                        {modeLabel(sessionItem.mode, t)}
                       </div>
 
                       <div

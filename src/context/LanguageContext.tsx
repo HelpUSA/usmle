@@ -154,6 +154,13 @@ const translations: Translations = {
   questions_to_next_level: { en: "questions to next level.", pt: "questões para o próximo nível.", es: "preguntas para el siguiente nivel." },
   review_flags: { en: "Review flags", pt: "Revisar marcadas", es: "Revisar marcadas" },
   prioritize_flagged_hint: { en: "Use Progress to prioritize flagged questions.", pt: "Use o Progresso para priorizar questões marcadas.", es: "Usa Progreso para priorizar preguntas marcadas." },
+  loading_account: { en: "Loading your account...", pt: "Carregando sua conta...", es: "Cargando su cuenta..." },
+  sign_in_to_study: { en: "Sign in to study", pt: "Faça login para estudar", es: "Inicia sesión para estudiar" },
+  sign_in_required_desc: { en: "You need to be signed in to create or resume sessions.", pt: "Você precisa estar conectado para criar ou retomar sessões.", es: "Debes iniciar sesión para crear o reanudar sesiones." },
+  error_label: { en: "Error", pt: "Erro", es: "Error" },
+  refresh_sessions: { en: "Refresh sessions", pt: "Atualizar sessões", es: "Actualizar sesiones" },
+  refreshing_label: { en: "Refreshing...", pt: "Atualizando...", es: "Actualizando..." },
+  temp_connection_failure: { en: "Temporary connection failure. Click to refresh.", pt: "Falha temporária de conexão. Clique em recarregar.", es: "Fallo temporal de conexión. Haz clic para recargar." },
 
   // Results Page
   results_title: { en: "Results", pt: "Resultados", es: "Resultados" },
