@@ -253,15 +253,22 @@ function loadSettings(): UserSettings {
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
+  let msg = fallback;
   if (error instanceof Error && error.message) {
-    return error.message;
+    msg = error.message;
+  } else if (typeof error === "string" && error.trim().length > 0) {
+    msg = error;
   }
 
-  if (typeof error === "string" && error.trim().length > 0) {
-    return error;
+  if (
+    msg.toLowerCase().includes("postgres") ||
+    msg.toLowerCase().includes("password authentication") ||
+    msg.toLowerCase().includes("econnrefused")
+  ) {
+    return "Falha temporária de conexão. Clique em recarregar.";
   }
 
-  return fallback;
+  return msg;
 }
 
 function examLabel(exam: ExamType): string {
@@ -632,18 +639,18 @@ export default function StudyPage() {
     weeklyAnswered % Math.max(defaultModeCount, 1);
   const weeklyLevelProgressLabel =
     weeklyAnswered > 0 && weeklyLevelProgressCurrent === 0
-      ? `${defaultModeCount} / ${defaultModeCount} block complete`
-      : `${weeklyLevelProgressCurrent} / ${defaultModeCount} to next level`;
+      ? `${defaultModeCount} / ${defaultModeCount} ${t("block_complete")}`
+      : `${weeklyLevelProgressCurrent} / ${defaultModeCount} ${t("to_next_level")}`;
   const weeklyActivityLabel = activeSession
-    ? "Active now"
+    ? t("active_now")
     : weeklyAnswered > 0
-      ? "Active week"
-      : "Start today";
+      ? t("active_week")
+      : t("start_today");
   const missionProgressPercent = activeSession
     ? 72
     : clampPercent((weeklyAnswered / Math.max(defaultModeCount, 1)) * 100);
   const missionProgressLabel = activeSession
-    ? "Resume"
+    ? t("resume_mode")
     : `${Math.min(weeklyAnswered, defaultModeCount)} / ${defaultModeCount}`;
   const nextLevelRemaining =
     weeklyAnswered > 0 && weeklyLevelProgressCurrent === 0
@@ -679,16 +686,16 @@ export default function StudyPage() {
     ? `Level ${persistedLevelNumber}`
     : weeklyLevelLabel;
   const engagementLevelProgressLabel = persistedSummary
-    ? `${persistedProgressXp} / ${persistedNextLevelXp} XP to next level`
+    ? `${persistedProgressXp} / ${persistedNextLevelXp} XP ${t("to_next_level")}`
     : weeklyLevelProgressLabel;
   const engagementActivityLabel = activeSession
-    ? "Active now"
+    ? t("active_now")
     : persistedSummary
       ? persistedStreak > 0
-        ? `${persistedStreak} day${persistedStreak === 1 ? "" : "s"} streak`
+        ? `${persistedStreak} ${t("day_streak")}`
         : persistedSessionStarts > 0
-          ? "Active today"
-          : "Start today"
+          ? t("active_now")
+          : t("start_today")
       : weeklyActivityLabel;
   const engagementValueLabel = persistedSummary
     ? `${persistedTotalXp} XP`
@@ -700,29 +707,29 @@ export default function StudyPage() {
     ? `${persistedProgressXp} / ${persistedNextLevelXp} XP`
     : missionProgressLabel;
   const momentumHeadline = activeSession
-    ? "Resume your active block to keep momentum."
+    ? t("resume_active_block_momentum")
     : weeklyAnswered === 0
-      ? "Start one focused block to open your weekly momentum."
+      ? t("weekly_momentum_desc")
       : nextLevelRemaining === 0
-        ? "Block complete. Start another block to extend momentum."
-        : `${nextLevelRemaining} questions to next level.`;
+        ? t("block_complete_extend")
+        : `${nextLevelRemaining} ${t("questions_to_next_level")}`;
   const momentumActionLabel = activeSession
-    ? `Resume ${modeLabel(activeSession.mode)}`
+    ? `${t("resume_mode")} ${modeLabel(activeSession.mode)}`
     : weeklyAnswered === 0
-      ? "Start now"
+      ? t("start_now")
       : nextLevelRemaining === 0
-        ? "Next block"
-        : "Continue";
+        ? t("next_block")
+        : t("continue_mode");
   const reviewQueueLabel =
     stats && stats.overall.flagged > 0
-      ? `${stats.overall.flagged} flagged`
-      : "Clear";
+      ? `${stats.overall.flagged} ${t("flags")}`
+      : t("clear_queue");
   const reviewActionLabel =
-    stats && stats.overall.flagged > 0 ? "Review flags" : "Open progress";
+    stats && stats.overall.flagged > 0 ? t("review_flags") : t("open_progress_action");
   const reviewActionHint =
     stats && stats.overall.flagged > 0
-      ? "Use Progress to prioritize flagged questions."
-      : "Track accuracy, timing, and completed sessions.";
+      ? t("prioritize_flagged_hint")
+      : t("review_action_hint");
 
   return (
     <main

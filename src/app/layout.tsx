@@ -22,9 +22,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Providers from "./providers";
 import NavigationHeader from "@/components/NavigationHeader";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "HelpUS Â· USMLE Platform",
+  title: "HelpUS · USMLE Platform",
   description: "USMLE-style practice platform",
 };
 
@@ -115,29 +116,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             {children}
           </main>
 
-          <footer
-            style={{
-              marginTop: 40,
-              padding: 20,
-              textAlign: "center",
-              fontSize: 12,
-              color: "#6b7280",
-            }}
-          >
-            <a
-              href={HELPUS_SITE_URL}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                color: "inherit",
-                textDecoration: "none",
-                fontWeight: 700,
-              }}
-            >
-              Â© {new Date().getFullYear()} HelpUS
-            </a>{" "}
-            Â· Built for medical learning
-          </footer>
+          <Footer />
         </Providers>
       </body>
     </html>

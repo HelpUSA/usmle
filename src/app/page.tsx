@@ -396,9 +396,9 @@ export default function HomePage() {
   }
 
   const userLabel = isAuthLoading
-    ? "Loading session…"
+    ? "Loading..."
     : session?.user?.email
-    ? `Signed in as ${session.user.email}`
+    ? `${t("signed_in_as")} ${session.user.email}`
     : "Not signed in";
 
   return (
@@ -799,7 +799,7 @@ export default function HomePage() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 900, fontSize: 20 }}>Activity</div>
+                  <div style={{ fontWeight: 900, fontSize: 20 }}>{t("activity")}</div>
 
                   <div
                     style={{
@@ -808,7 +808,7 @@ export default function HomePage() {
                       color: "#6b7280",
                     }}
                   >
-                    Last 14 days
+                    {t("last_14_days")}
                   </div>
                 </div>
 
@@ -823,7 +823,7 @@ export default function HomePage() {
                     fontWeight: 800,
                   }}
                 >
-                  Peak: {peakDay.label} ({peakDay.count})
+                  {t("peak_label")} {peakDay.label} ({peakDay.count})
                 </div>
               </div>
 
@@ -939,7 +939,7 @@ export default function HomePage() {
               >
                 <div>
                   <div style={{ fontWeight: 900, fontSize: 20 }}>
-                    Mode mix
+                    {t("mode_mix")}
                   </div>
 
                   <div
@@ -949,7 +949,7 @@ export default function HomePage() {
                       color: "#6b7280",
                     }}
                   >
-                    How you study
+                    {t("how_you_study")}
                   </div>
                 </div>
 
@@ -1025,24 +1025,24 @@ export default function HomePage() {
                       fontSize="11"
                       fill="#6b7280"
                     >
-                      sessions
+                      {t("sessions_label")}
                     </text>
                   </svg>
 
                   <div style={{ display: "grid", gap: 10, minWidth: 170 }}>
                     {[
                       {
-                        label: "Practice",
+                        label: t("practice_title"),
                         value: practiceSessions,
                         color: modeColors[0],
                       },
                       {
-                        label: "Timed block",
+                        label: t("timed_blocks_title"),
                         value: timedBlockSessions,
                         color: modeColors[1],
                       },
                       {
-                        label: "Exam sim",
+                        label: t("simulation_title"),
                         value: examSimSessions,
                         color: modeColors[2],
                       },
@@ -1099,7 +1099,7 @@ export default function HomePage() {
               >
                 <div>
                   <div style={{ fontWeight: 900, fontSize: 20 }}>
-                    Status mix
+                    {t("status_mix")}
                   </div>
 
                   <div
@@ -1109,7 +1109,7 @@ export default function HomePage() {
                       color: "#6b7280",
                     }}
                   >
-                    Completion profile
+                    {t("completion_profile")}
                   </div>
                 </div>
 
@@ -1185,24 +1185,24 @@ export default function HomePage() {
                       fontSize="11"
                       fill="#6b7280"
                     >
-                      done
+                      {t("done_label")}
                     </text>
                   </svg>
 
                   <div style={{ display: "grid", gap: 10, minWidth: 170 }}>
                     {[
                       {
-                        label: "Completed",
+                        label: t("completed_stat"),
                         value: completedSessions,
                         color: statusColors[0],
                       },
                       {
-                        label: "Open",
+                        label: t("in_progress_stat"),
                         value: inProgressSessions,
                         color: statusColors[1],
                       },
                       {
-                        label: "Abandoned",
+                        label: t("abandoned_stat"),
                         value: abandonedSessions,
                         color: statusColors[2],
                       },
@@ -1266,7 +1266,7 @@ export default function HomePage() {
                 gap: 14,
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 20 }}>Study hub</div>
+              <div style={{ fontWeight: 900, fontSize: 20 }}>{t("study_hub")}</div>
 
               <div
                 style={{
@@ -1281,10 +1281,10 @@ export default function HomePage() {
                 }}
               >
                 {loadingSessions
-                  ? "Loading your current study status…"
+                  ? "Loading..."
                   : activeSession
                   ? "You have an open session waiting for you. Go to Study to resume it or start a new one."
-                  : "Go to Study to start Practice, Timed block, or Partial simulation."}
+                  : t("study_hub_desc")}
               </div>
 
               <button
@@ -1300,7 +1300,7 @@ export default function HomePage() {
                   fontWeight: 900,
                 }}
               >
-                Open Study
+                {t("open_study")}
               </button>
             </div>
 

@@ -49,7 +49,7 @@ export default function FlashcardsSessionPage() {
       const data = await apiFetch<DueResponse>('/api/flashcards/due?deck=' + DECK_SLUG + '&limit=10');
       setCards(data.cards);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to load flashcards');
+      setError(err instanceof Error ? err.message : t("unable_load_flashcards"));
       setCards([]);
     } finally {
       setLoading(false);
@@ -102,7 +102,7 @@ export default function FlashcardsSessionPage() {
       {done ? (
         <section style={summary}>
           <h2 style={summaryTitle}>{t("session_complete")}</h2>
-          <p style={muted}>Starter UI scaffold completed.</p>
+          <p style={muted}>{t("starter_ui_scaffold")}</p>
           <div style={ratingGrid}>{(Object.keys(ratingCopy) as Rating[]).map((r) => <div key={r} style={ratingSummary}><strong>{counts[r]}</strong><span>{ratingCopy[r][0]}</span></div>)}</div>
           <button onClick={restart} style={primaryButton}>{t("restart_session")}</button>
         </section>
@@ -110,7 +110,7 @@ export default function FlashcardsSessionPage() {
         <>
           <button type='button' onClick={() => setRevealed(true)} style={flashcard}>
             <div style={tag}>{card.tag}</div>
-            <div style={label}>{revealed ? t("Answer") || 'Answer' : t("Question") || 'Question'}</div>
+            <div style={label}>{revealed ? t("answer_label") : t("question_label")}</div>
             <div style={prompt}>{revealed ? card.answer : card.front}</div>
             {revealed ? <div style={answer}><p>{card.explanation}</p><p><strong>{t("clinical_pearl")}</strong> {card.pearl}</p></div> : <div style={hint}>{t("tap_to_reveal")}</div>}
           </button>

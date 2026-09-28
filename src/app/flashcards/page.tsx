@@ -55,6 +55,14 @@ const DEFAULT_DECKS: FlashcardDeckSummary[] = [
   },
 ];
 
+const DECK_TRANSLATIONS: Record<string, { titleKey: string; descKey: string }> = {
+  "usmle-starter-rapid-recall": { titleKey: "deck_starter_title", descKey: "deck_starter_desc" },
+  "cardiology-high-yield": { titleKey: "deck_cardio_title", descKey: "deck_cardio_desc" },
+  "pharmacology-antidotes": { titleKey: "deck_pharm_title", descKey: "deck_pharm_desc" },
+  "nutrition-science-2026": { titleKey: "deck_nutrition_title", descKey: "deck_nutrition_desc" },
+  "endocrine-metabolism": { titleKey: "deck_endocrine_title", descKey: "deck_endocrine_desc" },
+};
+
 export default function FlashcardsPage() {
   const { t } = useLanguage();
   const [decks, setDecks] = useState<FlashcardDeckSummary[]>(DEFAULT_DECKS);
@@ -123,23 +131,29 @@ export default function FlashcardsPage() {
       </h2>
 
       <section style={grid}>
-        {filteredDecks.map((deck) => (
-          <article key={deck.slug} style={card}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-              <span style={deckExamTag}>{deck.exam.toUpperCase()}</span>
-              <span style={deckCardBadge}>{deck.active_cards} {t("cards_count")}</span>
-            </div>
-            <h3 style={cardTitle}>{deck.title}</h3>
-            <p style={cardText}>{deck.description}</p>
+        {filteredDecks.map((deck) => {
+          const transKeys = DECK_TRANSLATIONS[deck.slug];
+          const displayTitle = transKeys ? t(transKeys.titleKey) : deck.title;
+          const displayDesc = transKeys ? t(transKeys.descKey) : deck.description;
 
-            <Link
-              href={`/flashcards/session?deck=${deck.slug}`}
-              style={deckStartBtn}
-            >
-              {t("start_deck")}
-            </Link>
-          </article>
-        ))}
+          return (
+            <article key={deck.slug} style={card}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <span style={deckExamTag}>{deck.exam.toUpperCase()}</span>
+                <span style={deckCardBadge}>{deck.active_cards} {t("cards_count")}</span>
+              </div>
+              <h3 style={cardTitle}>{displayTitle}</h3>
+              <p style={cardText}>{displayDesc}</p>
+
+              <Link
+                href={`/flashcards/session?deck=${deck.slug}`}
+                style={deckStartBtn}
+              >
+                {t("start_deck")}
+              </Link>
+            </article>
+          );
+        })}
       </section>
     </main>
   );

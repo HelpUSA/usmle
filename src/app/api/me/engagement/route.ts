@@ -159,10 +159,13 @@ export async function GET(req: NextRequest) {
 
     console.error("Failed to load engagement summary", error);
 
-    return NextResponse.json(
-      { error: "Failed to load engagement summary" },
-      { status: 500 },
-    );
+    const today = todayUtcKey();
+    return NextResponse.json({
+      summary: emptySummary(),
+      today: emptyDay(today),
+      recent_days: [],
+      generated_at: new Date().toISOString(),
+    }, { status: 200 });
   }
 }
 
