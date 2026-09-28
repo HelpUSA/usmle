@@ -26,3 +26,43 @@ This scaffold is intentionally UI-first. It does not yet persist deck data, due 
 - git diff --check
 - npm run lint -- --quiet
 - npm run build
+
+## 2026-05-20 - API-backed Flashcards MVP update
+
+Completed in this update:
+- Added additive migration db/migrations/20260519_001_flashcards_min.sql for flashcard_decks, flashcard_cards, user_flashcard_states, and flashcard_reviews.
+- Applied the migration against the configured PostgreSQL database; verification returned DECKS=1 and CARDS=4 for the starter deck.
+- Added src/lib/flashcards.ts with deck listing, due-card loading, review recording, and first-pass due scheduling helpers.
+- Added API routes: GET /api/flashcards/decks, GET /api/flashcards/due, and POST /api/flashcards/review.
+- Updated src/app/flashcards/session/page.tsx to load due cards from the API and persist Again/Hard/Good/Easy ratings through the review endpoint.
+
+Validation completed:
+- git diff --check: OK
+- npx.cmd tsc --noEmit --pretty false: OK
+- npm.cmd run lint -- --quiet: OK
+- npm.cmd run build: OK
+
+Known follow-ups:
+- Add route-level tests for flashcards decks/due/review.
+- Add authenticated browser smoke test for a full reveal-and-rate flow.
+- Expand starter deck content after the MVP persistence path is verified in production.
+
+## 2026-05-20 - API-backed Flashcards MVP update
+
+Completed in this update:
+- Added additive migration db/migrations/20260519_001_flashcards_min.sql for flashcard_decks, flashcard_cards, user_flashcard_states, and flashcard_reviews.
+- Applied the migration against the configured PostgreSQL database; verification returned DECKS=1 and CARDS=4 for the starter deck.
+- Added src/lib/flashcards.ts with deck listing, due-card loading, review recording, and first-pass due scheduling helpers.
+- Added API routes: GET /api/flashcards/decks, GET /api/flashcards/due, and POST /api/flashcards/review.
+- Updated src/app/flashcards/session/page.tsx to load due cards from the API and persist Again/Hard/Good/Easy ratings through the review endpoint.
+
+Validation completed:
+- git diff --check: OK
+- npx.cmd tsc --noEmit --pretty false: OK
+- npm.cmd run lint -- --quiet: OK
+- npm.cmd run build: OK
+
+Known follow-ups:
+- Add route-level tests for flashcards decks/due/review.
+- Add authenticated browser smoke test for a full reveal-and-rate flow.
+- Expand starter deck content after the MVP persistence path is verified in production.

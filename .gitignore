@@ -10,3 +10,4 @@ temp/
 *.bak_*
 *.err.log
 *.log
+.vercel

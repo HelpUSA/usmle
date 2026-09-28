@@ -9,16 +9,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import Link from 'next/link';
+import { apiFetch } from '@/lib/apiClient';
 
 type Rating = 'again' | 'hard' | 'good' | 'easy';
-type Flashcard = { id: string; tag: string; front: string; answer: string; explanation: string; pearl: string };
+type Flashcard = { id: string; tag: string; front: string; answer: string; explanation: string; pearl: string; review_count?: number; due_at?: string };
+type DueResponse = { cards: Flashcard[] };
+type ReviewResponse = { review: { card_id: string; rating: Rating; review_count: number; next_due_at: string } };
 
-const cards: Flashcard[] = [
- { id: 'acetaminophen', tag: 'Pharmacology', front: 'The antidote for acetaminophen overdose is [...].', answer: 'N-acetylcysteine', explanation: 'Replenishes glutathione and helps prevent hepatic injury.', pearl: 'Treat early when overdose is suspected.' },
- { id: 'aortic-stenosis', tag: 'Cardiology', front: 'Aortic stenosis classically radiates to the [...].', answer: 'carotids', explanation: 'The systolic crescendo-decrescendo murmur commonly radiates to the carotid arteries.', pearl: 'Syncope, angina, and dyspnea are late warning symptoms.' },
- { id: 'pheochromocytoma', tag: 'Endocrine', front: 'Episodic headache, sweating, palpitations, and hypertension suggest [...].', answer: 'pheochromocytoma', explanation: 'Catecholamine secretion can cause paroxysmal adrenergic symptoms.', pearl: 'Alpha blockade comes before beta blockade.' },
- { id: 'glycogen', tag: 'Biochemistry', front: 'Glycogen phosphorylase is positively regulated by [...].', answer: 'AMP', explanation: 'AMP signals low energy and stimulates glycogen breakdown.', pearl: 'ATP and glucose-6-phosphate oppose breakdown.' },
-];
+const DECK_SLUG = 'usmle-starter-rapid-recall';
 
 const ratingCopy: Record<Rating, [string, string]> = { again: ['Again', '<20 min'], hard: ['Hard', '+1 day'], good: ['Good', '+3 days'], easy: ['Easy', '+7 days'] };
 
@@ -26,10 +24,36 @@ export default function FlashcardsSessionPage() {
  const [index, setIndex] = useState(0);
  const [revealed, setRevealed] = useState(false);
  const [ratings, setRatings] = useState<Rating[]>([]);
+ const [cards, setCards] = useState<Flashcard[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [error, setError] = useState<string | null>(null);
+ const [rating, setRating] = useState(false);
  const card = cards[index];
  const done = ratings.length >= cards.length;
- const pct = Math.round((ratings.length / cards.length) * 100);
+ const pct = cards.length > 0 ? Math.round((ratings.length / cards.length) * 100) : 0;
  const counts = useMemo(() => ratings.reduce<Record<Rating, number>>((a, r) => ({ ...a, [r]: a[r] + 1 }), { again: 0, hard: 0, good: 0, easy: 0 }), [ratings]);
+
+
+ async function loadCards() {
+ setLoading(true);
+ setError(null);
+ setRevealed(false);
+ setIndex(0);
+ setRatings([]);
+ try {
+ const data = await apiFetch<DueResponse>('/api/flashcards/due?deck=' + DECK_SLUG + '&limit=10');
+ setCards(data.cards);
+ } catch (err) {
+ setError(err instanceof Error ? err.message : 'Unable to load flashcards');
+ setCards([]);
+ } finally {
+ setLoading(false);
+ }
+ }
+
+ useEffect(() => {
+ void loadCards();
+ }, []);
 
  useEffect(() => {
  function onKey(event: KeyboardEvent) {
@@ -39,15 +63,25 @@ export default function FlashcardsSessionPage() {
  return () => window.removeEventListener('keydown', onKey);
  }, [done]);
 
- function rate(rating: Rating) {
- if (!revealed) return;
- setRatings((current) => [...current, rating]);
+ async function rate(nextRating: Rating) {
+ if (!revealed || !card || rating) return;
+ setRating(true);
+ try {
+ await apiFetch<ReviewResponse>('/api/flashcards/review', { method: 'POST', body: JSON.stringify({ cardId: card.id, rating: nextRating }) });
+ setRatings((current) => [...current, nextRating]);
  setRevealed(false);
  setIndex((current) => Math.min(current + 1, cards.length));
+ } catch (err) {
+ setError(err instanceof Error ? err.message : 'Unable to record flashcard review');
+ } finally {
+ setRating(false);
  }
 
- function restart() { setIndex(0); setRevealed(false); setRatings([]); }
+ }
 
+ function restart() {
+ void loadCards();
+ }
  return (
  <main style={page}>
  <header style={header}>
